@@ -7,7 +7,7 @@ Hiện dự án có cấu hình khởi động, migration tạo schema, dữ li�
 ## Yêu cầu
 
 - JDK 25, cấu hình `JAVA_HOME` trỏ tới JDK.
-- PostgreSQL đang chạy và tài khoản có quyền tạo bảng trong database đích.
+- PostgreSQL 15 trở lên đang chạy và tài khoản có quyền tạo bảng, function và trigger trong database đích. V4 sử dụng cú pháp `ON DELETE SET NULL` cho một cột cụ thể của khóa ngoại ghép.
 - Kết nối mạng trong lần build đầu để Maven Wrapper tải Maven và các dependency. Không cần cài Maven riêng.
 
 Các lệnh bên dưới dùng PowerShell trên Windows. **Chạy từ thư mục `backend/`** vì ứng dụng đọc `.env` theo thư mục làm việc hiện tại.
@@ -74,6 +74,21 @@ Khi khởi động với database rỗng, Flyway áp dụng các migration trong
 
 - `V1__create_user_tables.sql`: tạo `Users`, `Roles`, `UserRoles`, `UserIdentities`, `RefreshTokens`, `VerificationCodes` cùng các ràng buộc và index.
 - `V2__seed_roles.sql`: thêm các role `READER`, `LIBRARIAN`, `ADMIN`.
+- `V3__normalize_and_validate_user_fields.sql`: chuẩn hóa username/email hiện có thành chữ thường, tên role và provider thành chữ hoa (ví dụ `GOOGLE`), đồng thời bỏ khoảng trắng hai đầu. Các trường này không được rỗng, chứa khoảng trắng hoặc ký tự điều khiển; email trong `VerificationCodes` áp dụng cùng quy tắc. Username không được chứa `@` để phân biệt với email trong ô đăng nhập chung. Họ tên không được rỗng, có khoảng trắng hai đầu hoặc chứa ký tự điều khiển như tab/xuống dòng; vẫn cho phép dấu cách giữa các từ. `ProviderUserId`, `CodeHash` và `PasswordHash` khi khác `NULL` phải có ký tự không phải khoảng trắng, được giữ nguyên nội dung.
+- `V4__enforce_refresh_token_integrity.sql`: chặn hash token rỗng hoặc chỉ chứa khoảng trắng; token thay thế phải cùng người dùng, có `Id` lớn hơn token cũ và chỉ thay thế tối đa một token cũ. Token đã được thay thế phải có thời điểm thu hồi. Xóa token thay thế chỉ bỏ liên kết, giữ nguyên người sở hữu token cũ.
+- `V5__auto_update_users_updated_at.sql`: `RevokedAt` và `UsedAt`, khi có giá trị, không được trước `CreatedAt` tương ứng. Trigger cập nhật `Users.UpdatedAt` theo thời điểm bắt đầu câu lệnh khi các cột khác thực sự thay đổi. Cập nhật không đổi dữ liệu hoặc chỉ gán `UpdatedAt` sẽ giữ timestamp cũ.
+
+Với database đã chạy V1/V2, Flyway chỉ áp dụng tiếp V3–V5. V3 sẽ thất bại nếu dữ liệu hiện có bị trùng sau chuẩn hóa hoặc không đáp ứng ràng buộc; migration không tự xóa hay gộp tài khoản.
+
+Sau V3, backend cần chuẩn hóa username/email thành chữ thường, tên role và provider thành chữ hoa trước khi lưu và tra cứu; provider Google dùng giá trị `GOOGLE`. Database từ chối giá trị chưa đúng dạng chuẩn. Quy tắc khoảng trắng và ký tự điều khiển dùng các lớp POSIX của PostgreSQL, có phân loại Unicode phụ thuộc locale. Kiểm tra định dạng email và chính sách mật khẩu vẫn thuộc backend; migration không sửa hash hoặc `ProviderUserId` và vẫn cho phép `PasswordHash = NULL` cho tài khoản đăng nhập ngoài.
+
+Với ô đăng nhập chung, backend phân loại dữ liệu có `@` là email, còn lại là username, rồi chuẩn hóa và tra cứu theo trường tương ứng. Cần kiểm tra định dạng email ở backend; ràng buộc database hiện tại không thay thế bước này.
+
+Sau V4, backend cần tạo token mới bằng identity tăng dần và cập nhật đồng thời `RevokedAt`, `ReplacedByTokenId` của token cũ trong cùng transaction, kèm khóa bản ghi hoặc cập nhật có điều kiện để chống hai yêu cầu đổi cùng một token. Không reset sequence xuống thấp hơn các token hiện có hoặc dùng lại token có `Id` nhỏ hơn làm token thay thế. Điều kiện `Id` tăng dần chặn vòng trong chuỗi mà không cần trigger duyệt đệ quy.
+
+Khi triển khai dọn token, cần giữ token đã thu hồi và các liên kết trong suốt khoảng thời gian hệ thống còn cần phát hiện việc sử dụng lại token cũ. Xóa một token sẽ xóa liên kết tới nó; chỉ dựa vào `ExpiresAt` để xóa ngay có thể làm mất lịch sử rotation cần thiết. Các migration chưa ấn định thời gian lưu giữ vì đây là chính sách của backend.
+
+Sau V5, nếu API cần timestamp mới ngay sau khi cập nhật, ORM cần đọc lại giá trị do database sinh. Việc từ chối sử dụng token/mã đã hết hạn vẫn thuộc backend; token được phép bị thu hồi sau khi đã hết hạn.
 
 Hibernate được cấu hình `ddl-auto: validate`, không tự tạo hoặc cập nhật schema. Khi migration đã được áp dụng ở môi trường dùng chung, hãy thêm migration phiên bản tiếp theo để thay đổi schema, tránh sửa migration cũ.
 
