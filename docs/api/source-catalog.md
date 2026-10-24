@@ -1,6 +1,6 @@
 # Danh mục API từ tài liệu nguồn
 
-**Đọc cùng [bản đồ API hiện hành](README.md).** Đây là dữ liệu nguồn lịch sử, không phải hợp đồng cuối cùng: access token hiện đã chốt 3600 giây thay cho 1800 trong ví dụ; logout và các luồng mật khẩu đã bổ sung session revocation. Khi khác nhau, áp dụng [quyết định đã xác nhận](../confirmed-decisions.md), [yêu cầu](../requirements.md) và [API phiên](sessions.md). Không cần file Excel để đọc các request/response đã trích bên dưới.
+**Tra cứu thiết kế mới nhất tại [16 API hiện hành](current-contract.md) hoặc [bản đồ 20 API](README.md).** Đây là dữ liệu nguồn lịch sử, không phải hợp đồng cuối cùng: access token hiện đã chốt 3600 giây thay cho 1800 trong ví dụ; logout và các luồng mật khẩu đã bổ sung session revocation. Khi khác nhau, áp dụng [quyết định đã xác nhận](../confirmed-decisions.md). Các phần trích từ operation đầu tiên trở xuống được giữ nguyên trong đợt biên tập 2026-10-24. Không cần file Excel để đọc các request/response đã trích bên dưới.
 
 Trạng thái: **thiết kế nguồn, chưa triển khai**. Trích từ `ThietKeApi.xlsx`, `Sheet1`, hàng 2–19; 16 operation, trong đó Google có ba nhánh response. Ví dụ được giữ từ Excel, không suy ra trường bắt buộc, nullable hoặc giới hạn validation chỉ từ ví dụ. Các giá trị token là dữ liệu minh họa.
 

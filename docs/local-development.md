@@ -66,7 +66,7 @@ Từ `backend/`:
 .\mvnw.cmd spring-boot:run
 ```
 
-Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Chưa có API nghiệp vụ để gọi thử. Xem [thiết kế API phiên](api/sessions.md).
+Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Chưa có API nghiệp vụ để gọi thử. Xem [bản đồ API thiết kế](api/README.md).
 
 Flyway tự áp dụng V1–V6; Hibernate dùng `ddl-auto: validate`. **V6 chỉ chạy khi RefreshTokens rỗng**, kể cả không còn token đã hết hạn/thu hồi. Không tự xóa dữ liệu hoặc Flyway history để vượt điều kiện này. Chi tiết schema, constraint và migration nằm trong [mô hình dữ liệu](data-model.md).
 
