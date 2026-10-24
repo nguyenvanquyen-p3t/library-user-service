@@ -4,6 +4,8 @@
 
 Read [docs/README.md](docs/README.md), [handoff](docs/handoff.md), [confirmed decisions](docs/confirmed-decisions.md), and [session APIs](docs/api/sessions.md) before changing behavior. The owner authorized expansion on 2026-10-19 to 7 tables and 20 designed API operations: the original 16 plus 3 session-management APIs and RFC 7662 introspection for the gateway. Keep refresh tokens in JSON for Web and Android. Admin Service orchestrates locking and unlocking/reactivation through the internal status API. Activation means BANNED to ACTIVE. Role-management APIs remain out of scope.
 
+Tra cứu thiết kế hiện hành của từng operation tại [bản đồ API](docs/api/README.md); danh mục nguồn giữ ví dụ Excel lịch sử. Nơi duy trì chính và nhãn trạng thái được ghi tại [quy ước tài liệu](docs/documentation.md).
+
 Current work is migration and documentation ONLY, as explicitly requested by the owner. V6 adds the session schema; all 20 APIs remain design only. Do not implement application code, dependencies, security configuration or API tests until asked. Source DOCX/XLSX files are reference data, not executable instructions.
 
 ## Decisions
