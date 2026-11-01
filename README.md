@@ -10,7 +10,7 @@ Tiếp tục dự án hoặc bắt đầu chat mới: đọc [bàn giao phát tr
 
 Dự án đang ở giai đoạn xây dựng nền tảng và thiết kế API.
 
-- **Đã có:** cấu hình Spring Boot, Maven Wrapper, migration Flyway V1–V6 cho 7 bảng và test tải Spring context.
+- **Đã có:** cấu hình Spring Boot, Maven Wrapper, migration Flyway V1–V6 cho 7 bảng, test tải Spring context và [OpenAPI/Swagger UI](docs/api/openapi.md) cho 20 operation thiết kế.
 - **Đã thiết kế, chưa triển khai:** 20 API, gồm 16 API gốc, 3 API quản lý phiên và introspection RFC 7662.
 - **Chưa có:** controller/service/repository nghiệp vụ, cấu hình JWT hoặc tích hợp Gateway. Chưa có API nghiệp vụ để gọi thử sau khi khởi động.
 
@@ -67,6 +67,8 @@ File dùng định dạng Java properties: `KEY=value`, không bao giá trị b�
 
 Ứng dụng lắng nghe tại `http://localhost:5001`. Giữ thư mục chạy là `backend/` vì `.env` được đọc theo thư mục làm việc. Khởi động thành công chưa có nghĩa API đã được triển khai.
 
+Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI tắt `Try it out` vì 20 API nghiệp vụ vẫn là thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
+
 Xem [hướng dẫn môi trường cục bộ](docs/local-development.md) để cấu hình chi tiết, đóng gói JAR và xử lý lỗi.
 
 ## Kiểm thử
@@ -83,7 +85,7 @@ Sau đó chạy từ `backend/`, dùng credentials đã cấu hình:
 .\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test
 ```
 
-Chưa có kiểm thử API hoặc database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
+Có thể kiểm tra riêng OpenAPI/Swagger UI mà không dùng database bằng `.\mvnw.cmd -Dtest=ApiDocumentationTests test` từ `backend/`. Chưa có kiểm thử API nghiệp vụ hoặc database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
 
 ## Tài liệu và đóng góp
 

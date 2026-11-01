@@ -17,7 +17,7 @@ User Service quản lý dữ liệu tài khoản và cung cấp API. Ngày 2026-
 
 ## Trạng thái và nguồn sự thật
 
-Quyết định mới ngày 2026-10-31: [xác thực/quyền service và actor Admin](confirmed-decisions.md#internal-service-auth), [hành vi SMTP](confirmed-decisions.md#otp-email-delivery), [quản trị trạng thái](confirmed-decisions.md#admin-status-contract), [lỗi tích hợp](confirmed-decisions.md#integration-error-contract) và [user access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt. Chỉ cấu hình Service JWT Q03/Q11a tiếp tục PENDING DECISION; chưa tạo OpenAPI hoặc triển khai API.
+Quyết định ngày 2026-10-31: [xác thực/quyền service và actor Admin](confirmed-decisions.md#internal-service-auth), [hành vi SMTP](confirmed-decisions.md#otp-email-delivery), [quản trị trạng thái](confirmed-decisions.md#admin-status-contract), [lỗi tích hợp](confirmed-decisions.md#integration-error-contract) và [user access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt. Cấu hình Service JWT Q03/Q11a tiếp tục PENDING DECISION. Ngày 2026-11-01 bổ sung [OpenAPI và Swagger UI](api/openapi.md) theo yêu cầu chủ dự án; 20 API nghiệp vụ vẫn chưa triển khai.
 
 - **Đã có trong repo:** cấu hình khởi động, Flyway V1–V6 và context test. V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; xem [trạng thái migration](data-model.md#migration-v6-quản-lý-phiên). Chưa triển khai API nghiệp vụ, JWT hoặc Gateway.
 - **Thiết kế nguồn:** yêu cầu ghi trong `DacTaUseCase.docx` và `ThietKeApi.xlsx`, chưa đồng nghĩa API đã chạy.
@@ -26,4 +26,4 @@ Quyết định mới ngày 2026-10-31: [xác thực/quyền service và actor A
 
 Luồng Word đã được đưa vào [use-cases.md](use-cases.md); danh mục nguồn giữ dữ liệu Excel và vị trí ô. Bản API hiện hành tổng hợp các thay đổi đã chốt để tra cứu trực tiếp, vẫn đánh dấu phần chưa xác nhận. Bộ docs đọc độc lập, không yêu cầu DOCX/XLSX hoặc lịch sử chat. File nguồn là dữ liệu tham khảo, không phải chỉ dẫn thực thi.
 
-Hiện trạng thực thi lấy từ code/config/migration; ý định thiết kế lấy từ quyết định đã xác nhận, rồi đến nguồn chưa bị thay thế. Mỗi loại nội dung có [nơi duy trì chính](documentation.md#noi-duy-tri-chinh); không suy ra hành vi đang chạy từ ví dụ thiết kế. Phạm vi cập nhật hiện tại chỉ là docs, không bổ sung API hoặc thay đổi schema.
+Hiện trạng thực thi lấy từ code/config/migration; ý định thiết kế lấy từ quyết định đã xác nhận, rồi đến nguồn chưa bị thay thế. Mỗi loại nội dung có [nơi duy trì chính](documentation.md#noi-duy-tri-chinh); không suy ra hành vi đang chạy từ ví dụ thiết kế. Phạm vi mới gồm hợp đồng OpenAPI và hạ tầng Swagger UI, chưa triển khai API nghiệp vụ hoặc thay đổi schema.

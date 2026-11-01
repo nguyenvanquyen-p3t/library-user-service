@@ -22,3 +22,13 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+springdoc:
+  api-docs:
+    version: OPENAPI_3_0
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    supported-submit-methods: []
+    validator-url: ""
+    persist-authorization: false

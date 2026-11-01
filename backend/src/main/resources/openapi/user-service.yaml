@@ -1,0 +1,3485 @@
+# Đặc tả thiết kế; xem docs/api/openapi.md trước khi cập nhật.
+openapi: 3.0.3
+info:
+  title: Library User Service — thiết kế API
+  version: 0.1.0-design
+  description: Đặc tả thiết kế cho 20 operation, chưa triển khai API nghiệp vụ. Swagger UI chỉ dùng đọc tài liệu,
+    tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
+    riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
+    không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
+    duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
+servers:
+- url: /
+  description: Cùng origin với tài liệu; endpoint nghiệp vụ chưa triển khai.
+tags:
+- name: Đăng ký Local
+- name: Xác thực
+- name: Mật khẩu
+- name: Google
+- name: Hồ sơ
+- name: Phiên
+- name: Nội bộ
+paths:
+  /api/v1/auth/register/request-code:
+    post:
+      tags:
+      - Đăng ký Local
+      operationId: requestRegistrationCode
+      summary: Xin OTP đăng ký
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Kiểm tra username/email chưa được sử dụng, cấp OTP REGISTER trước khi có user. Chưa lưu password/dữ liệu đăng ký tạm. OTP gắn email/purpose, không gắn username; xem OTP REGISTER.
+
+        commit hash OTP mới và vô hiệu mã cũ trước khi gửi SMTP đồng bộ. SMTP lỗi/timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã vẫn tính giới hạn, không phục hồi mã cũ hoặc tự cấp mã retry. Chi tiết tại Q06.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#register-request-code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCodeRequest'
+            example:
+              userName: reader01
+              email: reader@example.com
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestRegistrationCodeResponse'
+              examples:
+                REGISTER_CODE_SENT:
+                  value:
+                    success: true
+                    messageCode: REGISTER_CODE_SENT
+                    message: Mã xác minh đã được gửi đến email
+                    data:
+                      expiresIn: 600
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/RequestRegistrationCodeError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/OtpRateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Đăng ký Local
+      operationId: registerLocalUser
+      summary: Hoàn tất đăng ký Local
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Xác minh OTP trước khi tạo user ACTIVE, hash password, gán READER và dùng mã một lần cùng transaction. Không cấp token hoặc tạo phiên; đăng nhập riêng. Xem vòng đời tài khoản và OTP/mật khẩu.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              userName: reader01
+              email: reader@example.com
+              password: Abc@123456
+              fullName: Nguyen Van A
+              phoneNumber: 0901234567
+              verificationCode: '583921'
+      responses:
+        '201':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterLocalUserResponse'
+              examples:
+                REGISTER_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: REGISTER_SUCCESS
+                    message: Đăng ký tài khoản thành công
+                    data:
+                      id: 3
+                      userName: reader01
+                      email: reader@example.com
+                      fullName: Nguyen Van A
+                      phoneNumber: 0901234567
+                      status: ACTIVE
+                      roles:
+                      - READER
+                      hasPassword: true
+                      linkedProviders: []
+        '400':
+          $ref: '#/components/responses/RegisterLocalUserError400'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/RequestRegistrationCodeError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Xác thực
+      operationId: login
+      summary: Đăng nhập Local
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        User ACTIVE có password đúng mới được đăng nhập. Tạo session/refresh token, JWT RS256 chứa sub/sid; chỉ trả token sau commit. Chưa có password thì Google và UC09. Xem token và TTL.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              identifier: reader@example.com
+              password: Abc@123456
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                LOGIN_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: LOGIN_SUCCESS
+                    message: Đăng nhập thành công
+                    data:
+                      accessToken: eyJhbGciOi...
+                      refreshToken: d8K3mP7q...
+                      tokenType: Bearer
+                      expiresIn: 3600
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '401':
+          $ref: '#/components/responses/LoginError401'
+        '403':
+          $ref: '#/components/responses/LoginError403'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/LoginError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - Xác thực
+      operationId: refreshTokens
+      summary: Rotation refresh token
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Kiểm tra token, user ACTIVE và session còn hiệu lực. Rotation một lần, giữ sid, không gia hạn session. Reuse chỉ bị từ chối, không thu hồi session/token thay thế vì sự kiện này. Session hết hạn thì từ chối dù token còn hạn; xem reuse và TTL.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#refresh
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+            example:
+              refreshToken: d8K3mP7q...
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokensResponse'
+              examples:
+                TOKEN_REFRESH_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: TOKEN_REFRESH_SUCCESS
+                    message: Làm mới token thành công
+                    data:
+                      accessToken: new-access-token...
+                      refreshToken: new-refresh-token...
+                      tokenType: Bearer
+                      expiresIn: 3600
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '401':
+          $ref: '#/components/responses/RefreshTokensError401'
+        '403':
+          $ref: '#/components/responses/LoginError403'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - Xác thực
+      operationId: logout
+      summary: Đăng xuất phiên hiện tại bằng refresh token
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Thu hồi đúng session/token liên quan; session đã hết hạn/thu hồi trả thành công, giữ thời điểm/lý do cũ. Token không tìm thấy chỉ bảo đảm đăng xuất client; database lỗi không báo thu hồi server thành công. Client xóa token. Xem UC04; LOGOUT_SUCCESS bên dưới không chứng minh server vừa thu hồi được session.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#logout
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+            example:
+              refreshToken: d8K3mP7q...
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+              examples:
+                LOGOUT_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: LOGOUT_SUCCESS
+                    message: Đăng xuất thành công
+                    data: null
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/forgot-password/request-code:
+    post:
+      tags:
+      - Mật khẩu
+      operationId: requestPasswordResetCode
+      summary: Xin OTP quên mật khẩu
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Cấp OTP PASSWORD_RESET, email không tồn tại nhận thông báo chung. Chưa có password thì Google và UC09. Xem OTP/mật khẩu và UC05.
+
+        gửi SMTP đồng bộ sau commit OTP. Bước gửi SMTP lỗi/timeout vẫn trả 200 PASSWORD_RESET_CODE_SENT với kết quả chung, ghi lỗi vận hành nội bộ; không che lỗi database thành thành công. Lần cấp mã đã commit vẫn tính giới hạn gửi, không tự cấp lại. Chi tiết tại Q06.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#forgot-password-request-code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordCodeRequest'
+            example:
+              email: reader@example.com
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestPasswordResetCodeResponse'
+              examples:
+                PASSWORD_RESET_CODE_SENT:
+                  value:
+                    success: true
+                    messageCode: PASSWORD_RESET_CODE_SENT
+                    message: Nếu email tồn tại trong hệ thống, mã xác minh sẽ được gửi
+                    data:
+                      expiresIn: 600
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/LoginError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/OtpRateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/reset-password:
+    post:
+      tags:
+      - Mật khẩu
+      operationId: resetPassword
+      summary: Đặt lại mật khẩu bằng OTP
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Theo Q13 chốt ngày 2026-10-25, gửi email, OTP, mật khẩu mới và xác nhận trong cùng request hoàn tất; server xác minh OTP và kiểm tra mật khẩu trước khi lưu, không có API xác minh riêng hoặc ticket. Cập nhật PasswordHash, dùng mã một lần và thu hồi mọi phiên/refresh token cùng transaction; không mở khóa BANNED. Chưa có password thì Google/UC09. Xem UC05.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#reset-password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+            example:
+              email: reader@example.com
+              verificationCode: '628351'
+              newPassword: New@123456
+              confirmPassword: New@123456
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+              examples:
+                PASSWORD_RESET_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: PASSWORD_RESET_SUCCESS
+                    message: Đặt lại mật khẩu thành công
+                    data: null
+        '400':
+          $ref: '#/components/responses/RegisterLocalUserError400'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/LoginError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/users/me:
+    get:
+      tags:
+      - Hồ sơ
+      operationId: getMyProfile
+      summary: Xem hồ sơ của mình
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Chỉ trả hồ sơ người gọi, không nhận userId tùy ý, không trả hash/secret. Chỉ xem không thay đổi hồ sơ. Xem UC06.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#profile-get
+      security:
+      - UserAccessToken: []
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMyProfileResponse'
+              examples:
+                PROFILE_GET_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: PROFILE_GET_SUCCESS
+                    message: Lấy thông tin cá nhân thành công
+                    data:
+                      id: 3
+                      userName: reader01
+                      email: reader@example.com
+                      fullName: Nguyen Van A
+                      phoneNumber: 0901234567
+                      status: ACTIVE
+                      roles:
+                      - READER
+                      hasPassword: true
+                      linkedProviders:
+                      - GOOGLE
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    patch:
+      tags:
+      - Hồ sơ
+      operationId: updateMyProfile
+      summary: Cập nhật hồ sơ của mình
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Chỉ sửa fullName/phoneNumber của mình, không sửa roles/status/password/username/email. Theo PATCH đã chốt, bỏ qua trường để giữ nguyên; fullName không null/trắng, phoneNumber null để xóa, chuỗi rỗng bị từ chối; không nhận body rỗng hoặc trường ngoài danh sách. Trigger cập nhật Users.UpdatedAt khi dữ liệu thực sự đổi; xem schema.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#profile-update
+      security:
+      - UserAccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfilePatchRequest'
+            example:
+              fullName: Nguyen Van B
+              phoneNumber: 0987654321
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMyProfileResponse'
+              examples:
+                PROFILE_UPDATE_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: PROFILE_UPDATE_SUCCESS
+                    message: Cập nhật thông tin cá nhân thành công
+                    data:
+                      id: 3
+                      userName: reader01
+                      email: reader@example.com
+                      fullName: Nguyen Van B
+                      phoneNumber: 0987654321
+                      status: ACTIVE
+                      roles:
+                      - READER
+                      hasPassword: true
+                      linkedProviders:
+                      - GOOGLE
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/users/me/password:
+    put:
+      tags:
+      - Mật khẩu
+      operationId: changePassword
+      summary: Đổi mật khẩu và thu hồi mọi phiên
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Đổi PasswordHash và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction. Giữ identity Google; client xóa token và đăng nhập lại. Chưa có password thì UC09. Xem UC07.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#password-change
+      security:
+      - UserAccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+            example:
+              currentPassword: Abc@123456
+              newPassword: New@123456
+              confirmPassword: New@123456
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePasswordResponse'
+              examples:
+                PASSWORD_CHANGE_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: PASSWORD_CHANGE_SUCCESS
+                    message: Đổi mật khẩu thành công. Vui lòng đăng nhập lại
+                    data: null
+        '400':
+          $ref: '#/components/responses/ChangePasswordError400'
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/LoginError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/google:
+    post:
+      tags:
+      - Google
+      operationId: authenticateWithGoogle
+      summary: Đăng nhập hoặc bắt đầu đăng ký Google
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Ba nhánh: identity đã có thì đăng nhập; chưa có identity nhưng email Google đã xác minh trùng Local thì tự liên kết không hỏi mật khẩu Local; người mới nhận registrationToken 10 phút, chưa có phiên. Chỉ user ACTIVE được cấp session/token. Tự liên kết không tạo user hoặc đổi role/password. Xem Google và registrationToken.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#google
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleRequest'
+            example:
+              idToken: eyJhbGciOiJSUzI1NiIs...
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/GoogleLoginResponse'
+                - $ref: '#/components/schemas/GoogleLinkedResponse'
+                - $ref: '#/components/schemas/GoogleRegistrationRequiredResponse'
+              examples:
+                GOOGLE_LOGIN_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: GOOGLE_LOGIN_SUCCESS
+                    message: Đăng nhập bằng Google thành công
+                    data:
+                      accessToken: eyJhbGciOi...
+                      refreshToken: d8K3mP7q...
+                      tokenType: Bearer
+                      expiresIn: 3600
+                      isNewUser: false
+                      accountLinked: false
+                GOOGLE_ACCOUNT_LINKED:
+                  value:
+                    success: true
+                    messageCode: GOOGLE_ACCOUNT_LINKED
+                    message: Tài khoản Google đã được liên kết và đăng nhập thành công
+                    data:
+                      accessToken: eyJhbGciOi...
+                      refreshToken: d8K3mP7q...
+                      tokenType: Bearer
+                      expiresIn: 3600
+                      isNewUser: false
+                      accountLinked: true
+                GOOGLE_REGISTRATION_REQUIRED:
+                  value:
+                    success: true
+                    messageCode: GOOGLE_REGISTRATION_REQUIRED
+                    message: Vui lòng hoàn tất thông tin tài khoản
+                    data:
+                      email: reader@example.com
+                      fullName: Nguyen Van A
+                      suggestedUserName: nguyenvana
+                      registrationToken: short-lived-token...
+                      isNewUser: true
+                      accountLinked: false
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '401':
+          $ref: '#/components/responses/AuthenticateWithGoogleError401'
+        '403':
+          $ref: '#/components/responses/LoginError403'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/auth/google/register:
+    post:
+      tags:
+      - Google
+      operationId: completeGoogleRegistration
+      summary: Hoàn tất đăng ký Google
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Tạo user ACTIVE với PasswordHash NULL, identity GOOGLE, READER, session/refresh token cùng transaction. Identity đã có thì từ chối, không cấp session/token; UNIQUE xung đột rollback toàn bộ. Đã commit mất response thì đăng nhập Google. Không gia hạn token khi sửa dữ liệu; không bảo đảm dùng một lần tuyệt đối. Xem chống lặp.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#google-register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleRegisterRequest'
+            example:
+              registrationToken: short-lived-token...
+              userName: reader01
+              fullName: Nguyen Van A
+              phoneNumber: 0901234567
+      responses:
+        '201':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteGoogleRegistrationResponse'
+              examples:
+                GOOGLE_REGISTER_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: GOOGLE_REGISTER_SUCCESS
+                    message: Đăng ký bằng Google thành công
+                    data:
+                      user:
+                        id: 10
+                        userName: reader01
+                        email: reader@example.com
+                        fullName: Nguyen Van A
+                        phoneNumber: 0901234567
+                        status: ACTIVE
+                        roles:
+                        - READER
+                        hasPassword: false
+                        linkedProviders:
+                        - GOOGLE
+                      token:
+                        accessToken: eyJhbGciOi...
+                        refreshToken: d8K3mP7q...
+                        tokenType: Bearer
+                        expiresIn: 3600
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '401':
+          $ref: '#/components/responses/CompleteGoogleRegistrationError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/CompleteGoogleRegistrationError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/users/me/password/request-code:
+    post:
+      tags:
+      - Mật khẩu
+      operationId: requestFirstPasswordCode
+      summary: Xin OTP thiết lập mật khẩu lần đầu
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Gửi OTP SET_PASSWORD cho email của chính mình; không nhận email tài khoản khác. Đã có password thì UC07. Xem UC09.
+
+        gửi SMTP đồng bộ sau commit OTP. SMTP lỗi/timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã đã commit vẫn tính giới hạn gửi, không phục hồi mã cũ hoặc tự cấp mã retry. Chi tiết tại Q06.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#password-request-code
+      security:
+      - UserAccessToken: []
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestFirstPasswordCodeResponse'
+              examples:
+                SET_PASSWORD_CODE_SENT:
+                  value:
+                    success: true
+                    messageCode: SET_PASSWORD_CODE_SENT
+                    message: Mã xác minh đã được gửi đến email
+                    data:
+                      expiresIn: 600
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/RequestFirstPasswordCodeError409'
+        '429':
+          $ref: '#/components/responses/OtpRateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/users/me/password/set:
+    post:
+      tags:
+      - Mật khẩu
+      operationId: setFirstPassword
+      summary: Thiết lập mật khẩu lần đầu và thu hồi mọi phiên
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Theo Q13 chốt ngày 2026-10-25, gửi OTP, mật khẩu mới và xác nhận trong cùng request hoàn tất có xác thực; email lấy từ tài khoản đang xác thực. Server xác minh OTP và kiểm tra mật khẩu trước khi lưu, không có API xác minh riêng hoặc ticket. Đặt password, dùng mã một lần và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction; giữ identity Google. Client xóa token, đăng nhập lại bằng Google hoặc Local. Xem UC09.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#password-set
+      security:
+      - UserAccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+            example:
+              verificationCode: '583921'
+              newPassword: New@123456
+              confirmPassword: New@123456
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetFirstPasswordResponse'
+              examples:
+                PASSWORD_SET_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: PASSWORD_SET_SUCCESS
+                    message: Thiết lập mật khẩu thành công. Vui lòng đăng nhập lại
+                    data: null
+        '400':
+          $ref: '#/components/responses/RegisterLocalUserError400'
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/RequestFirstPasswordCodeError409'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/internal/users/{id}:
+    get:
+      tags:
+      - Nội bộ
+      operationId: getInternalUser
+      summary: Tra cứu user cho Borrow/Admin Service
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Trả thông tin cơ bản, kể cả user BANNED để service gọi kiểm tra nghiệp vụ. HTTP 200 không bảo đảm đủ điều kiện mượn. id là User ID kiểu Integer theo nguồn; xem tích hợp Borrow.
+
+        PENDING DECISION Q03: cấu hình Service JWT (thuật toán, issuer/audience/subject, TTL, claim quyền và khóa). Không dùng cấu hình user token thay thế.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#internal-user-get
+      security:
+      - ServiceJwt: []
+      x-required-service-permission: users:read
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetInternalUserResponse'
+              examples:
+                USER_GET_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: USER_GET_SUCCESS
+                    message: Lấy thông tin người dùng thành công
+                    data:
+                      id: 3
+                      userName: reader01
+                      fullName: Nguyen Van A
+                      status: ACTIVE
+                      roles:
+                      - READER
+        '400':
+          $ref: '#/components/responses/GetInternalUserError400'
+        '401':
+          $ref: '#/components/responses/GetInternalUserError401'
+        '403':
+          $ref: '#/components/responses/GetInternalUserError403'
+        '404':
+          $ref: '#/components/responses/GetInternalUserError404'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        description: User ID, integer dương/int32.
+  /api/v1/internal/users/{id}/status:
+    patch:
+      tags:
+      - Nội bộ
+      operationId: updateUserStatus
+      summary: Khóa hoặc mở khóa user qua Admin Service
+      description: |-
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        Chỉ ACTIVE/BANNED. Khóa ghi status và thu hồi mọi phiên/refresh token còn hiệu lực liên quan cùng transaction; mở khóa không phục hồi phiên/token. Introspection từ chối phiên thu hồi ở lần kiểm tra sau commit. Không thêm API kích hoạt/role. id là User ID kiểu Integer theo nguồn; xem vòng đời tài khoản.
+
+        cùng trạng thái vẫn 200 USER_STATUS_UPDATE_SUCCESS, không ghi đè thời điểm/lý do thu hồi cũ. Lệnh cùng user khóa cùng bản ghi và xử lý tuần tự theo database. Cấm khóa đối tượng có ADMIN, kể cả tự khóa, trả 403 ACCESS_DENIED. Timeout cần Admin đọc lại để đối soát, không tự gửi lại lệnh cũ; audit theo Q10.
+
+        PENDING DECISION Q03: cấu hình Service JWT (thuật toán, issuer/audience/subject, TTL, claim quyền và khóa). Không dùng cấu hình user token thay thế.
+
+        X-Admin-Access-Token chứa user access token của actor Admin. Kiểm tra: service → quyền service → actor Admin ACTIVE/phiên hợp lệ/role ADMIN hiện tại từ database → nghiệp vụ. Cấm khóa đối tượng ADMIN, kể cả tự khóa.
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/current-contract.md#internal-user-status
+      security:
+      - ServiceJwt: []
+        AdminAccessToken: []
+      x-required-service-permission: users:status:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserStatusRequest'
+            example:
+              status: BANNED
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserStatusResponse'
+              examples:
+                USER_STATUS_UPDATE_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: USER_STATUS_UPDATE_SUCCESS
+                    message: Cập nhật trạng thái tài khoản thành công
+                    data:
+                      id: 3
+                      status: BANNED
+        '400':
+          $ref: '#/components/responses/RequestRegistrationCodeError400'
+        '401':
+          $ref: '#/components/responses/UpdateUserStatusError401'
+        '403':
+          $ref: '#/components/responses/GetInternalUserError403'
+        '404':
+          $ref: '#/components/responses/GetInternalUserError404'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+        description: User ID, integer dương/int32.
+  /api/v1/users/me/sessions:
+    get:
+      tags:
+      - Phiên
+      operationId: listMySessions
+      summary: Danh sách phiên còn hiệu lực của mình
+      description: |+
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        `GET /api/v1/users/me/sessions?page=0&size=20`
+
+        Không có request body. Dùng `Authorization: Bearer <access-token>`. Lấy user và phiên hiện tại từ JWT đã được xác minh, không nhận userId từ query/header tùy ý. UC10 chỉ liệt kê phiên của chính mình chưa thu hồi và chưa hết hạn, gồm phiên hiện tại khi phiên đó nằm trong trang kết quả.
+
+        **Đã xác nhận ngày 2026-10-26 — phân trang và sắp xếp:**
+
+        | Query | Kiểu | Mặc định | Giới hạn |
+        | --- | --- | --- | --- |
+        | `page` | integer, int32 | 0 | Từ 0 |
+        | `size` | integer, int32 | 20 | 1–100 |
+
+        Sắp xếp cố định `createdAt` giảm dần, rồi `id` tăng dần nếu cùng thời điểm. Sai kiểu/ngoài giới hạn trả HTTP 400 theo validation đã chốt. Trang vượt số lượng kết quả vẫn HTTP 200 với items rỗng, giữ page/size được yêu cầu; không tự đưa phiên hiện tại lên đầu. Danh sách có thể thay đổi giữa các lần tải do login/logout.
+
+        **Schema SessionItem đã xác nhận:** mọi trường dưới đây bắt buộc xuất hiện; chỉ hai trường metadata nhận null.
+
+        | Trường | Kiểu | Nhận null | Ý nghĩa |
+        | --- | --- | --- | --- |
+        | `id` | string UUID | Không | ID phiên |
+        | `deviceName` | string, tối đa 150 ký tự | Có | Tên thiết bị để hiển thị |
+        | `clientType` | string, WEB hoặc ANDROID | Có | Loại client |
+        | `createdAt` | string date-time UTC | Không | Thời điểm tạo phiên |
+        | `lastSeenAt` | string date-time UTC | Không | Hoạt động gần nhất đã ghi nhận |
+        | `expiresAt` | string date-time UTC | Không | Hạn tuyệt đối của phiên |
+        | `isCurrent` | boolean | Không | Trùng sid của phiên gọi |
+
+        **Schema SessionPage của data:** luôn có đủ bốn trường, không null.
+
+        | Trường | Kiểu | Ý nghĩa |
+        | --- | --- | --- |
+        | `items` | array SessionItem | Có thể rỗng; không trả null |
+        | `page` | integer, int32, từ 0 | Trang được yêu cầu, đánh số từ 0 |
+        | `size` | integer, int32, 1–100 | Kích thước trang được yêu cầu |
+        | `totalElements` | integer, int64, từ 0 | Tổng số phiên phù hợp trên toàn danh sách, không phải số phần tử trang |
+
+        **Đã xác nhận HTTP 200, schema và messageCode SESSION_LIST_SUCCESS; message minh họa**, thời điểm minh họa với session có thời hạn 30 ngày:
+
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/sessions.md#session-list
+      security:
+      - UserAccessToken: []
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMySessionsResponse'
+              examples:
+                SESSION_LIST_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: SESSION_LIST_SUCCESS
+                    message: Lấy danh sách phiên thành công
+                    data:
+                      items:
+                      - id: 2e8b95c4-1326-49d2-86f3-9a409eb70067
+                        deviceName: Chrome trên Windows
+                        clientType: WEB
+                        createdAt: '2026-10-19T02:00:00Z'
+                        lastSeenAt: '2026-10-19T03:00:00Z'
+                        expiresAt: '2026-11-18T02:00:00Z'
+                        isCurrent: true
+                      page: 0
+                      size: 20
+                      totalElements: 1
+        '400':
+          $ref: '#/components/responses/GetInternalUserError400'
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+  /api/v1/users/me/sessions/{sessionId}:
+    delete:
+      tags:
+      - Phiên
+      operationId: revokeMyOtherSession
+      summary: Đăng xuất một phiên khác của mình
+      description: |+
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        `DELETE /api/v1/users/me/sessions/{sessionId}`
+
+        Không có request body. Người gọi phải có phiên hiện tại hợp lệ và chỉ được thu hồi phiên của chính mình. UC11 chỉ cho chọn phiên khác: UI ẩn hoặc vô hiệu hóa thao tác thu hồi tại phiên isCurrent; server vẫn từ chối sessionId trùng sid đã xác minh, không thay đổi phiên/token. Đăng xuất phiên hiện tại dùng UC04. Đây là yêu cầu đã chốt, thay đề xuất cũ cho chọn phiên hiện tại. Cập nhật RevokedAt/RevocationReason của phiên còn hiệu lực và thu hồi refresh token liên quan trong cùng transaction. **Đã xác nhận ngày 2026-10-26:** thành công HTTP 200, messageCode SESSION_REVOKE_SUCCESS, data luôn null; message minh họa.
+
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/sessions.md#session-revoke
+      security:
+      - UserAccessToken: []
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeMyOtherSessionResponse'
+              examples:
+                SESSION_REVOKE_SUCCESS:
+                  value:
+                    success: true
+                    messageCode: SESSION_REVOKE_SUCCESS
+                    message: Đã xử lý yêu cầu đăng xuất phiên
+                    data: null
+        '400':
+          $ref: '#/components/responses/RevokeMyOtherSessionError400'
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '404':
+          $ref: '#/components/responses/RevokeMyOtherSessionError404'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      parameters:
+      - name: sessionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Phiên của mình khác sid hiện tại; UC11 không cho thu hồi phiên hiện tại.
+  /api/v1/users/me/sessions/revoke-others:
+    post:
+      tags:
+      - Phiên
+      operationId: revokeMyOtherSessions
+      summary: Đăng xuất các phiên khác, giữ phiên hiện tại
+      description: |+
+        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+
+        `POST /api/v1/users/me/sessions/revoke-others`
+
+        Không có request body; không nhận currentSessionId từ client. Giữ phiên có sid lấy từ token đã xác minh, thu hồi các phiên còn hiệu lực khác và refresh token liên quan trong một transaction. **Đã xác nhận ngày 2026-10-26:** HTTP 200, messageCode OTHER_SESSIONS_REVOKED; data theo schema RevokeOthersResult chỉ gồm revokedCount bắt buộc, không null, integer/int64 từ 0 trở lên; message minh họa.
+
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/sessions.md#session-revoke-others
+      security:
+      - UserAccessToken: []
+      responses:
+        '200':
+          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeMyOtherSessionsResponse'
+              examples:
+                OTHER_SESSIONS_REVOKED:
+                  value:
+                    success: true
+                    messageCode: OTHER_SESSIONS_REVOKED
+                    message: Đã xử lý yêu cầu đăng xuất các phiên khác
+                    data:
+                      revokedCount: 2
+        '401':
+          $ref: '#/components/responses/GetMyProfileError401'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/internal/oauth2/introspect:
+    post:
+      tags:
+      - Nội bộ
+      operationId: introspectUserAccessToken
+      summary: Gateway kiểm tra user access token và phiên (RFC 7662)
+      description: 'THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI. Gateway gửi Service JWT trong Authorization, user access
+        token trong form token. Kiểm tra danh tính/quyền Gateway trước token người dùng. Chỉ user access token được
+        introspect; refresh/registration/Service JWT trong token trả active false. JWT đúng chữ ký/issuer/audience/thời
+        hạn, user ACTIVE, phiên đúng user/còn hiệu lực mới active true. Phiên hết hạn/thu hồi làm active false dù
+        JWT còn hạn. Roles lấy từ database; không cache active response. Lỗi hạ tầng/xác thực Gateway không trở
+        thành inactive. PENDING DECISION Q11a: bên phát/cấu hình Service JWT Gateway, không suy ra từ user RS256/Q14.
+        Kết nối triển khai yêu cầu TLS.'
+      x-implementation-status: DESIGN_ONLY
+      x-design-source: docs/api/sessions.md#introspect
+      x-required-service-permission: tokens:introspect
+      security:
+      - ServiceJwt: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IntrospectionRequest'
+            example:
+              token: example-user-access-token
+              token_type_hint: access_token
+      responses:
+        '200':
+          description: Token người dùng active hoặc inactive; không có envelope/messageCode.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/IntrospectionActiveResponse'
+                - $ref: '#/components/schemas/IntrospectionInactiveResponse'
+              examples:
+                active:
+                  value:
+                    active: true
+                    sub: '3'
+                    token_type: Bearer
+                    iss: urn:library:user-service
+                    aud:
+                    - library-api
+                    exp: 1792403000
+                    iat: 1792399400
+                    sid: 2e8b95c4-1326-49d2-86f3-9a409eb70067
+                    roles:
+                    - READER
+                inactive:
+                  value:
+                    active: false
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+        '400':
+          description: invalid_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectionInvalidRequest'
+              examples:
+                invalid_request:
+                  value:
+                    error: invalid_request
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+        '405':
+          description: invalid_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectionInvalidRequest'
+              examples:
+                invalid_request:
+                  value:
+                    error: invalid_request
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+            Allow:
+              required: true
+              schema:
+                type: string
+                enum:
+                - POST
+        '415':
+          description: invalid_request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectionInvalidRequest'
+              examples:
+                invalid_request:
+                  value:
+                    error: invalid_request
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+        '500':
+          description: server_error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectionServerError'
+              examples:
+                server_error:
+                  value:
+                    error: server_error
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+        '503':
+          description: temporarily_unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectionUnavailable'
+              examples:
+                temporarily_unavailable:
+                  value:
+                    error: temporarily_unavailable
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+        '401':
+          description: 'Thiếu xác thực: {} và Bearer; token sai: invalid_token; thiếu quyền: insufficient_scope.
+            Cả ba đều 401, không dùng 403/envelope.'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/IntrospectionMissingAuthentication'
+                - $ref: '#/components/schemas/IntrospectionAuthenticationError'
+              examples:
+                missing:
+                  value: {}
+                invalid:
+                  value:
+                    error: invalid_token
+                denied:
+                  value:
+                    error: insufficient_scope
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Mọi response introspection không được cache.
+            WWW-Authenticate:
+              required: true
+              schema:
+                type: string
+                enum:
+                - Bearer
+                - Bearer error="invalid_token"
+                - Bearer error="insufficient_scope"
+              description: Giá trị tương ứng lần lượt với {}, invalid_token và insufficient_scope.
+components:
+  securitySchemes:
+    UserAccessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: User JWT RS256, TTL 3600 giây; iss urn:library:user-service, aud [library-api], kid user-access-v1;
+        sub/sid. User ACTIVE và phiên hợp lệ. Đây là mô tả hợp đồng, chưa có bộ xác thực JWT runtime.
+    ServiceJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Service JWT độc lập trong Authorization. Borrow users:read; Admin users:read/users:status:write;
+        Gateway tokens:introspect. PENDING DECISION Q03/Q11a: thuật toán, issuer/audience/subject, TTL, claim quyền,
+        khóa; không tự áp user RS256/Q14.'
+    AdminAccessToken:
+      type: apiKey
+      in: header
+      name: X-Admin-Access-Token
+      description: User access token của actor Admin, dùng đồng thời ServiceJwt (AND). Xác minh token/phiên, user
+        ACTIVE và role ADMIN hiện tại từ database; không nhận actorId/role do client tự khai.
+  schemas:
+    UserProfile:
+      type: object
+      required:
+      - id
+      - userName
+      - email
+      - fullName
+      - phoneNumber
+      - status
+      - roles
+      - hasPassword
+      - linkedProviders
+      properties:
+        id:
+          type: integer
+          format: int32
+          minimum: 1
+        userName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 150
+        phoneNumber:
+          type: string
+          pattern: ^\+?[0-9]{8,15}$
+          nullable: true
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - BANNED
+        roles:
+          type: array
+          items:
+            type: string
+          description: Lấy từ UserRoles/Roles trong database tại thời điểm introspection; có thể [].
+        hasPassword:
+          type: boolean
+        linkedProviders:
+          type: array
+          items:
+            type: string
+    TokenPair:
+      type: object
+      required:
+      - accessToken
+      - refreshToken
+      - tokenType
+      - expiresIn
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        refreshToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+        expiresIn:
+          type: integer
+          format: int32
+          minimum: 0
+          enum:
+          - 3600
+      description: JSON cho Web/Android. Access JWT RS256 có sub/sid, TTL 1 giờ; refresh opaque rotation TTL 7 ngày
+        mỗi lần cấp. Phiên tuyệt đối 30 ngày, không gia hạn/cắt TTL riêng của token. Không thêm sid vào JSON.
+    OtpRequestResult:
+      type: object
+      required:
+      - expiresIn
+      properties:
+        expiresIn:
+          type: integer
+          format: int32
+          minimum: 0
+          enum:
+          - 600
+    InternalUserSummary:
+      type: object
+      required:
+      - id
+      - userName
+      - fullName
+      - status
+      - roles
+      properties:
+        id:
+          type: integer
+          format: int32
+          minimum: 1
+        userName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 150
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - BANNED
+        roles:
+          type: array
+          items:
+            type: string
+          description: Role hiện tại; có thể rỗng, hỗ trợ nhiều role. Không có API quản lý role.
+    UserStatusResult:
+      type: object
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: integer
+          format: int32
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - BANNED
+    GoogleRegistrationResult:
+      type: object
+      required:
+      - user
+      - token
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        token:
+          $ref: '#/components/schemas/TokenPair'
+    GoogleLoginResult:
+      type: object
+      required:
+      - accessToken
+      - refreshToken
+      - tokenType
+      - expiresIn
+      - isNewUser
+      - accountLinked
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        refreshToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+        expiresIn:
+          type: integer
+          format: int32
+          minimum: 0
+          enum:
+          - 3600
+        isNewUser:
+          type: boolean
+          enum:
+          - false
+        accountLinked:
+          type: boolean
+          enum:
+          - false
+    GoogleLinkedResult:
+      type: object
+      required:
+      - accessToken
+      - refreshToken
+      - tokenType
+      - expiresIn
+      - isNewUser
+      - accountLinked
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        refreshToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+        expiresIn:
+          type: integer
+          format: int32
+          minimum: 0
+          enum:
+          - 3600
+        isNewUser:
+          type: boolean
+          enum:
+          - false
+        accountLinked:
+          type: boolean
+          enum:
+          - true
+    GoogleRegistrationRequiredResult:
+      type: object
+      required:
+      - email
+      - fullName
+      - suggestedUserName
+      - registrationToken
+      - isNewUser
+      - accountLinked
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 150
+          nullable: true
+        suggestedUserName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          nullable: true
+        registrationToken:
+          type: string
+          minLength: 1
+          description: Token hoàn tất đăng ký Google, TTL 600 giây, không gia hạn; chưa có phiên. Gợi ý username
+            không giữ chỗ.
+        isNewUser:
+          type: boolean
+          enum:
+          - true
+        accountLinked:
+          type: boolean
+          enum:
+          - false
+    SessionItem:
+      type: object
+      required:
+      - id
+      - deviceName
+      - clientType
+      - createdAt
+      - lastSeenAt
+      - expiresAt
+      - isCurrent
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceName:
+          type: string
+          maxLength: 150
+          nullable: true
+        clientType:
+          type: string
+          enum:
+          - WEB
+          - ANDROID
+          - null
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+          description: UTC; hoạt động gần nhất đã ghi nhận, không khẳng định online hoặc quyết định hết hạn.
+        expiresAt:
+          type: string
+          format: date-time
+        isCurrent:
+          type: boolean
+    SessionPage:
+      type: object
+      required:
+      - items
+      - page
+      - size
+      - totalElements
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionItem'
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+    RevokeOthersResult:
+      type: object
+      required:
+      - revokedCount
+      properties:
+        revokedCount:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Chỉ đếm phiên còn hiệu lực vừa được thao tác này thu hồi, không đếm refresh token hoặc phiên
+            hiện tại.
+    RegisterCodeRequest:
+      type: object
+      required:
+      - userName
+      - email
+      properties:
+        userName:
+          type: string
+          description: Trim/lowercase trước kiểm tra/lưu; sau chuẩn hóa dài 1–50, không whitespace, ký tự điều khiển
+            hoặc @. Giới hạn áp dụng sau chuẩn hóa.
+        email:
+          type: string
+          description: Trim/lowercase trước kiểm tra; sau chuẩn hóa tối đa 255 ký tự, đúng định dạng email, không
+            whitespace/ký tự điều khiển. OTP xác minh quyền truy cập email.
+      additionalProperties: false
+    RegisterRequest:
+      type: object
+      required:
+      - userName
+      - email
+      - password
+      - fullName
+      - verificationCode
+      properties:
+        userName:
+          type: string
+          description: Trim/lowercase trước kiểm tra/lưu; sau chuẩn hóa dài 1–50, không whitespace, ký tự điều khiển
+            hoặc @. Giới hạn áp dụng sau chuẩn hóa.
+        email:
+          type: string
+          description: Trim/lowercase trước kiểm tra; sau chuẩn hóa tối đa 255 ký tự, đúng định dạng email, không
+            whitespace/ký tự điều khiển. OTP xác minh quyền truy cập email.
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Cho phép Unicode/khoảng trắng, không trim/cắt ngắn; không yêu cầu tổ hợp ký tự.
+        fullName:
+          type: string
+          description: Trim trước kiểm tra/lưu; sau chuẩn hóa dài 1–150, không trắng toàn bộ hoặc ký tự điều khiển;
+            cho phép Unicode và khoảng trắng giữa các từ.
+        phoneNumber:
+          type: string
+          pattern: ^\+?[0-9]{8,15}$
+          nullable: true
+        verificationCode:
+          type: string
+          pattern: ^[0-9]{6}$
+          description: OTP 6 chữ số ASCII, TTL 600 giây, tối đa 5 lần sai; không chuyển thành số.
+      additionalProperties: false
+    LoginRequest:
+      type: object
+      required:
+      - identifier
+      - password
+      properties:
+        identifier:
+          type: string
+          description: Phân loại username/email theo @, trim/lowercase rồi kiểm tra theo trường tương ứng.
+        password:
+          type: string
+          format: password
+          description: So sánh nguyên giá trị, không trim; không áp chính sách mật khẩu mới cho mật khẩu hiện tại.
+      additionalProperties: false
+    RefreshTokenRequest:
+      type: object
+      required:
+      - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+      additionalProperties: false
+    ForgotPasswordCodeRequest:
+      type: object
+      required:
+      - email
+      properties:
+        email:
+          type: string
+          description: Trim/lowercase trước kiểm tra; sau chuẩn hóa tối đa 255 ký tự, đúng định dạng email, không
+            whitespace/ký tự điều khiển. OTP xác minh quyền truy cập email.
+      additionalProperties: false
+    ResetPasswordRequest:
+      type: object
+      required:
+      - email
+      - verificationCode
+      - newPassword
+      - confirmPassword
+      properties:
+        email:
+          type: string
+          description: Trim/lowercase trước kiểm tra; sau chuẩn hóa tối đa 255 ký tự, đúng định dạng email, không
+            whitespace/ký tự điều khiển. OTP xác minh quyền truy cập email.
+        verificationCode:
+          type: string
+          pattern: ^[0-9]{6}$
+          description: OTP 6 chữ số ASCII, TTL 600 giây, tối đa 5 lần sai; không chuyển thành số.
+        newPassword:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Cho phép Unicode/khoảng trắng, không trim/cắt ngắn; không yêu cầu tổ hợp ký tự.
+        confirmPassword:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Phải khớp chính xác mật khẩu mới; server kiểm tra quan hệ giữa hai trường.
+      additionalProperties: false
+    ProfilePatchRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          description: Trim trước kiểm tra/lưu; sau chuẩn hóa dài 1–150, không trắng toàn bộ hoặc ký tự điều khiển;
+            cho phép Unicode và khoảng trắng giữa các từ.
+        phoneNumber:
+          type: string
+          pattern: ^\+?[0-9]{8,15}$
+          nullable: true
+      additionalProperties: false
+      minProperties: 1
+      description: Bỏ qua trường để giữ nguyên. fullName không null; phoneNumber null để xóa, chuỗi rỗng bị từ chối.
+        Cấm roles/status và mọi trường ngoài danh sách.
+    ChangePasswordRequest:
+      type: object
+      required:
+      - currentPassword
+      - newPassword
+      - confirmPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: So sánh nguyên giá trị, không trim; không áp chính sách mật khẩu mới cho mật khẩu hiện tại.
+        newPassword:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Cho phép Unicode/khoảng trắng, không trim/cắt ngắn; không yêu cầu tổ hợp ký tự.
+        confirmPassword:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Phải khớp chính xác mật khẩu mới; server kiểm tra quan hệ giữa hai trường.
+      additionalProperties: false
+    GoogleRequest:
+      type: object
+      required:
+      - idToken
+      properties:
+        idToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+      additionalProperties: false
+    GoogleRegisterRequest:
+      type: object
+      required:
+      - registrationToken
+      - userName
+      - fullName
+      properties:
+        registrationToken:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        userName:
+          type: string
+          description: Trim/lowercase trước kiểm tra/lưu; sau chuẩn hóa dài 1–50, không whitespace, ký tự điều khiển
+            hoặc @. Giới hạn áp dụng sau chuẩn hóa.
+        fullName:
+          type: string
+          description: Trim trước kiểm tra/lưu; sau chuẩn hóa dài 1–150, không trắng toàn bộ hoặc ký tự điều khiển;
+            cho phép Unicode và khoảng trắng giữa các từ.
+        phoneNumber:
+          type: string
+          pattern: ^\+?[0-9]{8,15}$
+          nullable: true
+      additionalProperties: false
+    SetPasswordRequest:
+      type: object
+      required:
+      - verificationCode
+      - newPassword
+      - confirmPassword
+      properties:
+        verificationCode:
+          type: string
+          pattern: ^[0-9]{6}$
+          description: OTP 6 chữ số ASCII, TTL 600 giây, tối đa 5 lần sai; không chuyển thành số.
+        newPassword:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Cho phép Unicode/khoảng trắng, không trim/cắt ngắn; không yêu cầu tổ hợp ký tự.
+        confirmPassword:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 128
+          description: Phải khớp chính xác mật khẩu mới; server kiểm tra quan hệ giữa hai trường.
+      additionalProperties: false
+    UserStatusRequest:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - BANNED
+      additionalProperties: false
+    FieldError:
+      type: object
+      required:
+      - field
+      - code
+      - message
+      properties:
+        field:
+          type: string
+          description: $ chỉ toàn bộ body.
+        code:
+          type: string
+          enum:
+          - REQUIRED
+          - TYPE_MISMATCH
+          - NOT_BLANK
+          - INVALID_LENGTH
+          - INVALID_FORMAT
+          - INVALID_VALUE
+          - OUT_OF_RANGE
+          - UNKNOWN_FIELD
+          - EMPTY_PATCH
+          - PASSWORD_MISMATCH
+        message:
+          type: string
+    ValidationErrorData:
+      type: object
+      required:
+      - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+          minItems: 1
+    Error400:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - INVALID_REQUEST
+          - CURRENT_PASSWORD_INCORRECT
+          - OTP_INVALID
+          - OTP_ATTEMPTS_EXCEEDED
+          - CURRENT_SESSION_REVOKE_NOT_ALLOWED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error401:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - AUTHENTICATION_REQUIRED
+          - SERVICE_TOKEN_INVALID
+          - ADMIN_ACTOR_INVALID
+          - INVALID_CREDENTIALS
+          - ACCESS_TOKEN_INVALID
+          - SESSION_INACTIVE
+          - REFRESH_TOKEN_INVALID
+          - GOOGLE_TOKEN_INVALID
+          - REGISTRATION_TOKEN_INVALID
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error403:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - ACCOUNT_BANNED
+          - ACCESS_DENIED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error409:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - USERNAME_ALREADY_EXISTS
+          - EMAIL_ALREADY_EXISTS
+          - PASSWORD_NOT_CONFIGURED
+          - PASSWORD_ALREADY_CONFIGURED
+          - GOOGLE_IDENTITY_ALREADY_REGISTERED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error429:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - OTP_RATE_LIMITED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error404:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - USER_NOT_FOUND
+          - SESSION_NOT_FOUND
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error405:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - METHOD_NOT_ALLOWED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error415:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - UNSUPPORTED_MEDIA_TYPE
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error503:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - SERVICE_UNAVAILABLE
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    Error500:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - INTERNAL_ERROR
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    ValidationErrorResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - false
+        messageCode:
+          type: string
+          enum:
+          - VALIDATION_ERROR
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/ValidationErrorData'
+    IntrospectionRequest:
+      type: object
+      required:
+      - token
+      properties:
+        token:
+          type: string
+          minLength: 1
+          description: Giữ nguyên giá trị; không trim hoặc lowercase. Ví dụ token là dữ liệu giả, không sử dụng
+            được.
+        token_type_hint:
+          type: string
+          description: Chỉ là gợi ý, không giới hạn enum; hint refresh_token không làm user access token hợp lệ
+            bị từ chối.
+      description: Chỉ nhận hai trường; từ chối tham số lặp, token thiếu/rỗng hoặc trường lạ. Không trim token.
+        Xác thực/quyền Gateway trước khi xử lý form/token người dùng.
+      additionalProperties: false
+    IntrospectionActiveResponse:
+      type: object
+      required:
+      - active
+      - sub
+      - sid
+      - token_type
+      - iss
+      - aud
+      - exp
+      - iat
+      - roles
+      properties:
+        active:
+          type: boolean
+          enum:
+          - true
+        sub:
+          type: string
+          description: User ID biểu diễn bằng string.
+        sid:
+          type: string
+          format: uuid
+        token_type:
+          type: string
+          enum:
+          - Bearer
+        iss:
+          type: string
+          enum:
+          - urn:library:user-service
+        aud:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          example:
+          - library-api
+        exp:
+          type: integer
+          format: int64
+          minimum: 0
+        iat:
+          type: integer
+          format: int64
+          minimum: 0
+        roles:
+          type: array
+          items:
+            type: string
+          description: Lấy từ UserRoles/Roles trong database tại thời điểm introspection; có thể [].
+    IntrospectionInactiveResponse:
+      type: object
+      required:
+      - active
+      properties:
+        active:
+          type: boolean
+          enum:
+          - false
+      additionalProperties: false
+    IntrospectionMissingAuthentication:
+      type: object
+      additionalProperties: false
+    IntrospectionAuthenticationError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          enum:
+          - invalid_token
+          - insufficient_scope
+      additionalProperties: false
+    IntrospectionInvalidRequest:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          enum:
+          - invalid_request
+      additionalProperties: false
+    IntrospectionUnavailable:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          enum:
+          - temporarily_unavailable
+      additionalProperties: false
+    IntrospectionServerError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          enum:
+          - server_error
+      additionalProperties: false
+    RequestRegistrationCodeResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - REGISTER_CODE_SENT
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/OtpRequestResult'
+    RegisterLocalUserResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - REGISTER_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/UserProfile'
+    LoginResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - LOGIN_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/TokenPair'
+    RefreshTokensResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - TOKEN_REFRESH_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/TokenPair'
+    LogoutResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - LOGOUT_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    RequestPasswordResetCodeResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - PASSWORD_RESET_CODE_SENT
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/OtpRequestResult'
+    ResetPasswordResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - PASSWORD_RESET_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    GetMyProfileResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - PROFILE_GET_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/UserProfile'
+    UpdateMyProfileResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - PROFILE_UPDATE_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/UserProfile'
+    ChangePasswordResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - PASSWORD_CHANGE_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    GoogleLoginResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - GOOGLE_LOGIN_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/GoogleLoginResult'
+    GoogleLinkedResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - GOOGLE_ACCOUNT_LINKED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/GoogleLinkedResult'
+    GoogleRegistrationRequiredResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - GOOGLE_REGISTRATION_REQUIRED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/GoogleRegistrationRequiredResult'
+    CompleteGoogleRegistrationResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - GOOGLE_REGISTER_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/GoogleRegistrationResult'
+    RequestFirstPasswordCodeResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - SET_PASSWORD_CODE_SENT
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/OtpRequestResult'
+    SetFirstPasswordResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - PASSWORD_SET_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    GetInternalUserResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - USER_GET_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/InternalUserSummary'
+    UpdateUserStatusResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - USER_STATUS_UPDATE_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/UserStatusResult'
+    ListMySessionsResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - SESSION_LIST_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/SessionPage'
+    RevokeMyOtherSessionResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - SESSION_REVOKE_SUCCESS
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          type: object
+          nullable: true
+          enum:
+          - null
+          description: Luôn null.
+    RevokeMyOtherSessionsResponse:
+      type: object
+      required:
+      - success
+      - messageCode
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          enum:
+          - true
+        messageCode:
+          type: string
+          enum:
+          - OTHER_SESSIONS_REVOKED
+        message:
+          type: string
+          description: Nội dung hiển thị minh họa; client xử lý theo HTTP/messageCode.
+        data:
+          $ref: '#/components/schemas/RevokeOthersResult'
+  responses:
+    RequestRegistrationCodeError400:
+      description: INVALID_REQUEST; VALIDATION_ERROR. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - allOf:
+              - $ref: '#/components/schemas/Error400'
+              - type: object
+                required:
+                - messageCode
+                properties:
+                  messageCode:
+                    type: string
+                    enum:
+                    - INVALID_REQUEST
+            - $ref: '#/components/schemas/ValidationErrorResponse'
+          examples:
+            INVALID_REQUEST:
+              value:
+                success: false
+                messageCode: INVALID_REQUEST
+                message: Nội dung lỗi minh họa
+                data: null
+            VALIDATION_ERROR:
+              value:
+                success: false
+                messageCode: VALIDATION_ERROR
+                message: Nội dung lỗi minh họa
+                data:
+                  errors:
+                  - field: $
+                    code: TYPE_MISMATCH
+                    message: Dữ liệu không đúng kiểu
+    MethodNotAllowed:
+      description: METHOD_NOT_ALLOWED. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error405'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - METHOD_NOT_ALLOWED
+          examples:
+            METHOD_NOT_ALLOWED:
+              value:
+                success: false
+                messageCode: METHOD_NOT_ALLOWED
+                message: Nội dung lỗi minh họa
+                data: null
+    RequestRegistrationCodeError409:
+      description: USERNAME_ALREADY_EXISTS; EMAIL_ALREADY_EXISTS. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error409'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - USERNAME_ALREADY_EXISTS
+                  - EMAIL_ALREADY_EXISTS
+          examples:
+            USERNAME_ALREADY_EXISTS:
+              value:
+                success: false
+                messageCode: USERNAME_ALREADY_EXISTS
+                message: Nội dung lỗi minh họa
+                data: null
+            EMAIL_ALREADY_EXISTS:
+              value:
+                success: false
+                messageCode: EMAIL_ALREADY_EXISTS
+                message: Nội dung lỗi minh họa
+                data: null
+    UnsupportedMediaType:
+      description: UNSUPPORTED_MEDIA_TYPE. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error415'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - UNSUPPORTED_MEDIA_TYPE
+          examples:
+            UNSUPPORTED_MEDIA_TYPE:
+              value:
+                success: false
+                messageCode: UNSUPPORTED_MEDIA_TYPE
+                message: Nội dung lỗi minh họa
+                data: null
+    OtpRateLimited:
+      description: OTP_RATE_LIMITED. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error429'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - OTP_RATE_LIMITED
+          examples:
+            OTP_RATE_LIMITED:
+              value:
+                success: false
+                messageCode: OTP_RATE_LIMITED
+                message: Nội dung lỗi minh họa
+                data: null
+      headers:
+        Retry-After:
+          required: true
+          description: Số giây đến lần thực sự được xin OTP tiếp; tối thiểu 60 giây giữa hai lần cấp, tối đa 5 lần/cửa
+            sổ trượt 1 giờ/email/purpose.
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+    InternalError:
+      description: INTERNAL_ERROR. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error500'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - INTERNAL_ERROR
+          examples:
+            INTERNAL_ERROR:
+              value:
+                success: false
+                messageCode: INTERNAL_ERROR
+                message: Nội dung lỗi minh họa
+                data: null
+    ServiceUnavailable:
+      description: SERVICE_UNAVAILABLE. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error503'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - SERVICE_UNAVAILABLE
+          examples:
+            SERVICE_UNAVAILABLE:
+              value:
+                success: false
+                messageCode: SERVICE_UNAVAILABLE
+                message: Nội dung lỗi minh họa
+                data: null
+    RegisterLocalUserError400:
+      description: OTP_INVALID; OTP_ATTEMPTS_EXCEEDED; INVALID_REQUEST; VALIDATION_ERROR. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - allOf:
+              - $ref: '#/components/schemas/Error400'
+              - type: object
+                required:
+                - messageCode
+                properties:
+                  messageCode:
+                    type: string
+                    enum:
+                    - OTP_INVALID
+                    - OTP_ATTEMPTS_EXCEEDED
+                    - INVALID_REQUEST
+            - $ref: '#/components/schemas/ValidationErrorResponse'
+          examples:
+            OTP_INVALID:
+              value:
+                success: false
+                messageCode: OTP_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+            OTP_ATTEMPTS_EXCEEDED:
+              value:
+                success: false
+                messageCode: OTP_ATTEMPTS_EXCEEDED
+                message: Nội dung lỗi minh họa
+                data: null
+            INVALID_REQUEST:
+              value:
+                success: false
+                messageCode: INVALID_REQUEST
+                message: Nội dung lỗi minh họa
+                data: null
+            VALIDATION_ERROR:
+              value:
+                success: false
+                messageCode: VALIDATION_ERROR
+                message: Nội dung lỗi minh họa
+                data:
+                  errors:
+                  - field: $
+                    code: TYPE_MISMATCH
+                    message: Dữ liệu không đúng kiểu
+    LoginError401:
+      description: INVALID_CREDENTIALS. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - INVALID_CREDENTIALS
+          examples:
+            INVALID_CREDENTIALS:
+              value:
+                success: false
+                messageCode: INVALID_CREDENTIALS
+                message: Nội dung lỗi minh họa
+                data: null
+    LoginError403:
+      description: ACCOUNT_BANNED. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error403'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - ACCOUNT_BANNED
+          examples:
+            ACCOUNT_BANNED:
+              value:
+                success: false
+                messageCode: ACCOUNT_BANNED
+                message: Nội dung lỗi minh họa
+                data: null
+    LoginError409:
+      description: PASSWORD_NOT_CONFIGURED. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error409'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - PASSWORD_NOT_CONFIGURED
+          examples:
+            PASSWORD_NOT_CONFIGURED:
+              value:
+                success: false
+                messageCode: PASSWORD_NOT_CONFIGURED
+                message: Nội dung lỗi minh họa
+                data: null
+    RefreshTokensError401:
+      description: REFRESH_TOKEN_INVALID; SESSION_INACTIVE. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - REFRESH_TOKEN_INVALID
+                  - SESSION_INACTIVE
+          examples:
+            REFRESH_TOKEN_INVALID:
+              value:
+                success: false
+                messageCode: REFRESH_TOKEN_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+            SESSION_INACTIVE:
+              value:
+                success: false
+                messageCode: SESSION_INACTIVE
+                message: Nội dung lỗi minh họa
+                data: null
+    GetMyProfileError401:
+      description: AUTHENTICATION_REQUIRED; ACCESS_TOKEN_INVALID; SESSION_INACTIVE. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - AUTHENTICATION_REQUIRED
+                  - ACCESS_TOKEN_INVALID
+                  - SESSION_INACTIVE
+          examples:
+            AUTHENTICATION_REQUIRED:
+              value:
+                success: false
+                messageCode: AUTHENTICATION_REQUIRED
+                message: Nội dung lỗi minh họa
+                data: null
+            ACCESS_TOKEN_INVALID:
+              value:
+                success: false
+                messageCode: ACCESS_TOKEN_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+            SESSION_INACTIVE:
+              value:
+                success: false
+                messageCode: SESSION_INACTIVE
+                message: Nội dung lỗi minh họa
+                data: null
+    ChangePasswordError400:
+      description: CURRENT_PASSWORD_INCORRECT; INVALID_REQUEST; VALIDATION_ERROR. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - allOf:
+              - $ref: '#/components/schemas/Error400'
+              - type: object
+                required:
+                - messageCode
+                properties:
+                  messageCode:
+                    type: string
+                    enum:
+                    - CURRENT_PASSWORD_INCORRECT
+                    - INVALID_REQUEST
+            - $ref: '#/components/schemas/ValidationErrorResponse'
+          examples:
+            CURRENT_PASSWORD_INCORRECT:
+              value:
+                success: false
+                messageCode: CURRENT_PASSWORD_INCORRECT
+                message: Nội dung lỗi minh họa
+                data: null
+            INVALID_REQUEST:
+              value:
+                success: false
+                messageCode: INVALID_REQUEST
+                message: Nội dung lỗi minh họa
+                data: null
+            VALIDATION_ERROR:
+              value:
+                success: false
+                messageCode: VALIDATION_ERROR
+                message: Nội dung lỗi minh họa
+                data:
+                  errors:
+                  - field: $
+                    code: TYPE_MISMATCH
+                    message: Dữ liệu không đúng kiểu
+    AuthenticateWithGoogleError401:
+      description: GOOGLE_TOKEN_INVALID. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - GOOGLE_TOKEN_INVALID
+          examples:
+            GOOGLE_TOKEN_INVALID:
+              value:
+                success: false
+                messageCode: GOOGLE_TOKEN_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+    CompleteGoogleRegistrationError401:
+      description: REGISTRATION_TOKEN_INVALID. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - REGISTRATION_TOKEN_INVALID
+          examples:
+            REGISTRATION_TOKEN_INVALID:
+              value:
+                success: false
+                messageCode: REGISTRATION_TOKEN_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+    CompleteGoogleRegistrationError409:
+      description: USERNAME_ALREADY_EXISTS; GOOGLE_IDENTITY_ALREADY_REGISTERED; EMAIL_ALREADY_EXISTS. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error409'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - USERNAME_ALREADY_EXISTS
+                  - GOOGLE_IDENTITY_ALREADY_REGISTERED
+                  - EMAIL_ALREADY_EXISTS
+          examples:
+            USERNAME_ALREADY_EXISTS:
+              value:
+                success: false
+                messageCode: USERNAME_ALREADY_EXISTS
+                message: Nội dung lỗi minh họa
+                data: null
+            GOOGLE_IDENTITY_ALREADY_REGISTERED:
+              value:
+                success: false
+                messageCode: GOOGLE_IDENTITY_ALREADY_REGISTERED
+                message: Nội dung lỗi minh họa
+                data: null
+            EMAIL_ALREADY_EXISTS:
+              value:
+                success: false
+                messageCode: EMAIL_ALREADY_EXISTS
+                message: Nội dung lỗi minh họa
+                data: null
+    RequestFirstPasswordCodeError409:
+      description: PASSWORD_ALREADY_CONFIGURED. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error409'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - PASSWORD_ALREADY_CONFIGURED
+          examples:
+            PASSWORD_ALREADY_CONFIGURED:
+              value:
+                success: false
+                messageCode: PASSWORD_ALREADY_CONFIGURED
+                message: Nội dung lỗi minh họa
+                data: null
+    GetInternalUserError400:
+      description: VALIDATION_ERROR. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+          examples:
+            VALIDATION_ERROR:
+              value:
+                success: false
+                messageCode: VALIDATION_ERROR
+                message: Nội dung lỗi minh họa
+                data:
+                  errors:
+                  - field: $
+                    code: TYPE_MISMATCH
+                    message: Dữ liệu không đúng kiểu
+    GetInternalUserError401:
+      description: AUTHENTICATION_REQUIRED; SERVICE_TOKEN_INVALID. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - AUTHENTICATION_REQUIRED
+                  - SERVICE_TOKEN_INVALID
+          examples:
+            AUTHENTICATION_REQUIRED:
+              value:
+                success: false
+                messageCode: AUTHENTICATION_REQUIRED
+                message: Nội dung lỗi minh họa
+                data: null
+            SERVICE_TOKEN_INVALID:
+              value:
+                success: false
+                messageCode: SERVICE_TOKEN_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+    GetInternalUserError403:
+      description: ACCESS_DENIED. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error403'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - ACCESS_DENIED
+          examples:
+            ACCESS_DENIED:
+              value:
+                success: false
+                messageCode: ACCESS_DENIED
+                message: Nội dung lỗi minh họa
+                data: null
+    GetInternalUserError404:
+      description: USER_NOT_FOUND. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error404'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - USER_NOT_FOUND
+          examples:
+            USER_NOT_FOUND:
+              value:
+                success: false
+                messageCode: USER_NOT_FOUND
+                message: Nội dung lỗi minh họa
+                data: null
+    UpdateUserStatusError401:
+      description: AUTHENTICATION_REQUIRED; SERVICE_TOKEN_INVALID; ADMIN_ACTOR_INVALID. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error401'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - AUTHENTICATION_REQUIRED
+                  - SERVICE_TOKEN_INVALID
+                  - ADMIN_ACTOR_INVALID
+          examples:
+            AUTHENTICATION_REQUIRED:
+              value:
+                success: false
+                messageCode: AUTHENTICATION_REQUIRED
+                message: Nội dung lỗi minh họa
+                data: null
+            SERVICE_TOKEN_INVALID:
+              value:
+                success: false
+                messageCode: SERVICE_TOKEN_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+            ADMIN_ACTOR_INVALID:
+              value:
+                success: false
+                messageCode: ADMIN_ACTOR_INVALID
+                message: Nội dung lỗi minh họa
+                data: null
+    RevokeMyOtherSessionError400:
+      description: CURRENT_SESSION_REVOKE_NOT_ALLOWED; VALIDATION_ERROR. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - allOf:
+              - $ref: '#/components/schemas/Error400'
+              - type: object
+                required:
+                - messageCode
+                properties:
+                  messageCode:
+                    type: string
+                    enum:
+                    - CURRENT_SESSION_REVOKE_NOT_ALLOWED
+            - $ref: '#/components/schemas/ValidationErrorResponse'
+          examples:
+            CURRENT_SESSION_REVOKE_NOT_ALLOWED:
+              value:
+                success: false
+                messageCode: CURRENT_SESSION_REVOKE_NOT_ALLOWED
+                message: Nội dung lỗi minh họa
+                data: null
+            VALIDATION_ERROR:
+              value:
+                success: false
+                messageCode: VALIDATION_ERROR
+                message: Nội dung lỗi minh họa
+                data:
+                  errors:
+                  - field: $
+                    code: TYPE_MISMATCH
+                    message: Dữ liệu không đúng kiểu
+    RevokeMyOtherSessionError404:
+      description: SESSION_NOT_FOUND. Xem docs/api/http-errors.md.
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/Error404'
+            - type: object
+              required:
+              - messageCode
+              properties:
+                messageCode:
+                  type: string
+                  enum:
+                  - SESSION_NOT_FOUND
+          examples:
+            SESSION_NOT_FOUND:
+              value:
+                success: false
+                messageCode: SESSION_NOT_FOUND
+                message: Nội dung lỗi minh họa
+                data: null

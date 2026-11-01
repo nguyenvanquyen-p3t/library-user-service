@@ -68,6 +68,8 @@ Từ `backend/`:
 
 Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Chưa có API nghiệp vụ để gọi thử. Xem [bản đồ API thiết kế](api/README.md).
 
+Đọc hợp đồng thiết kế tại `http://localhost:5001/swagger-ui.html`; tải OpenAPI từ `/v3/api-docs` hoặc `/v3/api-docs.yaml`. UI tắt `Try it out`. Hướng dẫn và lệnh kiểm thử tài liệu không dùng database tại [OpenAPI/Swagger UI](api/openapi.md).
+
 Flyway tự áp dụng V1–V6; Hibernate dùng `ddl-auto: validate`. **V6 chỉ chạy khi RefreshTokens rỗng**, kể cả không còn token đã hết hạn/thu hồi. Không tự xóa dữ liệu hoặc Flyway history để vượt điều kiện này. Chi tiết schema, constraint và migration nằm trong [mô hình dữ liệu](data-model.md).
 
 ## Chạy test
