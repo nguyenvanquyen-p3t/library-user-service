@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung phạm vi ngày 2026-11-01:** chủ dự án yêu cầu bắt đầu xây dựng OpenAPI và Swagger UI. Cho phép đặc tả và hạ tầng tài liệu liên quan; 20 API nghiệp vụ vẫn ở mức thiết kế. Xem [hướng dẫn OpenAPI](api/openapi.md). Các câu “chưa tạo OpenAPI” trong quyết định lịch sử bên dưới mô tả thời điểm xác nhận tương ứng.
+
 Quyết định 2026-10-19 thay giới hạn 6 bảng/16 API trước đây: thêm UserSessions, 3 API quản lý phiên và introspection RFC 7662 dành cho Gateway. Tổng thiết kế 7 bảng/20 API. Giữ refresh token trong JSON cho Web/Android. **Chỉ thêm migration và docs, chưa code API.** Gateway dùng **Service JWT**. V6 **chỉ áp dụng khi RefreshTokens rỗng**, không tự thu hồi/xóa dữ liệu cũ. Không thêm Redis, JWT blacklist hoặc API quản lý role. [Danh mục nguồn](api/source-catalog.md) giữ nguyên 16 API ban đầu.
 
 <a id="account-lifecycle"></a>

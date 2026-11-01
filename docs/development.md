@@ -1,6 +1,6 @@
 # Hướng dẫn phát triển và kiểm thử
 
-Biên tập ngày 2026-10-24. Đợt tối ưu hiện tại chỉ sửa Markdown; các bước code và kiểm thử API bên dưới chỉ áp dụng khi chủ dự án yêu cầu triển khai.
+Biên tập ban đầu ngày 2026-10-24; bổ sung hạ tầng tài liệu ngày 2026-11-01. Chủ dự án đã yêu cầu [OpenAPI/Swagger UI](api/openapi.md), gồm kiểm thử tài liệu tách database. Các bước code và kiểm thử API nghiệp vụ bên dưới chỉ áp dụng khi chủ dự án yêu cầu triển khai phần tương ứng.
 
 ## Bắt đầu
 
@@ -8,7 +8,7 @@ Theo [README dự án](../README.md) để bắt đầu nhanh hoặc [hướng d
 
 ## Quy trình thay đổi
 
-1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi thiết kế là 7 bảng/20 API, có session revocation; không có API quản lý role, JWT blacklist hoặc Redis. Hiện chỉ thêm migration và docs, chưa code API. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
+1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi thiết kế là 7 bảng/20 API, có session revocation; không có API quản lý role, JWT blacklist hoặc Redis. Phạm vi hiện gồm migration, docs và hạ tầng OpenAPI/Swagger UI; chưa code API nghiệp vụ. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
 2. Tra cứu operation tại [bản đồ API](api/README.md) và bản hiện hành được liên kết; danh mục nguồn chỉ để truy vết Excel. Chốt phần request/response/auth/lỗi liên quan còn PENDING DECISION trước khi tích hợp.
 3. Khi được yêu cầu triển khai, viết code và kiểm thử hành vi; thêm migration mới nếu cần thay schema đã được chia sẻ. Với yêu cầu docs-only, chỉ sửa và kiểm tra tài liệu.
 4. Cập nhật trạng thái docs theo phần thực sự hoàn thành. Ghi rõ kiểm thử đã chạy và giới hạn môi trường trong PR.
