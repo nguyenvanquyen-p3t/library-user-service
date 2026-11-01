@@ -1,6 +1,6 @@
 # Mô hình dữ liệu theo migration
 
-Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo; theo bàn giao 2026-10-22 chưa áp dụng vào database dự án. Biên tập ngày 2026-10-24 chỉ đối chiếu file, không kiểm tra database. Chưa có entity/API nghiệp vụ. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
+Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Chưa có entity/API nghiệp vụ. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
 
 | Bảng | Cột chính | Ràng buộc và ý nghĩa |
 | --- | --- | --- |
@@ -27,7 +27,9 @@ VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, kh�
 
 ## Migration V6 quản lý phiên
 
-[V6__create_user_sessions.sql](../backend/src/main/resources/db/migration/V6__create_user_sessions.sql) lấy khóa bảng RefreshTokens và dừng ngay nếu có bất kỳ bản ghi nào, kể cả đã hết hạn/thu hồi. Không tự xóa/thu hồi token, không backfill phiên giả. Phải chạy bằng transaction của Flyway; không chạy từng statement thủ công. Trạng thái áp dụng database cần kiểm tra theo môi trường thực tế; đợt tối ưu docs không chạy migration.
+**Trạng thái cập nhật ngày 2026-10-25:** chủ dự án xác nhận V6 đã áp dụng vào database dự án. Thông tin này thay trạng thái chưa áp dụng trong bàn giao ngày 2026-10-22; ngày 2026-10-25 là ngày xác nhận, không xác định ngày chạy migration. Đợt cập nhật tài liệu này không truy vấn database hoặc chạy lại migration; xác nhận này không thay thế kết quả kiểm thử constraint/API.
+
+[V6__create_user_sessions.sql](../backend/src/main/resources/db/migration/V6__create_user_sessions.sql) lấy khóa bảng RefreshTokens và dừng ngay nếu có bất kỳ bản ghi nào, kể cả đã hết hạn/thu hồi. Không tự xóa/thu hồi token, không backfill phiên giả. Phải chạy bằng transaction của Flyway; không chạy từng statement thủ công. Khi triển khai trên môi trường khác, cần kiểm tra trạng thái migration của môi trường đó trước khi chạy.
 
 UserSessions.Id do backend tạo UUID khi triển khai đăng nhập, không tự sinh UUID hoặc TTL trong migration. ExpiresAt phải sau CreatedAt; LastSeenAt và RevokedAt không được trước CreatedAt. Phiên chưa thu hồi phải có RevocationReason NULL; phiên đã thu hồi cần lý do không trống. Lý do là mã nội bộ được backend chọn, không nhận tùy ý từ client; danh sách mã chi tiết chưa bị cố định bằng enum SQL.
 
@@ -46,6 +48,8 @@ Backend phải áp dụng [thời hạn session/token đã chốt](confirmed-dec
 ## Chuẩn hóa và kiểm tra
 
 V3 đặt các ràng buộc chuẩn hóa username/email, role/provider và dữ liệu hồ sơ. Xem [lưu ý triển khai](#lưu-ý-cho-bước-triển-khai-backend) để chuẩn hóa đúng trước lưu/tra cứu; không dùng constraint thay validation email/password/phone ở ứng dụng.
+
+[Schema JSON chốt ngày 2026-10-25](api/json-schema.md#validation) quy định validation tầng API, gồm số điện thoại 8–15 chữ số có thể bắt đầu bằng `+`. Cột PhoneNumber vẫn varchar(20), nullable; không sửa migration hoặc coi quy tắc API là constraint đã có trong database. PATCH hồ sơ dùng null để xóa số điện thoại.
 
 ProviderUserId và các hash là dữ liệu nguyên dạng, không lowercase/trim để sửa dữ liệu. PasswordHash NULL dành cho tài khoản chưa có password.
 

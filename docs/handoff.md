@@ -1,6 +1,6 @@
 # Bắt đầu một phiên làm việc mới
 
-Cập nhật hướng dẫn đọc: 2026-10-24. Nguồn nghiệp vụ được bàn giao ngày 2026-10-22; đợt này không đối chiếu lại Word hoặc database. Đây là điểm vào để tiếp tục công việc mà không cần lịch sử chat, không phải tài liệu lặp lại toàn bộ chính sách.
+Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 theo xác nhận của chủ dự án ngày 2026-10-25. Nguồn nghiệp vụ được bàn giao ngày 2026-10-22; đợt này không đối chiếu lại Word hoặc database. Đây là điểm vào để tiếp tục công việc mà không cần lịch sử chat, không phải tài liệu lặp lại toàn bộ chính sách.
 
 ## Thứ tự đọc
 
@@ -13,8 +13,11 @@ Cập nhật hướng dẫn đọc: 2026-10-24. Nguồn nghiệp vụ được b
 
 ## Hiện trạng cần biết
 
+- Ngày 2026-10-31 chốt [Service JWT/quyền Admin/Borrow và actor Admin](confirmed-decisions.md#internal-service-auth), [SMTP sau commit và lỗi gửi/retry](confirmed-decisions.md#otp-email-delivery), [retry/cạnh tranh/audit trạng thái và cấm khóa ADMIN](confirmed-decisions.md#admin-status-contract), [hai mã lỗi tích hợp](confirmed-decisions.md#integration-error-contract). Ban đầu hoãn cấu hình JWT; sau đó đã chốt riêng Q14. Service JWT Q03/Q11a vẫn mở, không tự áp RS256/5 phút hoặc cấu hình khóa user token cho Service JWT.
+- [User access token Q14 đã chốt](confirmed-decisions.md#access-token-key-pair): iss urn:library:user-service dùng chung, không chia môi trường; aud ["library-api"]; kid user-access-v1; một cặp khóa cố định, private key ký/public key xác minh. Đã tạo RSA 3072 bit bằng JDK 25 tại backend/.secrets/user-access-private.pem và user-access-public.pem, loại khỏi Git và kiểm tra ký/xác minh từ PEM. Cấp/phân phối public key qua file/cấu hình, thay khóa có kiểm soát, chưa thêm JWKS. Chưa cấu hình ứng dụng đọc khóa hoặc triển khai JWT/API.
+
 - Repo có Spring Boot 4.1.1, Java 25, Maven wrapper, PostgreSQL, Flyway V1–V6, cấu hình khởi động và context test. Chưa có implementation của 20 API, JWT, Google, email hay Gateway.
-- V6 bổ sung UserSessions, đưa thiết kế lên 7 bảng. Theo bàn giao 2026-10-22, V6 chưa áp dụng vào database dự án. Đây là thông tin lịch sử; phải kiểm tra môi trường thực tế trước khi chạy.
+- V6 bổ sung UserSessions, đưa schema lên 7 bảng và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Xem [trạng thái migration](data-model.md#migration-v6-quản-lý-phiên); khi làm việc với môi trường khác, kiểm tra trạng thái migration của môi trường đó trước khi chạy.
 - V6 yêu cầu RefreshTokens hoàn toàn rỗng, kể cả bản ghi hết hạn. Không tự xóa/thu hồi token để vượt điều kiện; không sửa migration đã áp dụng/chia sẻ.
 - Chủ dự án giới hạn công việc ở migration và tài liệu cho đến khi yêu cầu code. Đợt tối ưu hiện tại chỉ sửa Markdown.
 - Lệnh backend chạy từ `backend/` vì `.env` được tìm theo thư mục làm việc; cổng cấu hình là 5001. Context test sử dụng datasource và Flyway thật, không chạy tùy tiện trên database dự án.

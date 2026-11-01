@@ -10,14 +10,16 @@ User Service quản lý dữ liệu tài khoản và cung cấp API. Ngày 2026-
 | --- | --- | --- |
 | Bắt đầu dự án hoặc phiên làm việc | [README dự án](../README.md), [bàn giao](handoff.md) | [AGENTS.md](../AGENTS.md) cho coding agent |
 | Hiểu nghiệp vụ và thiết kế | [12 use case](use-cases.md), [kiến trúc](architecture.md) | [Transaction và yêu cầu](requirements.md), [quyết định đã xác nhận](confirmed-decisions.md) |
-| Triển khai hoặc tích hợp API | [Bản đồ 20 operation](api/README.md) | [16 API hiện hành](api/current-contract.md), [4 API phiên/introspection](api/sessions.md), [tích hợp nội bộ](api/internal-integration.md) |
+| Triển khai hoặc tích hợp API | [Bản đồ 20 operation](api/README.md) | [Schema JSON](api/json-schema.md), [HTTP/lỗi](api/http-errors.md), [16 API hiện hành](api/current-contract.md), [4 API phiên/introspection](api/sessions.md), [tích hợp nội bộ](api/internal-integration.md) |
 | Tra cứu schema và nguồn lịch sử | [Mô hình dữ liệu](data-model.md) | [16 API nguồn Excel](api/source-catalog.md) |
 | Chạy và phát triển cục bộ | [Môi trường cục bộ](local-development.md) | [Quy trình phát triển và kiểm thử](development.md) |
 | Làm rõ yêu cầu và bảo trì docs | [Quyết định còn mở](open-decisions.md) | [Quy ước và nguồn tham chiếu](documentation.md) |
 
 ## Trạng thái và nguồn sự thật
 
-- **Đã có trong repo:** cấu hình khởi động, Flyway V1–V6 và context test. Chưa triển khai API nghiệp vụ, JWT hoặc Gateway. Theo bàn giao 2026-10-22, V6 chưa áp dụng vào database dự án; đợt cập nhật docs không kiểm tra hoặc thay đổi database.
+Quyết định mới ngày 2026-10-31: [xác thực/quyền service và actor Admin](confirmed-decisions.md#internal-service-auth), [hành vi SMTP](confirmed-decisions.md#otp-email-delivery), [quản trị trạng thái](confirmed-decisions.md#admin-status-contract), [lỗi tích hợp](confirmed-decisions.md#integration-error-contract) và [user access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt. Chỉ cấu hình Service JWT Q03/Q11a tiếp tục PENDING DECISION; chưa tạo OpenAPI hoặc triển khai API.
+
+- **Đã có trong repo:** cấu hình khởi động, Flyway V1–V6 và context test. V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; xem [trạng thái migration](data-model.md#migration-v6-quản-lý-phiên). Chưa triển khai API nghiệp vụ, JWT hoặc Gateway.
 - **Thiết kế nguồn:** yêu cầu ghi trong `DacTaUseCase.docx` và `ThietKeApi.xlsx`, chưa đồng nghĩa API đã chạy.
 - **Đã xác nhận:** quyết định do chủ dự án nêu trực tiếp, được ghi trong [sổ quyết định](confirmed-decisions.md); không đồng nghĩa đã triển khai.
 - **PENDING DECISION:** thiếu thông tin hoặc cần giải quyết khác biệt giữa nguồn; không dùng làm hợp đồng tích hợp cuối cùng.

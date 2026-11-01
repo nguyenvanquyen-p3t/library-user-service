@@ -30,7 +30,9 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 | Transaction và tính nhất quán | [Yêu cầu nghiệp vụ](requirements.md) | Tác động ngắn gọn tại operation; chi tiết xử lý dẫn về yêu cầu |
 | Trách nhiệm và kiến trúc mục tiêu | [Kiến trúc](architecture.md), [tích hợp nội bộ](api/internal-integration.md) | Link tới thành phần hoặc hợp đồng liên quan |
 | HTTP của 16 API gốc | [Bản API hiện hành](api/current-contract.md) | Link từng operation từ [bản đồ 20 API](api/README.md); tích hợp nội bộ không chép JSON |
-| HTTP của 4 API mới | [API phiên/introspection](api/sessions.md) | Link từng operation; đánh dấu response/phân trang/lỗi đề xuất |
+| HTTP của 4 API mới | [API phiên/introspection](api/sessions.md) | Link từng operation; schema/phân trang/API phiên và request/response introspection đã chốt; lỗi/header dẫn về HTTP/lỗi, cấu hình JWT còn mở |
+| Quy tắc schema JSON dùng chung | [Schema JSON](api/json-schema.md) | Link tới envelope, required/null request/response, validation, PATCH, biến thể Google và quy tắc tái sử dụng/mở rộng response; quyết định ghi tại sổ quyết định |
+| HTTP status và lỗi dùng chung | [HTTP/lỗi](api/http-errors.md) | Link tới status/messageCode, data.errors, Retry-After và ngoại lệ; không sao chép danh mục mã vào từng operation |
 | Dữ liệu Excel lịch sử | [Danh mục nguồn](api/source-catalog.md) | Link hàng/ô nguồn; không sửa ví dụ lịch sử theo quyết định mới |
 | Bảng, cột, constraint, trigger và giới hạn schema | [Mô hình dữ liệu](data-model.md) | Link và giải thích tác động, không nhầm quy tắc ứng dụng với constraint |
 | Cấu hình, chạy/test/đóng gói và xử lý lỗi | [Môi trường cục bộ](local-development.md) | README giữ chạy nhanh; không duy trì bản hướng dẫn chi tiết thứ hai |
@@ -40,9 +42,11 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 
 [16 API hiện hành](api/current-contract.md) tổng hợp ví dụ nguồn với các quyết định mới nhất; [API phiên](api/sessions.md) mô tả 4 API mới. Cả 20 API chưa triển khai. “Hiện hành” không có nghĩa tất cả trường hoặc phản hồi đã chốt.
 
-Dùng bốn nhãn nhất quán: **Đã xác nhận**, **Theo nguồn/chưa xác nhận**, **Đề xuất**, **PENDING DECISION**. Phân biệt các nhãn này với **Đã triển khai**: chỉ dùng trạng thái triển khai khi đối chiếu được code và kiểm tra thực tế. Ví dụ JSON không chứng minh required/null, validation hoặc đầy đủ các lỗi.
+Dùng bốn nhãn nhất quán: **Đã xác nhận**, **Theo nguồn/chưa xác nhận**, **Đề xuất**, **PENDING DECISION**. Phân biệt các nhãn này với **Đã triển khai**: chỉ dùng trạng thái triển khai khi đối chiếu được code và kiểm tra thực tế. Ví dụ JSON không chứng minh required/null, validation hoặc đầy đủ các lỗi. Ngày 2026-10-25 chốt schema JSON/response của 16 API gốc, biến thể Google/mở rộng response và bộ HTTP/lỗi; ngày 2026-10-26 chốt ba API phiên, danh mục mã phản hồi và [bộ introspection](confirmed-decisions.md#introspection-contract). Schema request/response của 20 API, mã thành công của 19 API dùng envelope và request/response/lỗi/header introspection đã xác nhận; cấu hình JWT/hành vi tích hợp và tình huống/mã/chi tiết ngoài danh mục vẫn mở. Danh mục nguồn giữ ví dụ Excel lịch sử, không đổi nhãn hoặc mã theo quyết định mới.
 
 Chưa tạo OpenAPI trong đợt tối ưu docs. Khi được yêu cầu và các phần liên quan đã chốt, tạo contract với operationId ổn định, schema input/output, required/null, security từng operation, phản hồi lỗi và ví dụ; validate bằng công cụ hỗ trợ phiên bản được chọn. Contract test chỉ bổ sung khi được yêu cầu code.
+
+Cập nhật quyết định ngày 2026-10-31: [Service JWT/quyền và actor Admin](confirmed-decisions.md#internal-service-auth), [SMTP/lỗi gửi](confirmed-decisions.md#otp-email-delivery), [quản trị trạng thái](confirmed-decisions.md#admin-status-contract), [lỗi tích hợp](confirmed-decisions.md#integration-error-contract) và [user access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt, thay phần tương ứng còn mở trong bản tóm tắt ngày 2026-10-26 ở trên. Chỉ cấu hình Service JWT Q03/Q11a tiếp tục PENDING DECISION; Q06 chỉ còn lựa chọn/cấu hình môi trường SMTP, Q09 chỉ còn tình huống/mã ngoài danh mục. Không suy ra đã triển khai JWT/API từ việc có cặp khóa và chốt Q14.
 
 ## Mức chi tiết của đặc tả Word và docs
 

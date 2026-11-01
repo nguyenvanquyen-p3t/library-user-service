@@ -10,6 +10,8 @@ Request được bảo vệ cần JWT hợp lệ, user ACTIVE, phiên từ sid t
 
 OTP phải đúng email/purpose, còn hạn, chưa dùng/chưa bị thay thế và chưa vượt giới hạn thử. Mật khẩu áp dụng thống nhất chính sách đã chốt. Chi tiết thời gian, số lần thử, hash, transaction và lưu giữ dữ liệu nằm trong docs kỹ thuật, không phải bước tương tác bắt buộc phải lặp trong Word.
 
+Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-decisions.md#otp-email-delivery): lưu hash mã/vô hiệu mã cũ và commit trước khi gửi đồng bộ. SMTP lỗi/timeout ở UC01/UC09 báo lỗi 503; riêng xin mã UC05 giữ 200/thông báo chung, ghi lỗi vận hành nội bộ. Lỗi database vẫn trả lỗi; mã đã cấp vẫn tính giới hạn gửi, không tự cấp mã retry hoặc phục hồi mã cũ. Không đối chiếu lại Word trong đợt cập nhật này.
+
 ## UC01 Đăng ký bằng email
 
 **Actor:** người đăng ký làm độc giả. **Ưu tiên:** cao. Có email nhận mã; luồng thành công dành cho người chưa có tài khoản.
@@ -61,10 +63,10 @@ OTP phải đúng email/purpose, còn hạn, chưa dùng/chưa bị thay thế v
 **Actor:** người có tài khoản đã từng đặt mật khẩu và truy cập được email đăng ký. **Ưu tiên:** cao; không yêu cầu đang đăng nhập.
 
 1. Người dùng chọn quên mật khẩu, nhập email; hệ thống tìm tài khoản và gửi OTP PASSWORD_RESET.
-2. Người dùng nhập OTP và mật khẩu mới/xác nhận; hệ thống xác minh OTP cho đúng email/purpose và kiểm tra mật khẩu khớp, hợp lệ.
+2. Người dùng nhập OTP, mật khẩu mới và xác nhận; client gửi chung trong một request hoàn tất. Hệ thống xác minh OTP cho đúng email/purpose và kiểm tra mật khẩu khớp, hợp lệ trước khi lưu.
 3. Hệ thống cập nhật mật khẩu, dùng mã một lần, thu hồi tất cả phiên/refresh token liên quan, thông báo thành công. Người dùng đăng nhập lại.
 
-Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nhận OTP và mật khẩu trong cùng request hoàn tất. Không tự thêm API verify-code hoặc reset ticket; cách chia màn hình xem Q13.
+**Đã xác nhận ngày 2026-10-25 — [Q13](confirmed-decisions.md#password-otp-flow):** xác minh OTP trong request hoàn tất, không có API xác minh riêng hoặc reset ticket. Quyết định này thay cách chia bước trong Word đã đối chiếu ngày 2026-10-22; đợt này không cập nhật hoặc đối chiếu lại Word.
 
 **Ngoại lệ:** email không tồn tại → thông báo chung; sai mã → tăng số lần thử, mã bị chặn sau lần sai thứ 5; mã hết hạn/đã dùng/đã thay thế/vượt giới hạn → từ chối, xin mã mới theo chính sách; mật khẩu sai chính sách → sửa lại; tài khoản chưa có mật khẩu → đăng nhập Google và dùng UC09. **Kết quả:** mật khẩu mới, mã không dùng lại, mọi phiên cũ mất hiệu lực. Reset không phải mở khóa BANNED.
 
@@ -74,7 +76,7 @@ Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nh�
 
 1. Người dùng mở thông tin cá nhân; hệ thống xác định user từ danh tính đã xác minh và hiển thị hồ sơ của họ.
 2. Người dùng có thể chỉ xem hoặc sửa fullName/phoneNumber rồi xác nhận.
-3. Hệ thống kiểm tra dữ liệu, lưu và thông báo thành công.
+3. Hệ thống kiểm tra dữ liệu theo [schema đã chốt](api/json-schema.md#profile-patch), lưu và thông báo thành công. Bỏ qua trường để giữ nguyên; phoneNumber null để xóa; fullName null/trắng, số điện thoại rỗng, body rỗng hoặc trường ngoài danh sách bị từ chối.
 
 **Ngoại lệ:** token hết hạn → UC03 nếu còn refresh được, nếu không thì đăng nhập lại; danh tính/phiên không hợp lệ → từ chối; dữ liệu sai → không lưu, cho sửa lại. **Kết quả:** nhánh xem không thay đổi hồ sơ; nhánh sửa lưu thông tin, UpdatedAt do trigger cập nhật khi dữ liệu thực sự đổi. Không sửa password, role, status, username hoặc email qua API này.
 
@@ -98,7 +100,9 @@ Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nh�
 
 **A1 — Identity chưa có, email Local đã có:** dùng email Google đã xác minh để tự liên kết identity vào user hiện có; không hỏi lại mật khẩu Local, không tạo user mới hoặc thay role/mật khẩu. Chỉ user ACTIVE được cấp phiên/token. Tài khoản trở thành Hybrid. Google client ID được phép còn Q07; không tin email do client tự khai.
 
-**A2 — Người mới:** trả registrationToken và màn hình hoàn tất tài khoản, chưa có phiên đăng nhập. Email từ Google, không nhập mật khẩu, gợi ý username có thể sửa, họ tên lấy từ Google; request hoàn tất mang username/fullName/phoneNumber. Server xác minh registrationToken, kiểm tra identity chưa tồn tại và username chưa được dùng, tạo user ACTIVE với PasswordHash NULL, identity GOOGLE, READER và phiên/token. Identity đã tồn tại ở bước hoàn tất → không cấp thêm phiên/token, chuyển sang đăng nhập Google. Sai dữ liệu/username → sửa trong TTL còn lại; token hết hạn → xác minh Google lại. Sau commit mất response → đăng nhập Google, không cấp lại token bằng registrationToken.
+**A2 — Người mới:** trả registrationToken và màn hình hoàn tất tài khoản, chưa có phiên đăng nhập. Email từ Google, không nhập mật khẩu, gợi ý username có thể sửa, họ tên gợi ý từ Google. Theo [schema response chốt ngày 2026-10-25](api/json-schema.md#google-responses), fullName/suggestedUserName luôn xuất hiện, có thể null khi thiếu gợi ý phù hợp; người dùng điền tên nếu thiếu. Gợi ý username không giữ chỗ hoặc bảo đảm còn trống. Request hoàn tất mang username/fullName/phoneNumber, fullName vẫn bắt buộc hợp lệ và không null. Server xác minh registrationToken, kiểm tra identity chưa tồn tại và username chưa được dùng, tạo user ACTIVE với PasswordHash NULL, identity GOOGLE, READER và phiên/token. Identity đã tồn tại ở bước hoàn tất → không cấp thêm phiên/token, chuyển sang đăng nhập Google. Sai dữ liệu/username → sửa trong TTL còn lại; token hết hạn → xác minh Google lại. Sau commit mất response → đăng nhập Google, không cấp lại token bằng registrationToken.
+
+**Bổ sung đã xác nhận ngày 2026-10-26:** email trong registrationToken đã được tài khoản khác sử dụng trước khi hoàn tất → HTTP 409 EMAIL_ALREADY_EXISTS, rollback đăng ký và hướng người dùng quay lại đăng nhập Google theo luồng đã chốt; không tự liên kết/cấp token ở request hoàn tất bị từ chối. Xem [danh mục mã phản hồi](confirmed-decisions.md#response-code-contract).
 
 **Ngoại lệ khác:** Google token không hợp lệ → không tạo/liên kết user; người dùng hủy xác thực Google → kết thúc không thay đổi database; user BANNED → không cấp token. **Kết quả:** ba nhánh hoàn tất thành công đều có phiên mới; dừng ở màn hình hoàn tất đăng ký chưa phải đăng nhập thành công. Giữ Google identity theo sub, không dùng email thay khóa định danh. Giới hạn chống đăng ký lặp dựa trên identity xem quyết định Q08.
 
@@ -108,10 +112,12 @@ Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nh�
 
 1. Người dùng mở phương thức đăng nhập/bảo mật và chọn thiết lập mật khẩu.
 2. Hệ thống lấy email từ tài khoản đang xác thực và gửi OTP SET_PASSWORD.
-3. Người dùng nhập mã, mật khẩu mới và xác nhận; hệ thống kiểm tra mã đúng email/purpose còn hiệu lực, mật khẩu hợp lệ và khớp xác nhận.
+3. Người dùng nhập mã, mật khẩu mới và xác nhận; client gửi chung trong một request hoàn tất có xác thực. Hệ thống kiểm tra mã đúng email/purpose còn hiệu lực, mật khẩu hợp lệ và khớp xác nhận trước khi lưu.
 4. Hệ thống đặt mật khẩu, đánh dấu mã đã dùng, thu hồi toàn bộ phiên/refresh token. Client xóa token, thông báo thành công và chuyển về đăng nhập.
 
-**Ngoại lệ:** gửi mail lỗi → báo lỗi, cho yêu cầu lại; OTP sai → tính số lần thử, chặn sau lần thứ 5; hết hạn → xin mã mới; mật khẩu sai/không khớp → sửa; đã có mật khẩu → UC07. Các kiểm tra mã đã dùng/thay thế cũng áp dụng theo chính sách chung. Cách chia màn hình kiểm tra OTP còn Q13, không thêm API ngầm.
+**Đã xác nhận ngày 2026-10-25 — [Q13](confirmed-decisions.md#password-otp-flow):** xác minh OTP trong request hoàn tất, không có API xác minh riêng hoặc token/ticket xác minh.
+
+**Ngoại lệ:** gửi mail lỗi → báo lỗi, cho yêu cầu lại; OTP sai → tính số lần thử, chặn sau lần thứ 5; hết hạn → xin mã mới; mật khẩu sai/không khớp → sửa; đã có mật khẩu → UC07. Các kiểm tra mã đã dùng/thay thế cũng áp dụng theo chính sách chung.
 
 **Kết quả:** Google-only thành Hybrid, giữ identity Google, đăng nhập lại được bằng Google hoặc username/email + mật khẩu. Không nhận email tùy ý của tài khoản khác để đặt mật khẩu.
 
@@ -123,7 +129,7 @@ Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nh�
 2. Hệ thống lấy các phiên của chính người dùng chưa thu hồi/chưa hết hạn, trả ID, thời điểm tạo/hết hạn/hoạt động gần nhất và metadata thiết bị nếu có.
 3. Server xác định isCurrent từ sid đã xác minh; client hiển thị danh sách, đánh dấu phiên hiện tại.
 
-**Ngoại lệ:** danh tính/phiên không hợp lệ → xác thực lại; không có kết quả phù hợp → danh sách trống; tải lỗi → báo và cho thử lại. **Kết quả:** chỉ xem, không thu hồi phiên; không lộ token/hash. Metadata có thể thiếu, không phải bằng chứng danh tính. Phân trang/sắp xếp là hợp đồng đề xuất trong API phiên.
+**Ngoại lệ:** danh tính/phiên không hợp lệ → xác thực lại; không có kết quả phù hợp hoặc trang vượt kết quả → danh sách trống; tải lỗi → báo và cho thử lại. **Kết quả:** chỉ xem, không thu hồi phiên; không lộ token/hash. Metadata có thể thiếu, không phải bằng chứng danh tính. [Phân trang/sắp xếp đã chốt ngày 2026-10-26](api/sessions.md#session-list); không tự đưa phiên hiện tại lên đầu, phiên này có thể nằm ở trang khác. lastSeenAt là hoạt động đã ghi nhận, không khẳng định đang online.
 
 ## UC11 Đăng xuất một phiên khác
 
@@ -134,7 +140,7 @@ Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nh�
 3. Server xác minh user và sid của phiên gọi; kiểm tra phiên đích thuộc user và khác sid.
 4. Hệ thống thu hồi phiên đích cùng token liên quan, báo thành công; client cập nhật danh sách, phiên hiện tại tiếp tục sử dụng.
 
-**Ngoại lệ:** không có phiên/không thuộc user → từ chối không tiết lộ dữ liệu người khác; request cố chọn phiên hiện tại → từ chối không thay đổi phiên/token; phiên đích đã thu hồi → thành công nếu phiên gọi còn hợp lệ, giữ nguyên thời điểm/lý do cũ; phiên gọi/token không hợp lệ → từ chối; transaction lỗi → không thu hồi một phần hoặc báo thành công.
+**Ngoại lệ:** không có phiên/không thuộc user → từ chối không tiết lộ dữ liệu người khác; request cố chọn phiên hiện tại → từ chối không thay đổi phiên/token; phiên đích của mình đã thu hồi hoặc hết hạn → thành công nếu phiên gọi còn hợp lệ, giữ nguyên thời điểm/lý do cũ và không cập nhật lại phiên hết hạn theo [xác nhận ngày 2026-10-26](confirmed-decisions.md#session-response-contract); phiên gọi/token không hợp lệ → từ chối; transaction lỗi → không thu hồi một phần hoặc báo thành công.
 
 **Kết quả:** chỉ phiên đích mất hiệu lực; phiên hiện tại và các phiên khác không ảnh hưởng. Đăng xuất bản thân dùng UC04. Đây là lựa chọn chủ dự án đã nêu và Word hiện tại thể hiện, thay đề xuất API cũ cho chọn phiên hiện tại.
 
@@ -144,6 +150,6 @@ Word mô tả nhập/xác minh OTP trước nhập mật khẩu; API hiện nh�
 
 1. Người dùng chọn đăng xuất tất cả phiên khác trong quản lý phiên; hệ thống yêu cầu xác nhận, người dùng xác nhận.
 2. Server xác minh user và sid, thu hồi các phiên khác còn hiệu lực cùng refresh token liên quan, giữ phiên hiện tại.
-3. Hệ thống trả kết quả, client cập nhật danh sách.
+3. Hệ thống trả kết quả với revokedCount đếm số phiên còn hiệu lực được chính thao tác này thu hồi thành công, client cập nhật danh sách; không đếm phiên hiện tại, phiên đã thu hồi/hết hạn hoặc số refresh token. [Schema và cách đếm chốt ngày 2026-10-26](api/sessions.md#session-revoke-others).
 
-**Ngoại lệ:** không có phiên khác → thông báo không có phiên cần đăng xuất; access token/phiên gọi không hợp lệ → từ chối; không hoàn tất thao tác → báo lỗi, không báo thành công. **Kết quả:** các phiên khác đã xử lý mất hiệu lực, phiên hiện tại giữ nguyên. Không cấm đăng nhập tạo phiên mới sau thao tác; không lấy currentSessionId tùy ý từ client.
+**Ngoại lệ:** không có phiên cần thu hồi hoặc gọi lại khi chưa có phiên mới → HTTP 200 với revokedCount 0; access token/phiên gọi không hợp lệ → từ chối; không hoàn tất transaction → báo lỗi, không báo thành công hoặc trả số đếm một phần. **Kết quả:** các phiên khác đã xử lý mất hiệu lực, phiên hiện tại giữ nguyên. Không cấm đăng nhập tạo phiên mới sau thao tác; không lấy currentSessionId tùy ý từ client.
