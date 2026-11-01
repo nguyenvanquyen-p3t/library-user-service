@@ -14,7 +14,7 @@ Dự án đang ở giai đoạn xây dựng nền tảng và thiết kế API.
 - **Đã thiết kế, chưa triển khai:** 20 API, gồm 16 API gốc, 3 API quản lý phiên và introspection RFC 7662.
 - **Chưa có:** controller/service/repository nghiệp vụ, cấu hình JWT hoặc tích hợp Gateway. Chưa có API nghiệp vụ để gọi thử sau khi khởi động.
 
-Theo bàn giao 2026-10-22, V6 chưa áp dụng vào database dự án; đợt tối ưu docs 2026-10-24 không kiểm tra hoặc thay đổi database.
+V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Chi tiết trạng thái tại [mô hình dữ liệu](docs/data-model.md#migration-v6-quản-lý-phiên).
 
 Thiết kế giữ refresh token trong JSON cho cả Web/Android và dùng Service JWT để Gateway gọi introspection. Chi tiết nằm trong [quyết định đã xác nhận](docs/confirmed-decisions.md).
 

@@ -1,6 +1,6 @@
 # Kiến trúc và phạm vi
 
-Trạng thái: kiến trúc mục tiêu, chưa triển khai API. Biên tập ngày 2026-10-24 dựa trên code/config trong repo và các quyết định đã xác nhận; không kiểm tra database trong đợt này.
+Trạng thái: kiến trúc mục tiêu, chưa triển khai API. Biên tập ngày 2026-10-24 dựa trên code/config trong repo và các quyết định đã xác nhận; cập nhật trạng thái V6 theo xác nhận của chủ dự án ngày 2026-10-25, không kiểm tra database trong đợt này.
 
 ## Ranh giới trách nhiệm
 
@@ -9,14 +9,14 @@ Phạm vi 2026-10-19 gồm 7 bảng, 20 API thiết kế. Chính sách tài kho�
 | Thành phần | Trách nhiệm | Căn cứ và trạng thái |
 | --- | --- | --- |
 | User Service | Đăng ký, xác minh email, đăng nhập local/Google, token, hồ sơ, mật khẩu, quản lý phiên | UC01–UC12, thiết kế nguồn |
-| User Service | Lưu tài khoản, role, liên kết đăng nhập, hash token và mã xác minh | Migration V1–V6 có trong repo; V6 chưa áp dụng vào database dự án theo bàn giao 2026-10-22 |
+| User Service | Lưu tài khoản, role, liên kết đăng nhập, hash token và mã xác minh | Migration V1–V6 có trong repo; V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; xem [mô hình dữ liệu](data-model.md#migration-v6-quản-lý-phiên) |
 | Admin Service | Khởi xướng và điều phối khóa, mở khóa/kích hoạt lại | Chủ dự án xác nhận |
 | User Service | API ghi trạng thái theo yêu cầu Admin Service đã được xác thực và cấp quyền | API trạng thái có trong Excel; quản lý role qua API ngoài V1 |
 | Gateway | Xác thực request người dùng qua introspection và định tuyến tới service đích | Dùng Service JWT riêng gọi User Service; chưa triển khai |
 | Borrow Service | Kiểm tra điều kiện nghiệp vụ mượn từ thông tin user nhận được | Excel Sheet1 hàng 18 |
 | Web/Android | Gọi API người dùng, giữ/xóa token theo luồng đăng nhập | Thiết kế nguồn; cách lưu token chưa chốt |
 | Google | Cung cấp danh tính đăng nhập ngoài | UC08 |
-| Dịch vụ gửi email | Gửi mã đăng ký, khôi phục và thiết lập mật khẩu | UC01, UC05, UC09; phương thức tích hợp chưa chốt |
+| Dịch vụ gửi email | Gửi mã đăng ký, khôi phục và thiết lập mật khẩu | UC01, UC05, UC09; SMTP đồng bộ sau commit OTP đã chốt ngày 2026-10-31, nhà cung cấp/cấu hình môi trường còn mở |
 
 ## Luồng tích hợp mục tiêu
 
@@ -35,6 +35,8 @@ flowchart LR
 ```
 
 Thiết kế tích hợp dùng API User Service để truy cập dữ liệu user. Không có hợp đồng cho phép Admin Service hoặc Borrow Service ghi trực tiếp UserDB. API nội bộ vẫn phải xác thực và phân quyền; tiền tố `/internal` tự nó không tạo ra bảo vệ.
+
+Ngày 2026-10-31 chốt [Service JWT/quyền riêng cho Admin/Borrow và access token actor Admin](confirmed-decisions.md#internal-service-auth), [SMTP sau commit](confirmed-decisions.md#otp-email-delivery), [retry/cạnh tranh/audit trạng thái](confirmed-decisions.md#admin-status-contract) và [user access token Q14](confirmed-decisions.md#access-token-key-pair). User token dùng issuer chung, audience Library API, kid và file khóa; chỉ cấu hình Service JWT còn PENDING DECISION. Chưa triển khai các kết nối này.
 
 ## Hiện trạng kỹ thuật
 

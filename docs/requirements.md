@@ -8,11 +8,11 @@ Trạng thái: **thiết kế, chưa triển khai API**. Biên tập lại ngày
 | UC02 | [Đăng nhập Local](use-cases.md#uc02-đăng-nhập-local) | Trạng thái user, tạo phiên và cấp token |
 | UC03 | [Làm mới token](use-cases.md#uc03-làm-mới-token) | Rotation một lần, cạnh tranh và reuse |
 | UC04 | [Đăng xuất](use-cases.md#uc04-đăng-xuất-phiên-hiện-tại) | Token cũ, thu hồi server khác xóa token client |
-| UC05 | [Quên mật khẩu](use-cases.md#uc05-quên-và-đặt-lại-mật-khẩu) | OTP PASSWORD_RESET, Q13 và thu hồi phiên |
+| UC05 | [Quên mật khẩu](use-cases.md#uc05-quên-và-đặt-lại-mật-khẩu) | OTP PASSWORD_RESET gửi cùng mật khẩu mới và thu hồi phiên |
 | UC06 | [Hồ sơ](use-cases.md#uc06-xem-và-cập-nhật-hồ-sơ) | Chỉ sửa fullName/phoneNumber, UpdatedAt từ trigger |
 | UC07 | [Đổi mật khẩu](use-cases.md#uc07-đổi-mật-khẩu) | Thu hồi cả phiên đang gọi |
 | UC08 | [Google](use-cases.md#uc08-đăng-nhập-và-đăng-ký-google) | Ba nhánh, tự liên kết và chống đăng ký lặp |
-| UC09 | [Thiết lập mật khẩu](use-cases.md#uc09-thiết-lập-mật-khẩu-lần-đầu) | OTP SET_PASSWORD, Q13 và giữ identity Google |
+| UC09 | [Thiết lập mật khẩu](use-cases.md#uc09-thiết-lập-mật-khẩu-lần-đầu) | OTP SET_PASSWORD gửi cùng mật khẩu mới và giữ identity Google |
 | UC10 | [Danh sách phiên](use-cases.md#uc10-xem-danh-sách-phiên) | Ownership và isCurrent từ sid đã xác minh |
 | UC11 | [Đăng xuất một phiên khác](use-cases.md#uc11-đăng-xuất-một-phiên-khác) | Server từ chối phiên hiện tại, thu hồi lặp |
 | UC12 | [Đăng xuất các phiên khác](use-cases.md#uc12-đăng-xuất-tất-cả-phiên-khác) | Giữ phiên hiện tại, không cấm login mới sau thao tác |
@@ -23,18 +23,19 @@ UC01 trong Word nhập đầy đủ thông tin trước khi gửi mã; API tách
 
 UC08 có ba nhánh và endpoint hoàn tất bằng registrationToken. Chính sách [tự liên kết](confirmed-decisions.md#google-linking), [TTL registrationToken](confirmed-decisions.md#google-registration-ttl) và [chống lặp/rollback/mất response](confirmed-decisions.md#google-replay) đã chốt. Không suy ra token dùng một lần tuyệt đối hoặc thêm kho trạng thái tiêu thụ token.
 
-Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/current-contract.md). Danh mục nguồn giữ nguyên ví dụ Excel, gồm TTL access token cũ; không dùng nó thay chính sách hiện hành. Word và API còn khác cách chia bước OTP UC05/UC09 tại [Q13](open-decisions.md#q13), không tự thêm endpoint.
+Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/current-contract.md). Danh mục nguồn giữ nguyên ví dụ Excel, gồm TTL access token cũ; không dùng nó thay chính sách hiện hành. [Q13 đã chốt ngày 2026-10-25](confirmed-decisions.md#password-otp-flow): UC05/UC09 gửi OTP cùng mật khẩu mới/xác nhận trong request hoàn tất; không thêm API xác minh riêng hoặc ticket. Quyết định này thay cách chia bước trong Word đã đối chiếu; đợt này không cập nhật hoặc đối chiếu lại Word.
 
 ## Chính sách OTP và mật khẩu đã chốt
 
-Áp dụng [chính sách Q05](confirmed-decisions.md#otp-password-policy) cho UC01/UC05/UC07/UC09 theo chức năng tương ứng; [OTP REGISTER](confirmed-decisions.md#register-otp-binding) chỉ gắn email/purpose. Các giá trị TTL, số lần thử/gửi lại và giới hạn mật khẩu được duy trì tại sổ quyết định để tránh nhiều bản khác nhau. Lỗi gửi email/retry vẫn thuộc [Q06](open-decisions.md#q06).
+Áp dụng [chính sách Q05](confirmed-decisions.md#otp-password-policy) cho UC01/UC05/UC07/UC09 theo chức năng tương ứng; [OTP REGISTER](confirmed-decisions.md#register-otp-binding) chỉ gắn email/purpose. Các giá trị TTL, số lần thử/gửi lại và giới hạn mật khẩu được duy trì tại sổ quyết định. [Q06 chốt ngày 2026-10-31](confirmed-decisions.md#otp-email-delivery): commit hash OTP mới/vô hiệu mã cũ trước khi gửi SMTP đồng bộ; lần cấp mã vẫn tính giới hạn dù SMTP lỗi, không tự cấp mã retry. REGISTER/SET_PASSWORD gửi lỗi trả 503; PASSWORD_RESET giữ 200/thông báo chung. Chỉ còn lựa chọn/cấu hình môi trường SMTP chưa chốt.
 
 ## Ranh giới transaction
 
-Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở docs, không bắt buộc lặp trong chuỗi Actor–hệ thống ở Word. Bảng dưới tổng hợp các thay đổi phải nhất quán theo luồng đã mô tả; không lựa chọn isolation level hoặc cách khóa cụ thể.
+Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở docs, không bắt buộc lặp trong chuỗi Actor–hệ thống ở Word. Bảng dưới tổng hợp thay đổi phải nhất quán; ngày 2026-10-31 chốt khóa cùng bản ghi user cho lệnh trạng thái cùng user, chưa chọn toàn bộ thứ tự khóa hoặc isolation level.
 
 | Use case/thao tác | Các thay đổi phải cùng transaction |
 | --- | --- |
+| Xin OTP UC01/UC05/UC09 | Kiểm tra giới hạn gửi, lưu hash OTP mới và vô hiệu mã cũ cùng email/purpose; gửi SMTP sau commit |
 | UC01 | Tạo user ACTIVE với PasswordHash, gán READER và đánh dấu OTP đã dùng |
 | UC02 | Tạo session và refresh token liên kết đúng user/phiên; chỉ trả cặp token sau commit |
 | UC03 | Thu hồi token cũ, tạo refresh token mới và liên kết rotation cùng phiên |
@@ -49,7 +50,7 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 | UC11 | Thu hồi phiên đích khác phiên hiện tại cùng refresh token liên quan; không ghi đè thời điểm/lý do thu hồi cũ |
 | UC12 | Thu hồi các phiên khác còn hiệu lực cùng refresh token liên quan, giữ phiên có sid đã xác minh |
 | Khóa tài khoản qua API nội bộ | Đổi ACTIVE → BANNED, thu hồi mọi phiên và refresh token còn hiệu lực liên quan |
-| Mở khóa qua API nội bộ | Đổi BANNED → ACTIVE; không phục hồi phiên/token cũ. Retry/lệnh đồng thời/audit còn Q10 |
+| Mở khóa qua API nội bộ | Đổi BANNED → ACTIVE; không phục hồi phiên/token cũ. Retry/lệnh đồng thời/audit theo Q10 đã chốt |
 
 Chỉ báo thành công và trả token đăng nhập sau commit. Lỗi transaction phải rollback các thay đổi trong transaction, không cập nhật một phần. UC04 áp dụng [ngoại lệ đã chốt](confirmed-decisions.md#logout): không tìm được session chỉ bảo đảm đăng xuất client; database lỗi không được báo thu hồi server thành công. Email và xóa token client không thuộc transaction database.
 
@@ -61,11 +62,13 @@ Rotation chỉ thành công một lần cho một token; constraint không thay 
 
 ## Quản trị
 
-Trách nhiệm Admin/Borrow và quyền nội bộ nằm tại [tích hợp nội bộ](api/internal-integration.md). Chính sách [khóa/mở khóa](confirmed-decisions.md#account-lifecycle) và [role ngoài phạm vi](confirmed-decisions.md#roles) được duy trì ở sổ quyết định; cách xử lý retry/audit còn [Q10](open-decisions.md#q10).
+Trách nhiệm Admin/Borrow và quyền nội bộ nằm tại [tích hợp nội bộ](api/internal-integration.md). Chính sách [khóa/mở khóa](confirmed-decisions.md#account-lifecycle) và [role ngoài phạm vi](confirmed-decisions.md#roles) giữ nguyên; [Q10 chốt ngày 2026-10-31](confirmed-decisions.md#admin-status-contract) bổ sung cùng trạng thái trả 200, tuần tự hóa theo bản ghi user, đối soát timeout và cấm khóa đối tượng ADMIN. Admin ghi audit yêu cầu/kết quả, User ghi sự kiện; không thêm bảng hoặc cam kết audit ngoài database nguyên tử với transaction.
 
 ## Quyết định xác thực đã chốt
 
-Đọc [token người dùng và Gateway](confirmed-decisions.md#user-tokens), [thời hạn session](confirmed-decisions.md#session-lifetime). Cơ chế introspection đã chọn; issuer/audience/khóa và nguồn roles còn [Q11a](open-decisions.md#q11a)/[Q14](open-decisions.md#q14). Chưa có cấu hình runtime.
+Đọc [token người dùng và Gateway](confirmed-decisions.md#user-tokens), [thời hạn session](confirmed-decisions.md#session-lifetime). [Bộ introspection chốt ngày 2026-10-26](confirmed-decisions.md#introspection-contract) xác nhận request/response, lỗi/header và nguồn roles hiện tại từ UserRoles/Roles trong database; không chỉ dựa vào role trong JWT hoặc role Gateway. Kiểm tra danh tính/quyền Gateway trước khi xử lý user token; lỗi danh tính/hạ tầng không chuyển thành active false. [User access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt issuer chung, audience, kid và quy trình khóa ngày 2026-10-31. Cấu hình Service JWT còn [Q03](open-decisions.md#q03)/[Q11a](open-decisions.md#q11a), không áp cấu hình user JWT sang service. Chưa có cấu hình runtime hoặc API quản lý role.
+
+[Q03 chốt ngày 2026-10-31](confirmed-decisions.md#internal-service-auth): Service JWT riêng cho Admin/Borrow, quyền users:read/users:status:write và tokens:introspect cho Gateway; actor Admin được chứng minh bằng access token trong X-Admin-Access-Token, kiểm tra phiên/ACTIVE/ADMIN hiện tại. Quyền đã chọn không tự chốt cách biểu diễn claim hoặc các cấu hình JWT bị hoãn. Thứ tự API nội bộ: danh tính service → quyền service → actor khi cần → nghiệp vụ.
 
 ## Quản lý phiên và thiết bị
 

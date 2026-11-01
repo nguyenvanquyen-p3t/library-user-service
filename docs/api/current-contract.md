@@ -1,15 +1,30 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24. **Thiết kế, chưa triển khai API.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất, không phải hợp đồng hoàn thiện hoặc hành vi đang chạy. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Thiết kế, chưa triển khai API.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất, không phải hợp đồng hoàn thiện hoặc hành vi đang chạy. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
 
 ## Cách đọc trạng thái
 
+Bổ sung ngày 2026-10-31: [Q03](../confirmed-decisions.md#internal-service-auth) chốt Service JWT/quyền và actor Admin; [Q06](../confirmed-decisions.md#otp-email-delivery) chốt hành vi SMTP; [Q10](../confirmed-decisions.md#admin-status-contract) chốt trạng thái/retry/audit; [Q09](../confirmed-decisions.md#integration-error-contract) bổ sung lỗi tích hợp. [User access token Q14](../confirmed-decisions.md#access-token-key-pair) đã chốt issuer chung urn:library:user-service, aud ["library-api"], kid user-access-v1 và quy trình cấp/phân phối/thay khóa. Nhãn Q03 còn mở chỉ cấu hình Service JWT, Q06 chỉ lựa chọn/cấu hình môi trường SMTP; Q11a vẫn hoãn, không áp cấu hình user token cho Service JWT.
+
 - **Đã xác nhận:** quy tắc do chủ dự án chốt, dẫn tới sổ quyết định hoặc luồng đã bàn giao; chưa đồng nghĩa có code.
-- **Theo nguồn/chưa xác nhận:** tên trường, HTTP status, messageCode và hình dạng JSON từ Excel chưa được xác nhận đầy đủ tại Q09. Ví dụ không tự xác định required/null hoặc validation.
+- **Theo nguồn/chưa xác nhận:** các tình huống/mã/chi tiết ngoài [bộ HTTP/lỗi đã chốt](http-errors.md) còn thuộc Q09. Các mã thành công của 16 API bên dưới đã chốt ngày 2026-10-26; required/null request/response, validation và biến thể Google theo [schema JSON đã chốt](json-schema.md). Không suy ra phần còn thiếu từ ví dụ.
 - **Đề xuất:** phương án còn cần thống nhất; đề xuất của API phiên được giữ ở tài liệu riêng, không chuyển thành quyết định tại đây.
 - **PENDING DECISION:** câu hỏi có ID trong [sổ quyết định còn mở](../open-decisions.md); cần chốt phần liên quan trước triển khai/tích hợp.
 
-Request có body của 16 API bên dưới dùng JSON theo thiết kế nguồn; API không có body được ghi riêng. Introspection dùng form URL encoded và response RFC 7662 không bọc envelope, xem API phiên. Response bên dưới giữ envelope nguồn, chưa chốt toàn bộ schema/lỗi tại [Q09](../open-decisions.md#q09).
+Request có body của 16 API bên dưới dùng JSON; API không có body được ghi riêng. [Schema JSON](json-schema.md) quy định envelope, required/null request/response, validation, PATCH và quy tắc tái sử dụng/mở rộng response; [HTTP/lỗi](http-errors.md) duy trì status, danh mục mã đã chốt, data.errors, Retry-After và ngoại lệ. Danh sách status từng operation bên dưới không lặp 405 METHOD_NOT_ALLOWED/415 UNSUPPORTED_MEDIA_TYPE dùng chung; API được bảo vệ dùng 401 AUTHENTICATION_REQUIRED khi chưa cung cấp xác thực, không thay validation của trường password thiếu trong JSON login. Các danh sách không tự bổ sung mã hoặc hành vi còn mở. Tình huống/mã/chi tiết lỗi ngoài danh mục vẫn thuộc [Q09](../open-decisions.md#q09). Introspection dùng form URL encoded và response RFC 7662 không bọc envelope, xem API phiên.
+
+**Schema data thành công đã xác nhận ngày 2026-10-25:** mọi trường của schema đều bắt buộc xuất hiện; chỉ các trường được nêu tại [schema response](json-schema.md#responses) nhận null. [Mã thành công](http-errors.md#success-codes) đã xác nhận ngày 2026-10-26; nội dung message là minh họa.
+
+| Operation/nhóm | Schema của data |
+| --- | --- |
+| Đăng ký Local; GET/PATCH hồ sơ | `UserProfile` |
+| Login; refresh | `TokenPair` |
+| Ba API xin OTP REGISTER/PASSWORD_RESET/SET_PASSWORD | `OtpRequestResult` |
+| Logout; reset/đổi/thiết lập mật khẩu | null |
+| `POST /api/v1/auth/google` | [Ba biến thể Google](json-schema.md#google-responses), theo cặp isNewUser/accountLinked |
+| Hoàn tất đăng ký Google | `GoogleRegistrationResult`, giữ user/token lồng trong data |
+| Tra cứu user nội bộ | `InternalUserSummary` |
+| Cập nhật trạng thái nội bộ | `UserStatusResult` |
 
 Mọi dữ liệu là minh họa. Ví dụ cấp access token dùng expiresIn 3600 theo [TTL đã chốt](../confirmed-decisions.md#user-tokens); OTP 600 giây. sid nằm trong JWT và được kiểm tra cùng phiên; không tự thêm trường JSON ngoài hợp đồng nguồn. Refresh token tiếp tục qua JSON cho Web/Android. Các token mẫu không sử dụng được.
 
@@ -27,9 +42,11 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Kiểm tra username/email chưa được sử dụng, cấp OTP REGISTER trước khi có user. Chưa lưu password/dữ liệu đăng ký tạm. OTP gắn email/purpose, không gắn username; xem [OTP REGISTER](../confirmed-decisions.md#register-otp-binding).
 
-**PENDING DECISION:** [Q06](../open-decisions.md#q06), [Q09](../open-decisions.md#q09). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**Bổ sung đã xác nhận ngày 2026-10-31:** commit hash OTP mới và vô hiệu mã cũ trước khi gửi SMTP đồng bộ. SMTP lỗi/timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã vẫn tính giới hạn, không phục hồi mã cũ hoặc tự cấp mã retry. Chi tiết tại [Q06](../confirmed-decisions.md#otp-email-delivery).
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 409, 429, 500`.
+**PENDING DECISION:** [Q06](../open-decisions.md#q06), [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
+
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 409, 429, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H2):
 
@@ -40,7 +57,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I2):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I2):
 
 ```json
 {
@@ -63,9 +80,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Xác minh OTP trước khi tạo user ACTIVE, hash password, gán READER và dùng mã một lần cùng transaction. Không cấp token hoặc tạo phiên; đăng nhập riêng. Xem [vòng đời tài khoản](../confirmed-decisions.md#account-lifecycle) và [OTP/mật khẩu](../confirmed-decisions.md#otp-password-policy).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `201 / 400, 409, 422`.
+**Đã xác nhận — HTTP đã ánh xạ:** `201 / 400, 409, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H3):
 
@@ -80,7 +97,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I3):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I3):
 
 ```json
 {
@@ -113,9 +130,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** User ACTIVE có password đúng mới được đăng nhập. Tạo session/refresh token, JWT RS256 chứa sub/sid; chỉ trả token sau commit. Chưa có password thì Google và UC09. Xem [token](../confirmed-decisions.md#user-tokens) và [TTL](../confirmed-decisions.md#session-lifetime).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 409`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 403, 409, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H4):
 
@@ -126,7 +143,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I4):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I4):
 
 ```json
 {
@@ -142,7 +159,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response lỗi minh họa — theo nguồn/chưa xác nhận** (đối chiếu ô J4):
+**Response lỗi minh họa — HTTP 409 và messageCode đã xác nhận** (đối chiếu ô J4, message minh họa):
 
 ```json
 {
@@ -163,9 +180,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Kiểm tra token, user ACTIVE và session còn hiệu lực. Rotation một lần, giữ sid, không gia hạn session. Reuse chỉ bị từ chối, không thu hồi session/token thay thế vì sự kiện này. Session hết hạn thì từ chối dù token còn hạn; xem [reuse](../confirmed-decisions.md#refresh-reuse) và [TTL](../confirmed-decisions.md#session-lifetime).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 403, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H5):
 
@@ -175,7 +192,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I5):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I5):
 
 ```json
 {
@@ -201,9 +218,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Thu hồi đúng session/token liên quan; session đã hết hạn/thu hồi trả thành công, giữ thời điểm/lý do cũ. Token không tìm thấy chỉ bảo đảm đăng xuất client; database lỗi không báo thu hồi server thành công. Client xóa token. Xem [UC04](../confirmed-decisions.md#logout); LOGOUT_SUCCESS bên dưới không chứng minh server vừa thu hồi được session.
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H6):
 
@@ -213,7 +230,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I6):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I6):
 
 ```json
 {
@@ -234,9 +251,11 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Cấp OTP PASSWORD_RESET, email không tồn tại nhận thông báo chung. Chưa có password thì Google và UC09. Xem [OTP/mật khẩu](../confirmed-decisions.md#otp-password-policy) và [UC05](../use-cases.md#uc05-quên-và-đặt-lại-mật-khẩu).
 
-**PENDING DECISION:** [Q06](../open-decisions.md#q06), [Q09](../open-decisions.md#q09), [Q13](../open-decisions.md#q13). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**Bổ sung đã xác nhận ngày 2026-10-31:** gửi SMTP đồng bộ sau commit OTP. Bước gửi SMTP lỗi/timeout vẫn trả 200 PASSWORD_RESET_CODE_SENT với kết quả chung, ghi lỗi vận hành nội bộ; không che lỗi database thành thành công. Lần cấp mã đã commit vẫn tính giới hạn gửi, không tự cấp lại. Chi tiết tại [Q06](../confirmed-decisions.md#otp-email-delivery).
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 429, 500`.
+**PENDING DECISION:** [Q06](../open-decisions.md#q06), [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
+
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 409, 429, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H7):
 
@@ -246,7 +265,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I7):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I7):
 
 ```json
 {
@@ -267,11 +286,11 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Xác thực/đầu vào:** Công khai; OTP PASSWORD_RESET đúng email/purpose và mật khẩu mới.
 
-**Đã xác nhận — hành vi:** Cập nhật PasswordHash, dùng mã một lần và thu hồi mọi phiên/refresh token cùng transaction; không mở khóa BANNED. Chưa có password thì Google/UC09. Xem [UC05](../use-cases.md#uc05-quên-và-đặt-lại-mật-khẩu).
+**Đã xác nhận — hành vi:** Theo [Q13 chốt ngày 2026-10-25](../confirmed-decisions.md#password-otp-flow), gửi email, OTP, mật khẩu mới và xác nhận trong cùng request hoàn tất; server xác minh OTP và kiểm tra mật khẩu trước khi lưu, không có API xác minh riêng hoặc ticket. Cập nhật PasswordHash, dùng mã một lần và thu hồi mọi phiên/refresh token cùng transaction; không mở khóa BANNED. Chưa có password thì Google/UC09. Xem [UC05](../use-cases.md#uc05-quên-và-đặt-lại-mật-khẩu).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q13](../open-decisions.md#q13). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 409, 422`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 409, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H8):
 
@@ -284,7 +303,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I8):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I8):
 
 ```json
 {
@@ -295,7 +314,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response lỗi minh họa — theo nguồn/chưa xác nhận** (đối chiếu ô J8):
+**Response lỗi minh họa — HTTP 409 và messageCode đã xác nhận** (đối chiếu ô J8, message minh họa):
 
 ```json
 {
@@ -316,13 +335,13 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Chỉ trả hồ sơ người gọi, không nhận userId tùy ý, không trả hash/secret. Chỉ xem không thay đổi hồ sơ. Xem [UC06](../use-cases.md#uc06-xem-và-cập-nhật-hồ-sơ).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 401, 403, 404`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 401, 500, 503`.
 
 **Request không có body.**
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I9):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I9):
 
 ```json
 {
@@ -355,11 +374,11 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Xác thực/đầu vào:** `Authorization: Bearer <access-token>`; user ACTIVE và phiên hợp lệ.
 
-**Đã xác nhận — hành vi:** Chỉ sửa fullName/phoneNumber của mình, không sửa roles/status/password/username/email. Trigger cập nhật Users.UpdatedAt khi dữ liệu thực sự đổi; xem [schema](../data-model.md#token-và-thời-gian). Missing/null và trường ngoài danh sách còn Q09.
+**Đã xác nhận — hành vi:** Chỉ sửa fullName/phoneNumber của mình, không sửa roles/status/password/username/email. Theo [PATCH đã chốt](json-schema.md#profile-patch), bỏ qua trường để giữ nguyên; fullName không null/trắng, phoneNumber null để xóa, chuỗi rỗng bị từ chối; không nhận body rỗng hoặc trường ngoài danh sách. Trigger cập nhật Users.UpdatedAt khi dữ liệu thực sự đổi; xem [schema](../data-model.md#token-và-thời-gian).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 422`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H10):
 
@@ -370,7 +389,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I10):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I10):
 
 ```json
 {
@@ -405,9 +424,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Đổi PasswordHash và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction. Giữ identity Google; client xóa token và đăng nhập lại. Chưa có password thì UC09. Xem [UC07](../use-cases.md#uc07-đổi-mật-khẩu).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 409, 422`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 409, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H11):
 
@@ -419,7 +438,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I11):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I11):
 
 ```json
 {
@@ -430,7 +449,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response lỗi minh họa — theo nguồn/chưa xác nhận** (đối chiếu ô J11):
+**Response lỗi minh họa — HTTP 409 và messageCode đã xác nhận** (đối chiếu ô J11, message minh họa):
 
 ```json
 {
@@ -451,9 +470,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Ba nhánh: identity đã có thì đăng nhập; chưa có identity nhưng email Google đã xác minh trùng Local thì tự liên kết không hỏi mật khẩu Local; người mới nhận registrationToken 10 phút, chưa có phiên. Chỉ user ACTIVE được cấp session/token. Tự liên kết không tạo user hoặc đổi role/password. Xem [Google](../confirmed-decisions.md#google-linking) và [registrationToken](../confirmed-decisions.md#google-registration-ttl).
 
-**PENDING DECISION:** [Q07](../open-decisions.md#q07), [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q07](../open-decisions.md#q07), [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 409, 500`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 403, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H12):
 
@@ -465,7 +484,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ### Nhánh A — Identity đã liên kết
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I12):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I12):
 
 ```json
 {
@@ -485,7 +504,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ### Nhánh B — Tự liên kết với Local
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I13):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I13):
 
 ```json
 {
@@ -505,7 +524,9 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ### Nhánh C — Cần hoàn tất đăng ký
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I14):
+**Đã xác nhận schema:** email/registrationToken không null; fullName/suggestedUserName luôn xuất hiện và có thể null khi thiếu gợi ý phù hợp. Gợi ý username không bảo đảm còn trống. Request hoàn tất vẫn yêu cầu fullName hợp lệ; xem [biến thể Google](json-schema.md#google-responses).
+
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I14):
 
 ```json
 {
@@ -533,9 +554,11 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Tạo user ACTIVE với PasswordHash NULL, identity GOOGLE, READER, session/refresh token cùng transaction. Identity đã có thì từ chối, không cấp session/token; UNIQUE xung đột rollback toàn bộ. Đã commit mất response thì đăng nhập Google. Không gia hạn token khi sửa dữ liệu; không bảo đảm dùng một lần tuyệt đối. Xem [chống lặp](../confirmed-decisions.md#google-replay).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**Bổ sung đã xác nhận ngày 2026-10-26:** email trong registrationToken đã được tài khoản khác sử dụng trước khi hoàn tất trả HTTP 409 EMAIL_ALREADY_EXISTS, rollback đăng ký; hướng người dùng quay lại đăng nhập Google. Không tự liên kết/cấp token tại request hoàn tất bị từ chối.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `201 / 400, 401, 409, 422`.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
+
+**Đã xác nhận — HTTP đã ánh xạ:** `201 / 400, 401, 409, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H15):
 
@@ -548,7 +571,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I15):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I15):
 
 ```json
 {
@@ -591,13 +614,15 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Đã xác nhận — hành vi:** Gửi OTP SET_PASSWORD cho email của chính mình; không nhận email tài khoản khác. Đã có password thì UC07. Xem [UC09](../use-cases.md#uc09-thiết-lập-mật-khẩu-lần-đầu).
 
-**PENDING DECISION:** [Q06](../open-decisions.md#q06), [Q09](../open-decisions.md#q09), [Q13](../open-decisions.md#q13), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**Bổ sung đã xác nhận ngày 2026-10-31:** gửi SMTP đồng bộ sau commit OTP. SMTP lỗi/timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã đã commit vẫn tính giới hạn gửi, không phục hồi mã cũ hoặc tự cấp mã retry. Chi tiết tại [Q06](../confirmed-decisions.md#otp-email-delivery).
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 401, 403, 409, 429, 500`.
+**PENDING DECISION:** [Q06](../open-decisions.md#q06), [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
+
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 401, 409, 429, 500, 503`.
 
 **Request không có body.**
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I16):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I16):
 
 ```json
 {
@@ -610,7 +635,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response lỗi minh họa — theo nguồn/chưa xác nhận** (đối chiếu ô J16):
+**Response lỗi minh họa — HTTP 409 và messageCode đã xác nhận** (đối chiếu ô J16, message minh họa):
 
 ```json
 {
@@ -629,11 +654,11 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Xác thực/đầu vào:** `Authorization: Bearer <access-token>`; user ACTIVE, phiên hợp lệ, chưa có password và OTP SET_PASSWORD đúng email/purpose.
 
-**Đã xác nhận — hành vi:** Đặt password, dùng mã một lần và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction; giữ identity Google. Client xóa token, đăng nhập lại bằng Google hoặc Local. Xem [UC09](../use-cases.md#uc09-thiết-lập-mật-khẩu-lần-đầu).
+**Đã xác nhận — hành vi:** Theo [Q13 chốt ngày 2026-10-25](../confirmed-decisions.md#password-otp-flow), gửi OTP, mật khẩu mới và xác nhận trong cùng request hoàn tất có xác thực; email lấy từ tài khoản đang xác thực. Server xác minh OTP và kiểm tra mật khẩu trước khi lưu, không có API xác minh riêng hoặc ticket. Đặt password, dùng mã một lần và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction; giữ identity Google. Client xóa token, đăng nhập lại bằng Google hoặc Local. Xem [UC09](../use-cases.md#uc09-thiết-lập-mật-khẩu-lần-đầu).
 
-**PENDING DECISION:** [Q09](../open-decisions.md#q09), [Q13](../open-decisions.md#q13), [Q14](../open-decisions.md#q14). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 409, 422`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 409, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H17):
 
@@ -645,18 +670,18 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I17):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I17):
 
 ```json
 {
   "success": true,
-  "messageCode": "SET_PASSWORD_SUCCESS",
+  "messageCode": "PASSWORD_SET_SUCCESS",
   "message": "Thiết lập mật khẩu thành công. Vui lòng đăng nhập lại",
   "data": null
 }
 ```
 
-**Response lỗi minh họa — theo nguồn/chưa xác nhận** (đối chiếu ô J17):
+**Response lỗi minh họa — HTTP 409 và messageCode đã xác nhận** (đối chiếu ô J17, message minh họa):
 
 ```json
 {
@@ -673,17 +698,17 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Luồng:** Borrow Service. **Nguồn:** [Sheet1, hàng 18](source-catalog.md#get-apiv1internalusersid).
 
-**Xác thực/đầu vào:** Service được xác thực/cấp quyền; client Web/Android không được gọi trực tiếp. Cơ chế cụ thể còn Q03.
+**Xác thực/đầu vào:** Borrow hoặc Admin gửi Service JWT riêng trong Authorization Bearer, có quyền users:read. Client Web/Android không được gọi trực tiếp. Cấu hình JWT vẫn PENDING DECISION; cơ chế/quyền đã chốt theo [Q03](../confirmed-decisions.md#internal-service-auth).
 
 **Đã xác nhận — hành vi:** Trả thông tin cơ bản, kể cả user BANNED để service gọi kiểm tra nghiệp vụ. HTTP 200 không bảo đảm đủ điều kiện mượn. id là User ID kiểu Integer theo nguồn; xem [tích hợp Borrow](internal-integration.md#tra-cứu-user).
 
-**PENDING DECISION:** [Q03](../open-decisions.md#q03), [Q09](../open-decisions.md#q09). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**PENDING DECISION:** [Q03](../open-decisions.md#q03), [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 404`.
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 403, 404, 500, 503`.
 
 **Request không có body.**
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I18):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I18):
 
 ```json
 {
@@ -708,13 +733,15 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Luồng:** Admin Service. **Nguồn:** [Sheet1, hàng 19](source-catalog.md#patch-apiv1internalusersidstatus).
 
-**Xác thực/đầu vào:** Chỉ Admin Service được xác thực/cấp quyền; cần kiểm tra quyền thao tác Admin. Cơ chế/actor còn Q03.
+**Xác thực/đầu vào:** chỉ Admin Service có Service JWT riêng trong Authorization Bearer và quyền users:status:write; thêm access token quản trị viên trong X-Admin-Access-Token. User Service xác minh token/phiên, user ACTIVE và role ADMIN hiện tại từ database theo [Q03](../confirmed-decisions.md#internal-service-auth). Cấu hình JWT vẫn PENDING DECISION.
 
 **Đã xác nhận — hành vi:** Chỉ ACTIVE/BANNED. Khóa ghi status và thu hồi mọi phiên/refresh token còn hiệu lực liên quan cùng transaction; mở khóa không phục hồi phiên/token. Introspection từ chối phiên thu hồi ở lần kiểm tra sau commit. Không thêm API kích hoạt/role. id là User ID kiểu Integer theo nguồn; xem [vòng đời tài khoản](../confirmed-decisions.md#account-lifecycle).
 
-**PENDING DECISION:** [Q03](../open-decisions.md#q03), [Q09](../open-decisions.md#q09), [Q10](../open-decisions.md#q10). Quy tắc schema/required/null/lỗi của Q09 áp dụng cho operation này; không tự bổ sung validation từ ví dụ.
+**Bổ sung đã xác nhận ngày 2026-10-31:** cùng trạng thái vẫn 200 USER_STATUS_UPDATE_SUCCESS, không ghi đè thời điểm/lý do thu hồi cũ. Lệnh cùng user khóa cùng bản ghi và xử lý tuần tự theo database. Cấm khóa đối tượng có ADMIN, kể cả tự khóa, trả 403 ACCESS_DENIED. Timeout cần Admin đọc lại để đối soát, không tự gửi lại lệnh cũ; audit theo [Q10](../confirmed-decisions.md#admin-status-contract).
 
-**Theo nguồn/chưa xác nhận — HTTP thành công/lỗi:** `200 / 400, 401, 403, 404, 422`.
+**PENDING DECISION:** [Q03](../open-decisions.md#q03) chỉ cấu hình Service JWT, [Q09](../open-decisions.md#q09) chỉ tình huống/mã ngoài danh mục. User JWT cho actor theo Q14 đã chốt; schema và lỗi tích hợp theo [HTTP/lỗi](http-errors.md).
+
+**Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 403, 404, 500, 503`.
 
 **Request minh họa** (đối chiếu ô H19):
 
@@ -724,7 +751,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 }
 ```
 
-**Response thành công minh họa — theo nguồn, áp dụng quyết định hiện hành** (đối chiếu ô I19):
+**Response thành công minh họa — schema và messageCode đã xác nhận; message minh họa** (đối chiếu ô I19):
 
 ```json
 {
