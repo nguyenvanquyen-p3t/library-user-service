@@ -1,6 +1,6 @@
 # Mô hình dữ liệu theo migration
 
-Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Chưa có entity/API nghiệp vụ. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
+Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Đã có [entity/repository cho 7 bảng](foundation.md) từ ngày 2026-11-03; chưa có API nghiệp vụ. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
 
 | Bảng | Cột chính | Ràng buộc và ý nghĩa |
 | --- | --- | --- |

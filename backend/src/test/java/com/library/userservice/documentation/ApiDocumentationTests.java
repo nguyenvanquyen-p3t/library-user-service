@@ -9,6 +9,8 @@ import java.util.Set;
 
 import com.library.userservice.config.DocumentationSecurityConfiguration;
 import com.library.userservice.config.OpenApiConfiguration;
+import com.library.userservice.config.JsonConfiguration;
+import com.library.userservice.common.exception.ApiExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -41,7 +43,7 @@ class ApiDocumentationTests {
             "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration",
             "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration"
     })
-    @Import({OpenApiConfiguration.class, DocumentationSecurityConfiguration.class})
+    @Import({OpenApiConfiguration.class, DocumentationSecurityConfiguration.class, JsonConfiguration.class, ApiExceptionHandler.class})
     static class DocumentationApplication {
     }
 

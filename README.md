@@ -10,9 +10,9 @@ Tiếp tục dự án hoặc bắt đầu chat mới: đọc [bàn giao phát tr
 
 Dự án đang ở giai đoạn xây dựng nền tảng và thiết kế API.
 
-- **Đã có:** cấu hình Spring Boot, Maven Wrapper, migration Flyway V1–V6 cho 7 bảng, test tải Spring context và [OpenAPI/Swagger UI](docs/api/openapi.md) cho 20 operation thiết kế.
+- **Đã có:** cấu hình Spring Boot, Maven Wrapper, migration Flyway V1–V6 cho 7 bảng, [nền tảng entity/repository, DTO, validation và lỗi](docs/foundation.md), test nền tảng/context và [OpenAPI/Swagger UI](docs/api/openapi.md) cho 20 operation thiết kế.
 - **Đã thiết kế, chưa triển khai:** 20 API, gồm 16 API gốc, 3 API quản lý phiên và introspection RFC 7662.
-- **Chưa có:** controller/service/repository nghiệp vụ, cấu hình JWT hoặc tích hợp Gateway. Chưa có API nghiệp vụ để gọi thử sau khi khởi động.
+- **Chưa có:** controller/service nghiệp vụ, cấu hình JWT hoặc tích hợp Gateway. Chưa có API nghiệp vụ để gọi thử sau khi khởi động.
 
 V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Chi tiết trạng thái tại [mô hình dữ liệu](docs/data-model.md#migration-v6-quản-lý-phiên).
 
@@ -85,7 +85,7 @@ Sau đó chạy từ `backend/`, dùng credentials đã cấu hình:
 .\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test
 ```
 
-Có thể kiểm tra riêng OpenAPI/Swagger UI mà không dùng database bằng `.\mvnw.cmd -Dtest=ApiDocumentationTests test` từ `backend/`. Chưa có kiểm thử API nghiệp vụ hoặc database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
+Có thể kiểm tra riêng nền tảng và OpenAPI/Swagger UI mà không dùng database bằng `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests" test` từ `backend/`. Test persistence chỉ bật khi system property chọn rõ `UserDB_test`. Chưa có kiểm thử API nghiệp vụ hoặc database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
 
 ## Tài liệu và đóng góp
 
