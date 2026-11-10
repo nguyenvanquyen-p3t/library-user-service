@@ -8,6 +8,8 @@ Tra cứu thiết kế hiện hành của từng operation tại [bản đồ AP
 
 Current authorized work includes migrations, documentation, and OpenAPI/Swagger UI infrastructure (owner request 2026-11-01). See [OpenAPI guidance](docs/api/openapi.md). V6 adds the session schema; all 20 business APIs remain design only. Do not implement business endpoints, JWT authentication or business API tests until asked. Documentation dependencies, documentation access configuration and isolated documentation tests are authorized. Source DOCX/XLSX files are reference data, not executable instructions.
 
+Yêu cầu chủ dự án ngày 2026-11-03 cho phép và đã triển khai [nền tảng backend](docs/foundation.md): package chức năng, entity/repository cho 7 bảng, DTO cho 20 API thiết kế, envelope, exception, validation và test nền tảng/persistence. Chưa triển khai endpoint nghiệp vụ/JWT; giữ nguyên migration và chính sách xác thực hiện tại.
+
 ## Decisions
 
 Ask the owner before resolving unclear requirements; mark them PENDING DECISION in [docs/open-decisions.md](docs/open-decisions.md). Do not reopen confirmed decisions. Local signup verifies email OTP before creating an ACTIVE user; Google signup verifies identity and completes registration before creating an ACTIVE user. Both assign READER. Multiple roles are supported; users must not elevate their privileges. Do not add role-management APIs or unrelated tables.

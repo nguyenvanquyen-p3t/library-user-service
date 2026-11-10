@@ -8,16 +8,24 @@ Theo [README dự án](../README.md) để bắt đầu nhanh hoặc [hướng d
 
 ## Quy trình thay đổi
 
-1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi thiết kế là 7 bảng/20 API, có session revocation; không có API quản lý role, JWT blacklist hoặc Redis. Phạm vi hiện gồm migration, docs và hạ tầng OpenAPI/Swagger UI; chưa code API nghiệp vụ. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
+1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi thiết kế là 7 bảng/20 API, có session revocation; không có API quản lý role, JWT blacklist hoặc Redis. Phạm vi hiện gồm migration, docs, hạ tầng OpenAPI/Swagger UI và [nền tảng backend](foundation.md) theo yêu cầu ngày 2026-11-03; chưa code endpoint nghiệp vụ. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
 2. Tra cứu operation tại [bản đồ API](api/README.md) và bản hiện hành được liên kết; danh mục nguồn chỉ để truy vết Excel. Chốt phần request/response/auth/lỗi liên quan còn PENDING DECISION trước khi tích hợp.
 3. Khi được yêu cầu triển khai, viết code và kiểm thử hành vi; thêm migration mới nếu cần thay schema đã được chia sẻ. Với yêu cầu docs-only, chỉ sửa và kiểm tra tài liệu.
 4. Cập nhật trạng thái docs theo phần thực sự hoàn thành. Ghi rõ kiểm thử đã chạy và giới hạn môi trường trong PR.
 
-Hiện chưa có cấu trúc tầng nghiệp vụ để tuyên bố controller/service/repository là kiến trúc đã triển khai. Khi thêm, giữ logic nghiệp vụ và transaction tách khỏi xử lý HTTP, không trả entity chứa hash ra response.
+Đã có package theo chức năng, entity/repository và DTO; chưa có controller/service nghiệp vụ. Khi thêm, giữ logic nghiệp vụ và transaction tách khỏi xử lý HTTP, không trả entity chứa hash ra response. Quy tắc sử dụng nền tảng được duy trì tại [foundation.md](foundation.md).
 
 ## Kiểm thử hiện có
 
-`UserServiceApplicationTests.contextLoads` tải Spring context cùng datasource/Flyway. Chưa có profile test, Testcontainers, mock email/Google hoặc kiểm thử API tự động. Dùng database test riêng như README hướng dẫn; không chạy thử migration trên database dùng chung để kiểm tra docs.
+`FoundationTests` kiểm tra DTO/validation/exception bằng mapper ứng dụng và controller chỉ trong test; `ApiDocumentationTests` kiểm tra hạ tầng Swagger. Hai lớp này không đọc `.env`, không dùng datasource/Flyway. Chạy từ `backend/`:
+
+```powershell
+.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests" test
+```
+
+`PersistenceFoundationTests` và `UserServiceApplicationTests.contextLoads` tải Spring context cùng datasource/Flyway. Test persistence chỉ bật khi system property chọn rõ `UserDB_test`; fixture được rollback. Chưa có Testcontainers, mock email/Google hoặc kiểm thử endpoint nghiệp vụ. Database test phải được chuẩn bị trước; không chạy migration trên database dùng chung để kiểm tra docs. Xem [cách chạy và giới hạn rollback](foundation.md#kiểm-thử).
+
+**Kết quả ngày 2026-11-03:** đã chạy toàn bộ 27 test bằng JDK 25/Maven Wrapper: 17 nền tảng, 5 persistence, 4 tài liệu và 1 context; không lỗi hoặc bỏ qua. Do `UserDB_test` tại cổng 5432 chưa tồn tại, kiểm thử dùng PostgreSQL 18.4 tạm biệt lập trong `backend/target/`, cổng riêng trên loopback và database có tên `UserDB_test`; bỏ import `.env`, dùng tài khoản fixture. Flyway V1–V6 và Hibernate validate đã chạy trên instance tạm; không dùng/thay đổi database dự án. Instance tạm được dừng sau kiểm thử. Đây là kết quả nền tảng, không phải xác nhận 20 API nghiệp vụ đã hoạt động.
 
 ## Kế hoạch kiểm thử khi triển khai
 

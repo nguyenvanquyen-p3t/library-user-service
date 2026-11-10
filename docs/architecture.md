@@ -46,6 +46,8 @@ Ngày 2026-10-31 chốt [Service JWT/quyền riêng cho Admin/Borrow và access 
 
 JWT và phiên sẽ được xác minh khi triển khai API; chưa có các lớp này trong repo. Chưa có health endpoint hoặc Actuator.
 
+Ngày 2026-11-03 đã triển khai [nền tảng backend theo chức năng](foundation.md): entity/repository, DTO cho 20 API, envelope, validation và xử lý exception. Chưa có tầng controller/service nghiệp vụ; cấu hình security hiện tại vẫn chỉ phục vụ truy cập tài liệu.
+
 ## Những ranh giới cần giữ khi triển khai
 
 API cập nhật hồ sơ không được trở thành đường sửa `roles`, `status`, `password`, username hoặc email ngoài hợp đồng đã chốt. Cấp `READER` khi đăng ký là quy tắc đăng ký trong nguồn, cần phân biệt với chức năng gán quyền quản trị.

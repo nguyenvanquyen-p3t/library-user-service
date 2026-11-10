@@ -88,7 +88,9 @@ Từ `backend/`, chỉ định database kiểm thử cho lần chạy Maven:
 .\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test
 ```
 
-Lệnh trên sử dụng tài khoản và mật khẩu đã cấu hình. Tài khoản đó cần có quyền tạo bảng trong database kiểm thử. Test hiện tại chỉ kiểm tra context khởi động thành công, chưa kiểm tra riêng từng ràng buộc hoặc dữ liệu seed.
+Lệnh trên sử dụng tài khoản và mật khẩu đã cấu hình. Tài khoản đó cần có quyền tạo bảng trong database kiểm thử. Ngoài context test, đã có `PersistenceFoundationTests` kiểm tra entity/repository, trigger và một số FK/constraint; chỉ bật khi system property chọn rõ `UserDB_test`. Fixture được rollback, còn schema Flyway và identity sequence không được rollback cùng fixture. Chưa có test endpoint nghiệp vụ.
+
+Có thể chạy `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests" test` từ `backend/` để kiểm tra nền tảng và Swagger mà không dùng `.env` hoặc database. Xem [nền tảng backend](foundation.md#kiểm-thử).
 
 ## Đóng gói
 

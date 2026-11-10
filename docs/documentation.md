@@ -28,6 +28,7 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 | Câu hỏi chưa chốt, ID và ảnh hưởng | [Quyết định còn mở](open-decisions.md) | Nhãn PENDING DECISION cùng link ID; không tự tạo câu trả lời |
 | Luồng Actor–hệ thống và ngoại lệ/kết quả | [Use case](use-cases.md) | Bảng ánh xạ hoặc link; không duy trì bản chép nguyên văn thứ hai |
 | Transaction và tính nhất quán | [Yêu cầu nghiệp vụ](requirements.md) | Tác động ngắn gọn tại operation; chi tiết xử lý dẫn về yêu cầu |
+| Package/entity/repository/DTO/validation/exception đã triển khai | [Nền tảng backend](foundation.md) | Tóm tắt hiện trạng và link; chính sách/HTTP tiếp tục duy trì tại tài liệu thiết kế tương ứng |
 | Trách nhiệm và kiến trúc mục tiêu | [Kiến trúc](architecture.md), [tích hợp nội bộ](api/internal-integration.md) | Link tới thành phần hoặc hợp đồng liên quan |
 | HTTP của 16 API gốc | [Bản API hiện hành](api/current-contract.md) | Link từng operation từ [bản đồ 20 API](api/README.md); tích hợp nội bộ không chép JSON |
 | HTTP của 4 API mới | [API phiên/introspection](api/sessions.md) | Link từng operation; schema/phân trang/API phiên và request/response introspection đã chốt; lỗi/header dẫn về HTTP/lỗi, cấu hình JWT còn mở |

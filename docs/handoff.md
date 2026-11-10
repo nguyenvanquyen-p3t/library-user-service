@@ -13,6 +13,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 
 ## Hiện trạng cần biết
 
+- Ngày 2026-11-03, chủ dự án yêu cầu triển khai [nền tảng backend](foundation.md): package theo chức năng, entity/repository cho 7 bảng, DTO đủ hợp đồng 20 API, envelope, validation và exception handler. Đã có kiểm thử nền tảng và persistence; 20 endpoint nghiệp vụ/JWT vẫn chưa triển khai. Không sửa V1–V6 hoặc chính sách xác thực. Đọc tài liệu nền tảng trước khi nối DTO/repository vào nghiệp vụ.
+
 - Ngày 2026-10-31 chốt [Service JWT/quyền Admin/Borrow và actor Admin](confirmed-decisions.md#internal-service-auth), [SMTP sau commit và lỗi gửi/retry](confirmed-decisions.md#otp-email-delivery), [retry/cạnh tranh/audit trạng thái và cấm khóa ADMIN](confirmed-decisions.md#admin-status-contract), [hai mã lỗi tích hợp](confirmed-decisions.md#integration-error-contract). Ban đầu hoãn cấu hình JWT; sau đó đã chốt riêng Q14. Service JWT Q03/Q11a vẫn mở, không tự áp RS256/5 phút hoặc cấu hình khóa user token cho Service JWT.
 - [User access token Q14 đã chốt](confirmed-decisions.md#access-token-key-pair): iss urn:library:user-service dùng chung, không chia môi trường; aud ["library-api"]; kid user-access-v1; một cặp khóa cố định, private key ký/public key xác minh. Đã tạo RSA 3072 bit bằng JDK 25 tại backend/.secrets/user-access-private.pem và user-access-public.pem, loại khỏi Git và kiểm tra ký/xác minh từ PEM. Cấp/phân phối public key qua file/cấu hình, thay khóa có kiểm soát, chưa thêm JWKS. Chưa cấu hình ứng dụng đọc khóa hoặc triển khai JWT/API.
 
