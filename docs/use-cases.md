@@ -6,6 +6,8 @@ Các mục kết quả mô tả nhánh thành công, không áp dụng cho nhán
 
 ## Quy tắc chung
 
+Theo [quyết định ngày 2026-11-10](confirmed-decisions.md#deferred-service-auth), khi triển khai các luồng dưới đây, các service mặc định tin tưởng nhau; xác thực/quyền service được bổ sung sau khi hoàn tất tất cả chức năng. Mô tả Service JWT trong quy tắc chung là thiết kế đích cho bước sau. Xác thực người dùng, kiểm tra phiên, quyền dữ liệu và actor ADMIN vẫn giữ nguyên.
+
 Request được bảo vệ cần JWT hợp lệ, user ACTIVE, phiên từ sid thuộc user từ sub, chưa hết hạn/chưa thu hồi. Gateway dùng Service JWT riêng gọi introspection; service nghiệp vụ tiếp tục kiểm tra quyền dữ liệu. UC03/UC04 dùng refresh token theo điều kiện riêng, không đòi access token còn hạn. Thu hồi phiên khiến access token bị từ chối ở lần kiểm tra tiếp theo dù JWT chưa hết hạn. Không cam kết hủy request đã vượt kiểm tra trước commit.
 
 OTP phải đúng email/purpose, còn hạn, chưa dùng/chưa bị thay thế và chưa vượt giới hạn thử. Mật khẩu áp dụng thống nhất chính sách đã chốt. Chi tiết thời gian, số lần thử, hash, transaction và lưu giữ dữ liệu nằm trong docs kỹ thuật, không phải bước tương tác bắt buộc phải lặp trong Word.
@@ -26,6 +28,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 **Kết quả:** tài khoản có mật khẩu, đăng nhập được bằng username/email. Không tự cấp token hoặc tạo phiên; đăng nhập riêng bằng UC02. OTP chỉ gắn email + REGISTER: đổi username không làm mất hiệu lực mã; đổi email phải xin mã mới. Client giữ thông tin form để gửi hoàn tất, không giả định server đã lưu mật khẩu tạm. Chủ dự án không yêu cầu bổ sung luồng riêng cho đăng ký Local đồng thời hoặc kiểm tra trùng lần hai trong đặc tả; UNIQUE database vẫn giữ nguyên.
 
 ## UC02 Đăng nhập Local
+
+**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); 11 use case khác vẫn thiết kế. Metadata thiết bị null; các nhánh hướng dẫn Google/UC09 chưa có endpoint tương ứng.
 
 **Actor:** READER/LIBRARIAN/ADMIN. **Ưu tiên:** cao. Nhánh thành công cần tài khoản ACTIVE đã có mật khẩu; đây là điều kiện được hệ thống kiểm tra, vẫn có nhánh từ chối tương ứng.
 

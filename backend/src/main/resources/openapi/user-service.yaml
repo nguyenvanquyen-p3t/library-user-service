@@ -1,16 +1,16 @@
 # Đặc tả thiết kế; xem docs/api/openapi.md trước khi cập nhật.
 openapi: 3.0.3
 info:
-  title: Library User Service — thiết kế API
+  title: Library User Service
   version: 0.1.0-design
-  description: Đặc tả thiết kế cho 20 operation, chưa triển khai API nghiệp vụ. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login UC02 đã triển khai, 19 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; endpoint nghiệp vụ chưa triển khai.
+  description: Cùng origin với tài liệu; chỉ login UC02 đã triển khai.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -142,10 +142,13 @@ paths:
       operationId: login
       summary: Đăng nhập Local
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        ĐÃ TRIỂN KHAI UC02 — 2026-11-10.
 
-        User ACTIVE có password đúng mới được đăng nhập. Tạo session/refresh token, JWT RS256 chứa sub/sid; chỉ trả token sau commit. Chưa có password thì Google và UC09. Xem token và TTL.
-      x-implementation-status: DESIGN_ONLY
+        User ACTIVE có password đúng mới được đăng nhập. Argon2id; giữ khóa user đến commit,
+        tạo session 30 ngày và refresh token opaque 7 ngày, lưu hash SHA-256. JWT RS256 chứa sub/sid,
+        không chứa roles, typ at+jwt, TTL 3600 giây; xác minh dung sai 30 giây, hạn phiên không dung sai.
+        Chỉ trả token sau commit; metadata thiết bị null. Google và UC09 vẫn chưa triển khai.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#login
       security: []
       requestBody:
@@ -159,7 +162,13 @@ paths:
               password: Abc@123456
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Login thành công sau commit; không cache cặp token.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
           content:
             application/json:
               schema:

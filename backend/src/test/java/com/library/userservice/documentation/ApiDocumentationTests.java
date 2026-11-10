@@ -10,6 +10,11 @@ import java.util.Set;
 import com.library.userservice.config.DocumentationSecurityConfiguration;
 import com.library.userservice.config.OpenApiConfiguration;
 import com.library.userservice.config.JsonConfiguration;
+import com.library.userservice.config.ApiSecurityConfiguration;
+import com.library.userservice.security.SecurityErrorWriter;
+import com.library.userservice.security.UserAccessTokenService;
+import com.library.userservice.security.UserSessionAuthenticator;
+import org.springframework.context.annotation.Bean;
 import com.library.userservice.common.exception.ApiExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +48,11 @@ class ApiDocumentationTests {
             "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration",
             "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration"
     })
-    @Import({OpenApiConfiguration.class, DocumentationSecurityConfiguration.class, JsonConfiguration.class, ApiExceptionHandler.class})
+    @Import({OpenApiConfiguration.class, DocumentationSecurityConfiguration.class, ApiSecurityConfiguration.class,
+            SecurityErrorWriter.class, JsonConfiguration.class, ApiExceptionHandler.class})
     static class DocumentationApplication {
+        @Bean UserAccessTokenService tokens() { return org.mockito.Mockito.mock(UserAccessTokenService.class); }
+        @Bean UserSessionAuthenticator sessions() { return org.mockito.Mockito.mock(UserSessionAuthenticator.class); }
     }
 
     @LocalServerPort
@@ -68,7 +76,8 @@ class ApiDocumentationTests {
         for (var path : document.path("paths")) {
             for (var operation : path) {
                 count++;
-                assertThat(operation.path("x-implementation-status").asText()).isEqualTo("DESIGN_ONLY");
+                assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
+                        "login".equals(operation.path("operationId").asText()) ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }
         }

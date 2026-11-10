@@ -1,6 +1,6 @@
 # Yêu cầu nghiệp vụ
 
-Trạng thái: **thiết kế, chưa triển khai API**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Trạng thái: **UC02 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -30,6 +30,8 @@ Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/c
 Áp dụng [chính sách Q05](confirmed-decisions.md#otp-password-policy) cho UC01/UC05/UC07/UC09 theo chức năng tương ứng; [OTP REGISTER](confirmed-decisions.md#register-otp-binding) chỉ gắn email/purpose. Các giá trị TTL, số lần thử/gửi lại và giới hạn mật khẩu được duy trì tại sổ quyết định. [Q06 chốt ngày 2026-10-31](confirmed-decisions.md#otp-email-delivery): commit hash OTP mới/vô hiệu mã cũ trước khi gửi SMTP đồng bộ; lần cấp mã vẫn tính giới hạn dù SMTP lỗi, không tự cấp mã retry. REGISTER/SET_PASSWORD gửi lỗi trả 503; PASSWORD_RESET giữ 200/thông báo chung. Chỉ còn lựa chọn/cấu hình môi trường SMTP chưa chốt.
 
 ## Ranh giới transaction
+
+**Đã triển khai ngày 2026-11-10:** UC02 giữ khóa user `PESSIMISTIC_WRITE`, tạo session/refresh token, ký JWT và commit trước khi trả token. Các writer khác trong bảng vẫn là yêu cầu cho đợt sau và phải khóa cùng user để tuần tự hóa. Xem [implementation và kiểm thử](user-security.md).
 
 Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở docs, không bắt buộc lặp trong chuỗi Actor–hệ thống ở Word. Bảng dưới tổng hợp thay đổi phải nhất quán; ngày 2026-10-31 chốt khóa cùng bản ghi user cho lệnh trạng thái cùng user, chưa chọn toàn bộ thứ tự khóa hoặc isolation level.
 
@@ -66,7 +68,9 @@ Trách nhiệm Admin/Borrow và quyền nội bộ nằm tại [tích hợp nộ
 
 ## Quyết định xác thực đã chốt
 
-Đọc [token người dùng và Gateway](confirmed-decisions.md#user-tokens), [thời hạn session](confirmed-decisions.md#session-lifetime). [Bộ introspection chốt ngày 2026-10-26](confirmed-decisions.md#introspection-contract) xác nhận request/response, lỗi/header và nguồn roles hiện tại từ UserRoles/Roles trong database; không chỉ dựa vào role trong JWT hoặc role Gateway. Kiểm tra danh tính/quyền Gateway trước khi xử lý user token; lỗi danh tính/hạ tầng không chuyển thành active false. [User access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt issuer chung, audience, kid và quy trình khóa ngày 2026-10-31. Cấu hình Service JWT còn [Q03](open-decisions.md#q03)/[Q11a](open-decisions.md#q11a), không áp cấu hình user JWT sang service. Chưa có cấu hình runtime hoặc API quản lý role.
+**Cập nhật ngày 2026-11-10:** [giai đoạn chức năng mặc định tin tưởng service](confirmed-decisions.md#deferred-service-auth). Bỏ qua bước danh tính/quyền service của Admin/Borrow/Gateway khi code chức năng; thứ tự API trạng thái là actor Admin → nghiệp vụ, còn introspection vẫn kiểm tra user token/phiên. Các yêu cầu Service JWT/thứ tự đầy đủ bên dưới là thiết kế đích sau khi hoàn tất tất cả chức năng. Không hoãn xác thực user/actor, ownership hoặc các yêu cầu transaction/cạnh tranh.
+
+Đọc [token người dùng và Gateway](confirmed-decisions.md#user-tokens), [thời hạn session](confirmed-decisions.md#session-lifetime). [Bộ introspection chốt ngày 2026-10-26](confirmed-decisions.md#introspection-contract) xác nhận request/response, lỗi/header và nguồn roles hiện tại từ UserRoles/Roles trong database; không chỉ dựa vào role trong JWT hoặc role Gateway. Kiểm tra danh tính/quyền Gateway trước khi xử lý user token; lỗi danh tính/hạ tầng không chuyển thành active false. [User access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt issuer chung, audience, kid và quy trình khóa ngày 2026-10-31. Cấu hình Service JWT còn [Q03](open-decisions.md#q03)/[Q11a](open-decisions.md#q11a), không áp cấu hình user JWT sang service. User JWT đã có cấu hình runtime từ đợt UC02; Service JWT/introspection chưa triển khai, API quản lý role vẫn ngoài phạm vi.
 
 [Q03 chốt ngày 2026-10-31](confirmed-decisions.md#internal-service-auth): Service JWT riêng cho Admin/Borrow, quyền users:read/users:status:write và tokens:introspect cho Gateway; actor Admin được chứng minh bằng access token trong X-Admin-Access-Token, kiểm tra phiên/ACTIVE/ADMIN hiện tại. Quyền đã chọn không tự chốt cách biểu diễn claim hoặc các cấu hình JWT bị hoãn. Thứ tự API nội bộ: danh tính service → quyền service → actor khi cần → nghiệp vụ.
 

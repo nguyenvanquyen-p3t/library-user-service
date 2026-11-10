@@ -30,10 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.*;
 
 /** Chỉ bật khi caller chọn rõ database test; mọi fixture được rollback. */
-@SpringBootTest
+@SpringBootTest(properties = "debug=false")
 @Transactional
 @EnabledIfSystemProperty(named = "spring.datasource.url", matches = "jdbc:postgresql://[^/]+/UserDB_test(?:\\?.*)?")
-class PersistenceFoundationTests {
+class PersistenceFoundationTests extends com.library.userservice.security.UserSecurityTestKeys {
     @Autowired EntityManager em;
     @Autowired JdbcTemplate jdbc;
     @Autowired UserRepository users;

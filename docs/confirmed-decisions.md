@@ -4,9 +4,27 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung triển khai ngày 2026-11-10:** chủ dự án duyệt và yêu cầu code [nền tảng bảo mật người dùng và login UC02](#user-security-uc02). Login đã triển khai, 19 operation khác còn thiết kế. Các câu giới hạn phạm vi trong quyết định lịch sử bên dưới mô tả thời điểm xác nhận tương ứng.
+
 **Bổ sung phạm vi ngày 2026-11-01:** chủ dự án yêu cầu bắt đầu xây dựng OpenAPI và Swagger UI. Cho phép đặc tả và hạ tầng tài liệu liên quan; 20 API nghiệp vụ vẫn ở mức thiết kế. Xem [hướng dẫn OpenAPI](api/openapi.md). Các câu “chưa tạo OpenAPI” trong quyết định lịch sử bên dưới mô tả thời điểm xác nhận tương ứng.
 
 Quyết định 2026-10-19 thay giới hạn 6 bảng/16 API trước đây: thêm UserSessions, 3 API quản lý phiên và introspection RFC 7662 dành cho Gateway. Tổng thiết kế 7 bảng/20 API. Giữ refresh token trong JSON cho Web/Android. **Chỉ thêm migration và docs, chưa code API.** Gateway dùng **Service JWT**. V6 **chỉ áp dụng khi RefreshTokens rỗng**, không tự thu hồi/xóa dữ liệu cũ. Không thêm Redis, JWT blacklist hoặc API quản lý role. [Danh mục nguồn](api/source-catalog.md) giữ nguyên 16 API ban đầu.
+
+<a id="deferred-service-auth"></a>
+
+## Thứ tự triển khai xác thực service — đã chốt ngày 2026-11-10
+
+Chủ dự án yêu cầu hoàn tất tất cả chức năng trước, sau đó mới triển khai cơ chế xác thực giữa các service. Quyết định này điều chỉnh thời điểm áp dụng phần xác thực/quyền service của Q03/Q11a, giữ các xác nhận lịch sử bên dưới làm thiết kế đích.
+
+- Trong giai đoạn code chức năng, các service **mặc định tin tưởng lẫn nhau**. Khi triển khai hai API nội bộ và introspection, tạm chưa yêu cầu Service JWT, chưa xác minh danh tính service hoặc thực thi các quyền `users:read`, `users:status:write`, `tokens:introspect` dựa trên danh tính service. Đây là cách xử lý mặc định của giai đoạn này, không yêu cầu bật riêng profile dev/test để bỏ qua xác thực service.
+- Không thay Service JWT bằng HTTP Basic, API Key, token giả hoặc header tự khai danh tính service. Phân biệt trách nhiệm dự kiến của Admin/Borrow/Gateway với danh tính đã được xác thực; thông tin service ghi trong audit ở giai đoạn này không được coi là bằng chứng danh tính đã xác minh.
+- Xác thực người dùng vẫn giữ nguyên: user JWT theo Q14, user ACTIVE, phiên hợp lệ, ownership và quyền nghiệp vụ. API trạng thái vẫn yêu cầu `X-Admin-Access-Token`, kiểm tra token/phiên và role ADMIN hiện tại; giữ quy tắc cấm khóa đối tượng ADMIN. Tin tưởng service không thay thế các kiểm tra này.
+- Introspection vẫn phải xác minh user access token trong form `token`, trạng thái user/phiên và roles từ database; giữ quy tắc không cache active. Chỉ bỏ qua bước xác thực/quyền của service gọi.
+- Sau khi hoàn tất tất cả chức năng, chốt cấu hình Q03/Q11a và triển khai Service JWT cùng kiểm tra quyền service, lỗi xác thực và kiểm thử tích hợp tương ứng. Không cần chốt cấu hình Service JWT để bắt đầu code nghiệp vụ hoặc introspection trong giai đoạn trước đó.
+- Giữ Service JWT và quyền từng service trong hợp đồng đích/OpenAPI; các yêu cầu, ví dụ header và lỗi riêng của xác thực service chỉ áp dụng ở bước bổ sung bảo mật sau. Lỗi actor Admin, lỗi user/token/phiên, validation và lỗi hạ tầng vẫn áp dụng trong giai đoạn chức năng.
+- Khi được yêu cầu code, tách xác thực service khỏi logic nghiệp vụ/transaction để bổ sung sau. Kiểm thử giai đoạn chức năng chứng minh luồng nội bộ không đòi Service JWT, đồng thời vẫn kiểm tra user/phiên/actor khi cần; chưa được coi là đã hoàn tất bảo mật service.
+
+Lần xác nhận này **chỉ cập nhật tài liệu**: chưa mở API nội bộ trong cấu hình Spring Security hiện có, chưa triển khai endpoint hoặc JWT. Phạm vi vẫn 7 bảng/20 API; triển khai code theo yêu cầu tiếp theo của chủ dự án. Các quy tắc khác về migration, OTP, mật khẩu và thu hồi phiên giữ nguyên.
 
 <a id="account-lifecycle"></a>
 
@@ -298,6 +316,8 @@ Các vấn đề còn lại được theo dõi tại [quyết định còn mở]
 
 ## Xác thực service và actor Admin — Q03 chốt ngày 2026-10-31
 
+**Cập nhật ngày 2026-11-10:** phần Service JWT/quyền service và thứ tự kiểm tra đầy đủ dưới đây là thiết kế đích sau khi hoàn tất chức năng, theo [quyết định hoãn xác thực service](#deferred-service-auth). Trong giai đoạn chức năng, mặc định tin tưởng service, bắt đầu từ kiểm tra actor Admin khi cần rồi đến nghiệp vụ; giữ nguyên kiểm tra actor.
+
 Chủ dự án chấp nhận đề xuất Q03/Q06/Q10 và phần bổ sung Q09, ngoại trừ toàn bộ phần đề xuất cấu hình JWT Q11a/Q14 để nghiên cứu thêm. Chỉ cập nhật docs; chưa tạo OpenAPI, code API, dependency hoặc cấu hình security.
 
 - Admin Service và Borrow Service dùng Service JWT riêng trong `Authorization: Bearer <service-jwt>`. Mỗi service tự ký bằng khóa riêng được User Service tin cậy; token này chứng minh service gọi, không thay access token người dùng.
@@ -343,3 +363,17 @@ SMTP nhận thư chưa bảo đảm thư đã vào Inbox. Nếu tiến trình d�
 Bổ sung hai mã dùng envelope chung, success false và data null: HTTP 401 SERVICE_TOKEN_INVALID khi Service JWT đã cung cấp nhưng sai/hết hạn; HTTP 401 ADMIN_ACTOR_INVALID khi token quản trị viên đã cung cấp nhưng sai/hết hạn/phiên mất hiệu lực. Thiếu xác thực dùng AUTHENTICATION_REQUIRED; thiếu quyền hoặc khóa ADMIN bị cấm dùng ACCESS_DENIED. SMTP tạm lỗi dùng SERVICE_UNAVAILABLE với ngoại lệ PASSWORD_RESET ở [Q06](#otp-email-delivery).
 
 Thứ tự kiểm tra API nội bộ theo [Q03](#internal-service-auth). Giữ nguyên body lỗi/header introspection riêng, không áp hai mã mới cho introspection và không đặt thứ tự ưu tiên cho mọi tổ hợp validation. Danh mục/ánh xạ duy trì tại [HTTP/lỗi](api/http-errors.md). Q09 chỉ còn tình huống/mã/chi tiết ngoài phần đã xác nhận; cấu hình Service JWT Q03/Q11a tiếp tục PENDING DECISION, user access token Q14 đã chốt riêng.
+
+<a id="user-security-uc02"></a>
+
+## Nền tảng bảo mật người dùng và UC02 — chốt ngày 2026-11-10
+
+- Chủ dự án chọn nền tảng đầy đủ: hash password, ký/xác minh JWT, xác thực user/phiên và principal dùng lại; chỉ thêm endpoint login UC02, chưa làm refresh/logout/introspection hoặc Service JWT. Giữ V1–V6 và 7 bảng/20 operation.
+- Chọn Argon2id, không cần tương thích hash cũ; tham số memory 19 MiB, iterations 2, parallelism 1, salt 16 byte, hash 32 byte, prefix `{argon2id}`. Không tự tạo user dự án, đổi password/hash hoặc fallback plaintext.
+- JWT không có claim roles; xác thực đọc role hiện tại từ database. Giữ Q14; thêm `typ=at+jwt` và dung sai JWT 30 giây: từ chối tại `now >= exp + 30 giây` hoặc `iat > now + 30 giây`. Hạn phiên vẫn tuyệt đối, không có dung sai.
+- Login chỉ nhận identifier/password; DeviceName/ClientType/UserAgent null, LastSeenAt do default lúc insert, chưa cập nhật theo request. Refresh token opaque ngẫu nhiên 32 byte, lưu SHA-256 hex; token trả JSON sau commit.
+- User Bearer đúng chữ ký nhưng user không tồn tại/BANNED hoặc phiên mất hiệu lực trả 401 SESSION_INACTIVE. Login vẫn 401 INVALID_CREDENTIALS khi không tìm thấy/sai password, 409 PASSWORD_NOT_CONFIGURED nếu hash null, 403 ACCOUNT_BANNED sau khi password đúng. Hash không hỗ trợ/hỏng không được xác thực. Đây là ánh xạ user Bearer, không thay lỗi actor Admin/introspection đã chốt.
+- Login giữ khóa PESSIMISTIC_WRITE trên user đến commit; tạo phiên/refresh token và ký JWT trong cùng transaction. Lỗi ký/lưu/commit rollback; controller chỉ trả kết quả sau commit. Mỗi login thành công tạo phiên mới, không thu hồi phiên cũ. Các writer tiếp theo phải khóa cùng user để tuần tự hóa.
+- Runtime stateless, tắt Basic/form login/logout mặc định/CSRF và default user tự sinh; chỉ GET tài liệu và path login công khai. Các đường còn lại giữ bảo vệ user Bearer cho đến khi endpoint tương ứng được yêu cầu triển khai. Không thêm CORS, rate limit login, JWKS, Redis hoặc blacklist.
+
+Implementation, cấu hình và giới hạn hiện hành duy trì tại [bảo mật người dùng](user-security.md); kết quả kiểm thử tại [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có). Các quyết định lịch sử không đồng nghĩa các endpoint còn lại đã chạy.

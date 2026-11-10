@@ -1,6 +1,6 @@
 # Nền tảng backend dùng chung
 
-Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. **Chưa triển khai controller/service nghiệp vụ, JWT, Google, SMTP hoặc Gateway.** Không sửa schema/migration V1–V6; OpenAPI tiếp tục đánh dấu cả 20 operation `DESIGN_ONLY`.
+Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; riêng login là `IMPLEMENTED`, 19 operation khác `DESIGN_ONLY`. Google, SMTP, Gateway chưa triển khai.
 
 ## Package và trách nhiệm
 
@@ -17,7 +17,7 @@ Tất cả package nằm dưới `com.library.userservice`:
 | `session.persistence` | `UserSession`, repository và `ClientType` |
 | `user.dto`, `auth.dto`, `session.dto`, `internal.dto` | Request/response theo [hợp đồng hiện hành](api/README.md); không có request DTO rỗng cho operation không có body |
 
-Chưa tạo tầng service/controller rỗng. Repository chỉ lưu và tra cứu, chưa thực hiện login, rotation, thu hồi, cleanup hoặc khóa nghiệp vụ. Khi triển khai các writer, vẫn phải tuân thủ [transaction và cạnh tranh](requirements.md#ranh-giới-transaction).
+Không tạo tầng service/controller rỗng. Đã thêm `auth.service`/`auth.web` cho login và package `security`; repository có truy vấn khóa user, đọc role và insert phiên phục vụ UC02. Rotation, thu hồi và cleanup chưa triển khai. Các writer tiếp theo phải tuân thủ [transaction và cạnh tranh](requirements.md#ranh-giới-transaction), khóa user như login trước khi thao tác phiên/token.
 
 ## Ánh xạ dữ liệu
 
@@ -25,7 +25,7 @@ Entity dùng tên bảng/cột có dấu nháy kép và physical naming strategy
 
 `CreatedAt` do database sinh; `Users.UpdatedAt` do trigger V5 sinh và Hibernate đọc lại sau ghi. `UserSessions.LastSeenAt` lấy default database khi insert, có thể cập nhật sau đó; chưa có chính sách/tác vụ tự cập nhật. Không tự áp TTL trong entity. `RefreshToken.sessionId` không cập nhật qua ORM và setter từ chối đổi phiên đã gán; trigger database vẫn là lớp bảo vệ độc lập.
 
-Caller truyền `now` vào truy vấn phiên còn hiệu lực, dùng `PageRequest` không có sort tùy ý; truy vấn sắp xếp `createdAt DESC, id ASC`. Caller tạo UUID cho phiên mới. Khi cần lưu phiên có UUID đã gán, Spring Data có thể dùng merge: tiếp tục dùng entity do `save` trả về, không giả định đối tượng đầu vào đã được quản lý.
+Caller truyền `now` vào truy vấn phiên còn hiệu lực, dùng `PageRequest` không có sort tùy ý; truy vấn sắp xếp `createdAt DESC, id ASC`. Caller tạo UUID cho phiên mới. UC02 dùng SessionCreationRepository insert JDBC trong transaction JPA để TTL khớp timestamp database. Với caller khác dùng `save` cho UUID đã gán, Spring Data có thể merge: dùng entity do `save` trả về, không giả định đầu vào đã được quản lý.
 
 ## DTO, JSON và validation
 
@@ -41,7 +41,7 @@ Response giữ đủ required/null theo hợp đồng, mảng không null. Ba nh
 
 ## Xử lý lỗi và giới hạn
 
-`ApiExceptionHandler` chỉ xử lý request thuộc controller trong package dự án. Với 405/415 xảy ra trước khi chọn controller, kiểm tra path đã đăng ký của controller dự án; không giả định mọi path `/api/v1/**` đã có endpoint. springdoc, tài nguyên tĩnh và filter Security giữ cơ chế riêng.
+`ApiExceptionHandler` chỉ xử lý request thuộc controller trong package dự án; lỗi method security chuyển lại Security để trả 403 đúng envelope. Với 405/415 xảy ra trước khi chọn controller, kiểm tra path đã đăng ký của controller dự án; không giả định mọi path `/api/v1/**` đã có endpoint. springdoc và tài nguyên tĩnh giữ cơ chế riêng; filter Security dùng `SecurityErrorWriter` theo [bảo mật người dùng](user-security.md).
 
 Validation trả HTTP 400/`VALIDATION_ERROR`; JSON hỏng hoặc thiếu body bắt buộc dùng `INVALID_REQUEST`. Chỉ constraint UNIQUE đã biết được ánh xạ thành conflict nghiệp vụ; các vi phạm khác dùng `INTERNAL_ERROR`. Lỗi truy cập dữ liệu tạm thời dùng 503; lỗi ngoài dự kiến dùng 500. Log xử lý lỗi 5xx chỉ ghi loại exception, không ghi exception message, SQL hoặc rejected value. Không bật log chi tiết HTTP/SQL chứa thông tin xác thực.
 

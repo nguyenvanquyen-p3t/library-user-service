@@ -1,8 +1,10 @@
 # Kiến trúc và phạm vi
 
-Trạng thái: kiến trúc mục tiêu, chưa triển khai API. Biên tập ngày 2026-10-24 dựa trên code/config trong repo và các quyết định đã xác nhận; cập nhật trạng thái V6 theo xác nhận của chủ dự án ngày 2026-10-25, không kiểm tra database trong đợt này.
+Trạng thái: kiến trúc mục tiêu; [nền tảng bảo mật/login UC02](user-security.md) đã triển khai ngày 2026-11-10, các operation khác còn thiết kế. Bản bàn giao 2026-10-24/25 ghi trạng thái V6 theo xác nhận chủ dự án; đợt UC02 không thay migration/database dự án.
 
 ## Ranh giới trách nhiệm
+
+**Thứ tự triển khai chốt ngày 2026-11-10:** [các service mặc định tin tưởng nhau khi code chức năng](confirmed-decisions.md#deferred-service-auth), tạm chưa xác thực danh tính/quyền service cho Admin/Borrow/Gateway. Bổ sung Service JWT sau khi hoàn tất tất cả chức năng; các yêu cầu xác thực service bên dưới là kiến trúc đích của bước sau. User JWT, phiên, ownership và actor ADMIN vẫn áp dụng. Đợt UC02 đã bổ sung nền tảng user security; Service JWT và ba endpoint nội bộ vẫn chưa triển khai.
 
 Phạm vi 2026-10-19 gồm 7 bảng, 20 API thiết kế. Chính sách tài khoản và giới hạn chức năng được duy trì tại [sổ quyết định](confirmed-decisions.md#phạm-vi); tra cứu HTTP tại [bản đồ API](api/README.md).
 
@@ -42,11 +44,11 @@ Ngày 2026-10-31 chốt [Service JWT/quyền riêng cho Admin/Borrow và access 
 
 `backend/pom.xml` khai báo Java 25 và Spring Boot 4.1.1, cùng Web MVC, Security, Validation, Data JPA, Flyway và PostgreSQL driver. Đây là phiên bản repo đang dùng, không phải tuyên bố về phiên bản mới nhất của các công nghệ.
 
-`application.yml` đặt cổng 5001, import `.env` tùy chọn. Hibernate validate schema; Flyway quản lý schema. Chưa có cấu hình/code JWT, Google, email, Gateway, discovery, message broker, Docker hoặc CI. Đã thêm [OpenAPI/Swagger UI](api/openapi.md) ngày 2026-11-01; chưa triển khai API nghiệp vụ.
+`application.yml` đặt cổng 5001, import `.env` tùy chọn. Hibernate validate schema; Flyway quản lý schema. Đã có JWT RS256, Argon2id, Bearer và login UC02. Google, email, Gateway, discovery, message broker, Docker và CI chưa có. [OpenAPI/Swagger UI](api/openapi.md) giữ đủ 20 operation, riêng login `IMPLEMENTED`.
 
-JWT và phiên sẽ được xác minh khi triển khai API; chưa có các lớp này trong repo. Chưa có health endpoint hoặc Actuator.
+JWT và user/phiên được xác minh bởi [nền tảng bảo mật](user-security.md); role đọc hiện tại từ database, không chứa trong JWT. Chưa có health endpoint hoặc Actuator.
 
-Ngày 2026-11-03 đã triển khai [nền tảng backend theo chức năng](foundation.md): entity/repository, DTO cho 20 API, envelope, validation và xử lý exception. Chưa có tầng controller/service nghiệp vụ; cấu hình security hiện tại vẫn chỉ phục vụ truy cập tài liệu.
+Ngày 2026-11-03 đã triển khai [nền tảng backend theo chức năng](foundation.md): entity/repository, DTO cho 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 thêm controller/service login và security stateless: GET tài liệu/login công khai, các request còn lại được bảo vệ; không mở endpoint nội bộ chưa triển khai.
 
 ## Những ranh giới cần giữ khi triển khai
 
@@ -54,4 +56,4 @@ API cập nhật hồ sơ không được trở thành đường sửa `roles`, 
 
 Gateway gọi introspection để User Service xác minh JWT và trạng thái user/phiên. Danh tính Gateway tách khỏi user token được kiểm tra; service nghiệp vụ vẫn kiểm tra quyền trên dữ liệu. Không cho client đi vòng vào backend hoặc tin header danh tính tùy ý. Xem [hợp đồng Gateway](api/sessions.md#danh-tính-gateway-và-vận-hành).
 
-Chính sách [token](confirmed-decisions.md#user-tokens) và [thời hạn phiên](confirmed-decisions.md#session-lifetime) được duy trì ở sổ quyết định. Thu hồi refresh token đơn thuần không vô hiệu JWT; thiết kế kiểm tra phiên ở lần introspection sau commit. Không cam kết hủy request đã qua kiểm tra; chưa có implementation.
+Chính sách [token](confirmed-decisions.md#user-tokens) và [thời hạn phiên](confirmed-decisions.md#session-lifetime) được duy trì ở sổ quyết định. Thu hồi refresh token đơn thuần không vô hiệu JWT; thiết kế kiểm tra phiên ở lần introspection sau commit. Không cam kết hủy request đã qua kiểm tra. Nền tảng Bearer đã kiểm tra phiên; cơ chế thu hồi và introspection/Gateway chưa triển khai.

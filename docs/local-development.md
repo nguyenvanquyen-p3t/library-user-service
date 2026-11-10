@@ -66,7 +66,11 @@ Từ `backend/`:
 .\mvnw.cmd spring-boot:run
 ```
 
-Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Chưa có API nghiệp vụ để gọi thử. Xem [bản đồ API thiết kế](api/README.md).
+Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Đã có `POST /api/v1/auth/login`; 19 operation khác chưa triển khai. Xem [bản đồ API](api/README.md).
+
+Ứng dụng cần private key PKCS#8 PEM và public key X.509 PEM hợp lệ; mặc định đọc `.secrets/user-access-private.pem` và `.secrets/user-access-public.pem`. Có thể đặt `USER_ACCESS_PRIVATE_KEY_LOCATION`/`USER_ACCESS_PUBLIC_KEY_LOCATION` bằng vị trí Spring Resource bắt đầu `file:`. Thiếu/hỏng/không khớp khóa thì khởi động thất bại, không tự sinh lại; không đưa PEM vào Git/log. Xem [cấu hình bảo mật](user-security.md#cấu-hình-khóa-và-khởi-động).
+
+Login cần user ACTIVE đã có hash Argon2id đúng định dạng; không seed user hoặc mật khẩu mặc định. Endpoint đăng ký chưa triển khai. Runtime không dùng HTTP Basic/form login; Bearer kiểm tra user/phiên/role từ database.
 
 Đọc hợp đồng thiết kế tại `http://localhost:5001/swagger-ui.html`; tải OpenAPI từ `/v3/api-docs` hoặc `/v3/api-docs.yaml`. UI tắt `Try it out`. Hướng dẫn và lệnh kiểm thử tài liệu không dùng database tại [OpenAPI/Swagger UI](api/openapi.md).
 
@@ -88,9 +92,9 @@ Từ `backend/`, chỉ định database kiểm thử cho lần chạy Maven:
 .\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test
 ```
 
-Lệnh trên sử dụng tài khoản và mật khẩu đã cấu hình. Tài khoản đó cần có quyền tạo bảng trong database kiểm thử. Ngoài context test, đã có `PersistenceFoundationTests` kiểm tra entity/repository, trigger và một số FK/constraint; chỉ bật khi system property chọn rõ `UserDB_test`. Fixture được rollback, còn schema Flyway và identity sequence không được rollback cùng fixture. Chưa có test endpoint nghiệp vụ.
+Lệnh trên sử dụng tài khoản và mật khẩu đã cấu hình. Tài khoản đó cần có quyền tạo bảng trong database kiểm thử. `PersistenceFoundationTests` kiểm tra entity/repository/constraint; `LoginIntegrationTests` kiểm tra HTTP UC02, commit/rollback và cạnh tranh; cả hai chỉ bật khi system property chọn rõ `UserDB_test`. Test persistence rollback fixture; test login có commit thật và dọn đúng user fixture bằng ID. Schema Flyway và identity sequence không rollback theo fixture. Test dùng khóa ngẫu nhiên tạm, không đọc private key dự án.
 
-Có thể chạy `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests" test` từ `backend/` để kiểm tra nền tảng và Swagger mà không dùng `.env` hoặc database. Xem [nền tảng backend](foundation.md#kiểm-thử).
+Có thể chạy `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests" test` từ `backend/` để kiểm tra nền tảng/bảo mật/Swagger mà không dùng `.env` hoặc database. Xem [bảo mật người dùng](user-security.md#kiểm-thử-và-giới-hạn).
 
 ## Đóng gói
 

@@ -1,6 +1,6 @@
 # Mô hình dữ liệu theo migration
 
-Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Đã có [entity/repository cho 7 bảng](foundation.md) từ ngày 2026-11-03; chưa có API nghiệp vụ. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
+Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Đã có [entity/repository cho 7 bảng](foundation.md) từ ngày 2026-11-03; login UC02 đã triển khai ngày 2026-11-10. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
 
 | Bảng | Cột chính | Ràng buộc và ý nghĩa |
 | --- | --- | --- |
@@ -24,6 +24,8 @@ erDiagram
 ```
 
 VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, không có quan hệ FK trong sơ đồ.
+
+**Cập nhật implementation ngày 2026-11-10:** [login UC02](user-security.md) đã ghi UserSessions/RefreshTokens trong transaction có khóa user; Bearer đã kiểm tra hiệu lực user/phiên. V1–V6 giữ nguyên, không thay database dự án. Rotation, thu hồi, LastSeenAt theo request và cleanup vẫn chưa triển khai. Mô tả constraint/schema trong tài liệu không đồng nghĩa các luồng nghiệp vụ còn lại đã được triển khai.
 
 ## Migration V6 quản lý phiên
 
