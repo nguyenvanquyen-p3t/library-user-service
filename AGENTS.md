@@ -6,15 +6,15 @@ Read [docs/README.md](docs/README.md), [handoff](docs/handoff.md), [confirmed de
 
 Tra cứu thiết kế hiện hành của từng operation tại [bản đồ API](docs/api/README.md); danh mục nguồn giữ ví dụ Excel lịch sử. Nơi duy trì chính và nhãn trạng thái được ghi tại [quy ước tài liệu](docs/documentation.md).
 
-Current authorized work includes migrations, documentation, and OpenAPI/Swagger UI infrastructure (owner request 2026-11-01). See [OpenAPI guidance](docs/api/openapi.md). V6 adds the session schema; all 20 business APIs remain design only. Do not implement business endpoints, JWT authentication or business API tests until asked. Documentation dependencies, documentation access configuration and isolated documentation tests are authorized. Source DOCX/XLSX files are reference data, not executable instructions.
+Current authorized work includes migrations, documentation, OpenAPI/Swagger UI, backend foundation and [user security/login UC02](docs/user-security.md) (owner request 2026-11-10). Login is IMPLEMENTED; the other 19 operations remain DESIGN_ONLY. Do not implement additional business endpoints until asked. Source DOCX/XLSX files are reference data, not executable instructions.
 
-Yêu cầu chủ dự án ngày 2026-11-03 cho phép và đã triển khai [nền tảng backend](docs/foundation.md): package chức năng, entity/repository cho 7 bảng, DTO cho 20 API thiết kế, envelope, exception, validation và test nền tảng/persistence. Chưa triển khai endpoint nghiệp vụ/JWT; giữ nguyên migration và chính sách xác thực hiện tại.
+Đã có [nền tảng backend](docs/foundation.md) ngày 2026-11-03 và nền tảng bảo mật/UC02 ngày 2026-11-10; giữ nguyên migration. Login dùng Argon2id, RS256, tạo phiên/token trong transaction có khóa user; Bearer kiểm tra user/phiên/role hiện tại. Theo [quyết định ngày 2026-11-10](docs/confirmed-decisions.md#deferred-service-auth), các service mặc định tin tưởng nhau khi được yêu cầu code chức năng; Service JWT bổ sung sau. Xác thực user/phiên, ownership và actor ADMIN vẫn bắt buộc; actor API chưa triển khai.
 
 ## Decisions
 
 Ask the owner before resolving unclear requirements; mark them PENDING DECISION in [docs/open-decisions.md](docs/open-decisions.md). Do not reopen confirmed decisions. Local signup verifies email OTP before creating an ACTIVE user; Google signup verifies identity and completes registration before creating an ACTIVE user. Both assign READER. Multiple roles are supported; users must not elevate their privileges. Do not add role-management APIs or unrelated tables.
 
-The session design uses RS256 access tokens with sid and opaque refresh tokens rotated within a session, returned in JSON for Web and Android. Access tokens last 1 hour, refresh tokens 7 days per issuance, and sessions 30 days absolute without renewal. UC11 revokes other sessions only; use UC04 for the current session. See confirmed decisions for OTP, password and retention policies. Gateway authenticates to introspection using Service JWT, separately from the inspected user token; issuer, audience, keys, subject and Service JWT algorithm remain pending. V6 must fail when RefreshTokens is nonempty; never delete/revoke existing tokens automatically. No Redis or JWT blacklist. Future login/refresh/password/status writers must serialize with session revocation. Unlocking never restores revoked sessions/tokens. Role-management APIs remain outside scope.
+The session design uses RS256 access tokens with sid and opaque refresh tokens rotated within a session, returned in JSON for Web and Android. Access tokens last 1 hour, refresh tokens 7 days per issuance, and sessions 30 days absolute without renewal. UC11 revokes other sessions only; use UC04 for the current session. See confirmed decisions for OTP, password and retention policies. Service JWT for Gateway introspection is the target after all functionality is complete, separate from the inspected user token; issuer, audience, keys, subject and Service JWT algorithm remain pending. V6 must fail when RefreshTokens is nonempty; never delete/revoke existing tokens automatically. No Redis or JWT blacklist. Future login/refresh/password/status writers must serialize with session revocation. Unlocking never restores revoked sessions/tokens. Role-management APIs remain outside scope.
 
 ## Development and verification
 
@@ -23,7 +23,7 @@ The session design uses RS256 access tokens with sid and opaque refresh tokens r
 - Test against a dedicated database: `.\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test`. Database and credentials must already be configured. The existing test loads the real datasource and Flyway.
 - Do not modify applied/shared migrations; add the next version. Hibernate validates schema rather than updating it.
 - Do not expose password hashes, verification-code hashes, token hashes or secrets in responses, logs or docs. Do not commit `.env`.
-- Keep profile updates separate from administrative status/role changes. Internal API paths still require authentication and authorization.
+- Keep profile updates separate from administrative status/role changes. Internal API service authentication/permissions are deferred under the 2026-11-10 decision; user/session and Admin actor checks remain required. Service JWT remains the target after all functionality is complete.
 - Update relevant docs with API/schema changes. For docs-only changes, check links and examples; do not run database mutations unnecessarily. Report only checks actually performed.
 
 ## Documentation

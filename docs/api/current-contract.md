@@ -1,8 +1,10 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Thiết kế, chưa triển khai API.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất, không phải hợp đồng hoàn thiện hoặc hành vi đang chạy. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Ngày 2026-11-10: login UC02 đã triển khai; 15 API gốc khác còn thiết kế.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
 
 ## Cách đọc trạng thái
+
+**Quyết định ngày 2026-11-10:** [hoãn xác thực service đến sau khi hoàn tất chức năng](../confirmed-decisions.md#deferred-service-auth). Giai đoạn code chức năng mặc định tin tưởng service; Q03 chưa chốt cấu hình không chặn hai API nội bộ. Các yêu cầu/lỗi Service JWT trong tài liệu là thiết kế đích cho bước sau. Giữ xác thực user/phiên, ownership và actor ADMIN.
 
 Bổ sung ngày 2026-10-31: [Q03](../confirmed-decisions.md#internal-service-auth) chốt Service JWT/quyền và actor Admin; [Q06](../confirmed-decisions.md#otp-email-delivery) chốt hành vi SMTP; [Q10](../confirmed-decisions.md#admin-status-contract) chốt trạng thái/retry/audit; [Q09](../confirmed-decisions.md#integration-error-contract) bổ sung lỗi tích hợp. [User access token Q14](../confirmed-decisions.md#access-token-key-pair) đã chốt issuer chung urn:library:user-service, aud ["library-api"], kid user-access-v1 và quy trình cấp/phân phối/thay khóa. Nhãn Q03 còn mở chỉ cấu hình Service JWT, Q06 chỉ lựa chọn/cấu hình môi trường SMTP; Q11a vẫn hoãn, không áp cấu hình user token cho Service JWT.
 
@@ -123,6 +125,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="login"></a>
 
 ## POST /api/v1/auth/login
+
+**Đã triển khai — IMPLEMENTED ngày 2026-11-10.** [Nền tảng bảo mật/transaction](../user-security.md): Argon2id, khóa user đến commit, tạo phiên/refresh token và ký JWT trong transaction; lỗi commit không trả thành công. Không nhận metadata thiết bị. Response thành công có `Cache-Control: no-store`; chưa có endpoint Google/UC09 để thực hiện hướng dẫn của nhánh chưa có password.
 
 **Luồng:** UC02. **Nguồn:** [Sheet1, hàng 4](source-catalog.md#post-apiv1authlogin).
 
@@ -698,7 +702,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Luồng:** Borrow Service. **Nguồn:** [Sheet1, hàng 18](source-catalog.md#get-apiv1internalusersid).
 
-**Xác thực/đầu vào:** Borrow hoặc Admin gửi Service JWT riêng trong Authorization Bearer, có quyền users:read. Client Web/Android không được gọi trực tiếp. Cấu hình JWT vẫn PENDING DECISION; cơ chế/quyền đã chốt theo [Q03](../confirmed-decisions.md#internal-service-auth).
+**Xác thực/đầu vào:** Giai đoạn chức năng mặc định tin tưởng service, không yêu cầu Service JWT hoặc kiểm tra quyền users:read. Borrow/Admin vẫn là bên gọi theo thiết kế; chưa có lớp xác thực service để chứng minh bên gọi. Sau khi hoàn tất chức năng, bổ sung Service JWT/quyền users:read và giới hạn caller theo [Q03](../confirmed-decisions.md#internal-service-auth).
 
 **Đã xác nhận — hành vi:** Trả thông tin cơ bản, kể cả user BANNED để service gọi kiểm tra nghiệp vụ. HTTP 200 không bảo đảm đủ điều kiện mượn. id là User ID kiểu Integer theo nguồn; xem [tích hợp Borrow](internal-integration.md#tra-cứu-user).
 
@@ -733,7 +737,7 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 **Luồng:** Admin Service. **Nguồn:** [Sheet1, hàng 19](source-catalog.md#patch-apiv1internalusersidstatus).
 
-**Xác thực/đầu vào:** chỉ Admin Service có Service JWT riêng trong Authorization Bearer và quyền users:status:write; thêm access token quản trị viên trong X-Admin-Access-Token. User Service xác minh token/phiên, user ACTIVE và role ADMIN hiện tại từ database theo [Q03](../confirmed-decisions.md#internal-service-auth). Cấu hình JWT vẫn PENDING DECISION.
+**Xác thực/đầu vào:** Giai đoạn chức năng mặc định tin tưởng service, chưa yêu cầu Service JWT hoặc kiểm tra quyền users:status:write. Vẫn bắt buộc access token quản trị viên trong X-Admin-Access-Token: User Service xác minh token/phiên, user ACTIVE và role ADMIN hiện tại từ database. Admin Service vẫn điều phối; xác thực danh tính/quyền Admin Service sẽ bổ sung sau khi hoàn tất chức năng theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-service-auth).
 
 **Đã xác nhận — hành vi:** Chỉ ACTIVE/BANNED. Khóa ghi status và thu hồi mọi phiên/refresh token còn hiệu lực liên quan cùng transaction; mở khóa không phục hồi phiên/token. Introspection từ chối phiên thu hồi ở lần kiểm tra sau commit. Không thêm API kích hoạt/role. id là User ID kiểu Integer theo nguồn; xem [vòng đời tài khoản](../confirmed-decisions.md#account-lifecycle).
 

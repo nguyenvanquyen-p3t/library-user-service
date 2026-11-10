@@ -1,10 +1,10 @@
 # OpenAPI và Swagger UI
 
-Ngày 2026-11-01, chủ dự án yêu cầu bắt đầu xây dựng OpenAPI và Swagger UI. Phạm vi được mở thêm là đặc tả và hạ tầng phục vụ tài liệu; **20 API nghiệp vụ vẫn chưa triển khai**. Không thay migration, cấu hình JWT hoặc các quyết định còn mở.
+Ngày 2026-11-01, chủ dự án yêu cầu xây dựng OpenAPI và Swagger UI. Ngày 2026-11-10 đã triển khai [bảo mật người dùng/login UC02](../user-security.md); **riêng login IMPLEMENTED, 19 operation khác DESIGN_ONLY**. Không thay migration hoặc tự chốt các quyết định còn mở.
 
 ## Đặc tả và trạng thái
 
-[user-service.yaml](../../backend/src/main/resources/openapi/user-service.yaml) là bản OpenAPI **3.0.3**, phiên bản hợp đồng `0.1.0-design`. File mô tả đủ 20 operation theo [bản đồ API](README.md), với `operationId` ổn định, schema request/response, required/null, validation, ví dụ và lỗi. Mỗi operation có `x-implementation-status: DESIGN_ONLY` và `x-design-source` trỏ tới mục Markdown tương ứng.
+[user-service.yaml](../../backend/src/main/resources/openapi/user-service.yaml) là bản OpenAPI **3.0.3**, phiên bản hợp đồng `0.1.0-design`. File mô tả đủ 20 operation theo [bản đồ API](README.md), giữ operationId/schema/validation/ví dụ và lỗi. Login có `x-implementation-status: IMPLEMENTED`, 19 operation khác `DESIGN_ONLY`; x-design-source giữ liên kết Markdown. Response login có Cache-Control no-store. Controller login mang `@Hidden` để YAML không bị springdoc ghi đè; test trong context thật kiểm tra đủ 20 operation và trạng thái.
 
 [OpenApiConfiguration](../../backend/src/main/java/com/library/userservice/config/OpenApiConfiguration.java) đọc YAML từ classpath thành bean `OpenAPI`. springdoc phục vụ cùng hợp đồng ở JSON/YAML và Swagger UI. Không tạo controller giả cho các operation thiết kế. Khi triển khai controller sau này, phải đối chiếu hợp đồng này; tránh để annotation và YAML mô tả khác nhau hoặc làm mất nhãn trạng thái thực tế.
 
@@ -25,11 +25,13 @@ Chạy ứng dụng từ `backend/` theo [hướng dẫn cục bộ](../local-de
 | `http://localhost:5001/v3/api-docs.yaml` | OpenAPI YAML |
 | `http://localhost:5001/v3/api-docs/swagger-config` | Cấu hình Swagger UI |
 
-Swagger UI tắt `Try it out` bằng `supported-submit-methods: []`, không lưu thông tin Authorize và không gửi đặc tả tới validator bên ngoài. Token trong ví dụ là dữ liệu giả. Các nút Authorize chỉ minh họa hợp đồng, chưa có xác thực JWT hoạt động.
+Swagger UI tắt `Try it out` bằng `supported-submit-methods: []`, không lưu thông tin Authorize và không gửi đặc tả tới validator bên ngoài. Token trong ví dụ là dữ liệu giả. User JWT đã hoạt động trong nền tảng bảo mật; Authorize không làm operation DESIGN_ONLY trở thành endpoint đã triển khai.
 
-[DocumentationSecurityConfiguration](../../backend/src/main/java/com/library/userservice/config/DocumentationSecurityConfiguration.java) cho phép GET các đường dẫn tài liệu và tài nguyên `/swagger-ui/**`. Các request còn lại tiếp tục yêu cầu xác thực theo cơ chế mặc định Spring Security (HTTP Basic/form login, giữ CSRF). Đây là cấu hình khởi đầu để đọc docs, chưa phải security của API nghiệp vụ; không mở công khai `/api/v1/**`.
+[DocumentationSecurityConfiguration](../../backend/src/main/java/com/library/userservice/config/DocumentationSecurityConfiguration.java) cho phép GET tài liệu và tài nguyên `/swagger-ui/**`. ApiSecurityConfiguration mở path login và bảo vệ các request còn lại bằng user Bearer. Runtime stateless, đã tắt Basic/form login/logout mặc định/CSRF và default user; không mở công khai `/api/v1/**`. Ba endpoint nội bộ vẫn chưa triển khai; xem [security hiện hành](../user-security.md).
 
 ## Xác thực trong hợp đồng
+
+**Cập nhật ngày 2026-11-10:** theo [quyết định hoãn xác thực service](../confirmed-decisions.md#deferred-service-auth), YAML giữ scheme/quyền/lỗi Service JWT của hợp đồng đích sau khi hoàn tất chức năng. Giai đoạn chức năng mặc định tin tưởng service; API trạng thái tương lai vẫn xác minh actor Admin và introspection tương lai vẫn xác minh user token/phiên. ServiceJwt + AdminAccessToken chỉ áp dụng đầy đủ ở bước bảo mật service sau. Login đã triển khai không đồng nghĩa đã có ba operation nội bộ.
 
 | Scheme | Ý nghĩa |
 | --- | --- |

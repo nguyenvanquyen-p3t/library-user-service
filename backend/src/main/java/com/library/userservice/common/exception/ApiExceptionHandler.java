@@ -41,6 +41,7 @@ import tools.jackson.databind.exc.UnrecognizedPropertyException;
 public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleHttp(Exception exception, HttpServletRequest request) throws Exception {
+        if (exception instanceof org.springframework.security.access.AccessDeniedException) throw exception;
         // 405/415 có thể xảy ra trước khi Spring chọn controller nên selector basePackages không đủ.
         if (!isProjectHandler(request)) throw exception;
         var response = handle(exception);
@@ -119,7 +120,8 @@ public class ApiExceptionHandler {
         }
         if (exception instanceof HttpMediaTypeNotSupportedException) return response(ErrorCode.UNSUPPORTED_MEDIA_TYPE);
         if (exception instanceof DataIntegrityViolationException integrity) return response(constraintCode(integrity));
-        if (exception instanceof TransientDataAccessException || exception instanceof DataAccessResourceFailureException)
+        if (exception instanceof TransientDataAccessException || exception instanceof DataAccessResourceFailureException
+                || exception instanceof org.springframework.transaction.CannotCreateTransactionException)
             return response(ErrorCode.SERVICE_UNAVAILABLE);
         return response(ErrorCode.INTERNAL_ERROR);
     }

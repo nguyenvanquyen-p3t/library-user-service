@@ -2,6 +2,8 @@ server:
   port: 5001
 
 spring:
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   application:
     name: user-service
 
@@ -21,6 +23,9 @@ spring:
     open-in-view: false
     show-sql: false
 
+  mvc:
+    log-request-details: false
+
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -34,3 +39,21 @@ springdoc:
     supported-submit-methods: []
     validator-url: ""
     persist-authorization: false
+
+app:
+  security:
+    user-access:
+      issuer: urn:library:user-service
+      audience: library-api
+      active-key-id: user-access-v1
+      private-key-location: ${USER_ACCESS_PRIVATE_KEY_LOCATION:file:./.secrets/user-access-private.pem}
+      public-keys:
+        user-access-v1: ${USER_ACCESS_PUBLIC_KEY_LOCATION:file:./.secrets/user-access-public.pem}
+
+# Chi tiết lỗi constraint từ PostgreSQL có thể chứa giá trị hash.
+logging:
+  level:
+    org.hibernate.orm.jdbc.error: "OFF"
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: "OFF"
+    org.hibernate.orm.jdbc.bind: "OFF"
+    org.hibernate.orm.jdbc.extract: "OFF"
