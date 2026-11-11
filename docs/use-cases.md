@@ -1,6 +1,6 @@
 # Luồng nghiệp vụ UC01–UC12
 
-Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. Đây là thiết kế chưa triển khai, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
+Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
 Các mục kết quả mô tả nhánh thành công, không áp dụng cho nhánh bị từ chối. Client là Web/Android; các bước gọi API tự động không yêu cầu người dùng thao tác trực tiếp. Chính sách xem [sổ quyết định](confirmed-decisions.md), transaction xem [requirements](requirements.md), request/response xem [16 API hiện hành](api/current-contract.md) và [API phiên](api/sessions.md). Các điểm chưa đủ để code được ghi tại [open-decisions](open-decisions.md), không ngầm coi đề xuất là quyết định. Liên kết được cập nhật ngày 2026-10-24; không đối chiếu lại Word trong đợt này.
 
@@ -29,7 +29,7 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 
 ## UC02 Đăng nhập Local
 
-**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); 11 use case khác vẫn thiết kế. Metadata thiết bị null; các nhánh hướng dẫn Google/UC09 chưa có endpoint tương ứng.
+**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); UC03–UC04 được bổ sung ngày 2026-11-11, 9 use case khác vẫn thiết kế. Metadata thiết bị null; các nhánh hướng dẫn Google/UC09 chưa có endpoint tương ứng.
 
 **Actor:** READER/LIBRARIAN/ADMIN. **Ưu tiên:** cao. Nhánh thành công cần tài khoản ACTIVE đã có mật khẩu; đây là điều kiện được hệ thống kiểm tra, vẫn có nhánh từ chối tương ứng.
 
@@ -41,6 +41,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 
 ## UC03 Làm mới token
 
+**Đã triển khai ngày 2026-11-11:** [implementation](user-security.md#refresh-và-logout-uc03uc04). Ưu tiên lỗi token → user → phiên; không gia hạn phiên hoặc cập nhật LastSeenAt.
+
 **Actor:** người đã đăng nhập, client thực hiện tự động. **Ưu tiên:** cao. Client giữ refresh token; thành công đòi token, user và phiên còn hiệu lực.
 
 1. Khi access token hết/sắp hết hạn, client gửi refresh token.
@@ -51,6 +53,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 **Ngoại lệ:** token không tồn tại/hết hạn → đăng nhập lại; token đã thu hồi (kể cả đã rotation) → từ chối cấp token mới; user BANNED, phiên thu hồi/hết hạn → từ chối. Dùng lại token đã rotation không làm thu hồi session/token thay thế. **Kết quả:** cùng phiên, token cũ không dùng để refresh lần nữa.
 
 ## UC04 Đăng xuất phiên hiện tại
+
+**Đã triển khai ngày 2026-11-11:** khóa user và thu hồi đúng phiên/token trong transaction; [implementation](user-security.md#refresh-và-logout-uc03uc04).
 
 **Actor:** người đã đăng nhập, client giữ refresh token của phiên. **Ưu tiên:** cao.
 

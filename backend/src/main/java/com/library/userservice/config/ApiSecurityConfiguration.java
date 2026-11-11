@@ -21,9 +21,10 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 public class ApiSecurityConfiguration {
     @Bean
     @Order(2)
-    SecurityFilterChain loginSecurityFilterChain(HttpSecurity http) throws Exception {
-        // Match mọi method để MVC trả đúng 405/415; Bearer cũ không chặn login công khai.
-        return stateless(http).securityMatcher("/api/v1/auth/login")
+    SecurityFilterChain publicTokenSecurityFilterChain(HttpSecurity http) throws Exception {
+        // Match mọi method để MVC trả đúng 405/415; Bearer cũ không chặn API dùng refresh token.
+        return stateless(http).securityMatcher("/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout")
+                .headers(headers -> headers.addHeaderWriter((request, response) -> response.setHeader("Cache-Control", "no-store")))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).build();
     }
 

@@ -1,6 +1,6 @@
 # Nền tảng backend dùng chung
 
-Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; riêng login là `IMPLEMENTED`, 19 operation khác `DESIGN_ONLY`. Google, SMTP, Gateway chưa triển khai.
+Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; login là `IMPLEMENTED` từ ngày 2026-11-10; ngày 2026-11-11 thêm refresh/logout, tổng 3 IMPLEMENTED/17 DESIGN_ONLY. Google, SMTP, Gateway chưa triển khai.
 
 ## Package và trách nhiệm
 
@@ -17,7 +17,7 @@ Tất cả package nằm dưới `com.library.userservice`:
 | `session.persistence` | `UserSession`, repository và `ClientType` |
 | `user.dto`, `auth.dto`, `session.dto`, `internal.dto` | Request/response theo [hợp đồng hiện hành](api/README.md); không có request DTO rỗng cho operation không có body |
 
-Không tạo tầng service/controller rỗng. Đã thêm `auth.service`/`auth.web` cho login và package `security`; repository có truy vấn khóa user, đọc role và insert phiên phục vụ UC02. Rotation, thu hồi và cleanup chưa triển khai. Các writer tiếp theo phải tuân thủ [transaction và cạnh tranh](requirements.md#ranh-giới-transaction), khóa user như login trước khi thao tác phiên/token.
+Không tạo tầng service/controller rỗng. Đã thêm `auth.service`/`auth.web` cho login/refresh/logout và package `security`; repository có truy vấn khóa user, projection owner token, đọc role, thu hồi token còn hiệu lực theo phiên và insert phiên phục vụ UC02. Rotation và logout đã triển khai ngày 2026-11-11; cleanup và API quản lý phiên chưa triển khai. Các writer tiếp theo phải tuân thủ [transaction và cạnh tranh](requirements.md#ranh-giới-transaction), khóa user như login trước khi thao tác phiên/token.
 
 ## Ánh xạ dữ liệu
 

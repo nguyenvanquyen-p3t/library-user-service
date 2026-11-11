@@ -4,7 +4,7 @@ Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp 
 
 ## Những điểm đã chốt
 
-**Implementation ngày 2026-11-10:** [login UC02/nền tảng user JWT](../user-security.md) đã tạo session và refresh token đúng schema hiện có, kiểm tra user/phiên/role cho Bearer. Bốn endpoint trong tài liệu này vẫn chưa triển khai; chưa có rotation, thu hồi phiên hoặc introspection/Gateway. JWT được cấp bởi login đã dùng được trong nền tảng Bearer; chưa có endpoint introspection để Gateway gọi.
+**Implementation ngày 2026-11-10:** [login UC02/nền tảng user JWT](../user-security.md) đã tạo session và refresh token đúng schema hiện có, kiểm tra user/phiên/role cho Bearer. Bốn endpoint trong tài liệu này vẫn chưa triển khai; ngày 2026-11-11 đã thêm rotation UC03 và thu hồi phiên bằng logout UC04; API quản lý phiên và introspection/Gateway chưa triển khai. JWT được cấp bởi login đã dùng được trong nền tảng Bearer; chưa có endpoint introspection để Gateway gọi.
 
 - Thêm UserSessions, liên kết RefreshTokens.SessionId. Không có bảng Devices riêng: thông tin thiết bị là metadata của phiên, không phải bằng chứng danh tính.
 - Theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-service-auth), giai đoạn chức năng mặc định tin tưởng Gateway, chưa yêu cầu Service JWT hoặc kiểm tra quyền service. Sau khi hoàn tất tất cả chức năng mới bổ sung **Service JWT**, tách khỏi access token người dùng được kiểm tra.

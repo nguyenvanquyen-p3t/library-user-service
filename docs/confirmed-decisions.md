@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung triển khai ngày 2026-11-11:** chủ dự án duyệt và yêu cầu code [refresh/logout UC03–UC04](#refresh-logout-uc03-uc04). Login/refresh/logout đã triển khai, tổng 3 IMPLEMENTED/17 DESIGN_ONLY; giữ nguyên các xác nhận lịch sử bên dưới.
+
 **Bổ sung triển khai ngày 2026-11-10:** chủ dự án duyệt và yêu cầu code [nền tảng bảo mật người dùng và login UC02](#user-security-uc02). Login đã triển khai, 19 operation khác còn thiết kế. Các câu giới hạn phạm vi trong quyết định lịch sử bên dưới mô tả thời điểm xác nhận tương ứng.
 
 **Bổ sung phạm vi ngày 2026-11-01:** chủ dự án yêu cầu bắt đầu xây dựng OpenAPI và Swagger UI. Cho phép đặc tả và hạ tầng tài liệu liên quan; 20 API nghiệp vụ vẫn ở mức thiết kế. Xem [hướng dẫn OpenAPI](api/openapi.md). Các câu “chưa tạo OpenAPI” trong quyết định lịch sử bên dưới mô tả thời điểm xác nhận tương ứng.
@@ -377,3 +379,17 @@ Thứ tự kiểm tra API nội bộ theo [Q03](#internal-service-auth). Giữ n
 - Runtime stateless, tắt Basic/form login/logout mặc định/CSRF và default user tự sinh; chỉ GET tài liệu và path login công khai. Các đường còn lại giữ bảo vệ user Bearer cho đến khi endpoint tương ứng được yêu cầu triển khai. Không thêm CORS, rate limit login, JWKS, Redis hoặc blacklist.
 
 Implementation, cấu hình và giới hạn hiện hành duy trì tại [bảo mật người dùng](user-security.md); kết quả kiểm thử tại [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có). Các quyết định lịch sử không đồng nghĩa các endpoint còn lại đã chạy.
+
+<a id="refresh-logout-uc03-uc04"></a>
+
+## Refresh/logout UC03–UC04 — chốt ngày 2026-11-11
+
+Chủ dự án duyệt kế hoạch và yêu cầu triển khai hai endpoint hiện có, giữ 7 bảng/20 operation và V1–V6. Không triển khai thêm API khác, Service JWT, cleanup hoặc cơ chế grace period/cấp lại token sau khi mất response refresh.
+
+- Chốt ưu tiên lỗi UC03: **token → user → phiên**. Token không tồn tại/hết hạn/đã thu hồi trả 401 REFRESH_TOKEN_INVALID, kể cả khi user BANNED hoặc phiên kết thúc. Token hợp lệ mới xét user: BANNED trả 403 ACCOUNT_BANNED; user không còn hoặc phiên thiếu/sai owner/hết hạn/thu hồi trả 401 SESSION_INACTIVE.
+- UC03/UC04 dùng READ_COMMITTED, projection owner → khóa user PESSIMISTIC_WRITE → đọc lại token/phiên và lấy now. Cùng khóa với login; writer password/status/revoke sau này phải giữ quy ước này. Trả thành công sau commit, rollback lỗi lưu/ký/commit.
+- Giữ rotation một lần, cùng sid, TTL access/refresh độc lập và hạn phiên tuyệt đối đã chốt. Không cập nhật LastSeenAt trong UC03–UC04; chính sách cập nhật chung vẫn chưa chốt.
+- UC04 tiếp tục chấp nhận token cũ/hết hạn/đã rotation còn xác định được phiên, không yêu cầu user ACTIVE. Phiên còn hiệu lực ghi lý do LOGOUT và thu hồi refresh token còn hiệu lực cùng transaction; phiên đã kết thúc hoặc token không xác định được phiên trả kết quả chung, không ghi đè lịch sử. Lỗi database/commit không chuyển thành thành công.
+- Hai endpoint dùng refresh token trong JSON, bỏ qua Bearer cũ/sai và không nhận token qua cookie/query/Authorization. Mọi response, gồm lỗi validation/nghiệp vụ, có Cache-Control no-store. Các path khác giữ bảo vệ hiện có.
+
+Implementation tại [bảo mật UC03–UC04](user-security.md#refresh-và-logout-uc03uc04); HTTP tại [refresh](api/current-contract.md#refresh), [logout](api/current-contract.md#logout) và [bộ lỗi](api/http-errors.md#operations).

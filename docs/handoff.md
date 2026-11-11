@@ -13,6 +13,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 
 ## Hiện trạng cần biết
 
+- **Triển khai ngày 2026-11-11:** [refresh/logout UC03–UC04](user-security.md#refresh-và-logout-uc03uc04) đã có transaction READ_COMMITTED, khóa user trước khi đọc lại token/phiên, rotation một lần và logout bằng token cũ. Tổng 3 operation IMPLEMENTED/17 DESIGN_ONLY. Ba path login/refresh/logout công khai, bỏ qua Bearer cũ; các path khác giữ bảo vệ. Những đoạn ngày 2026-11-10 bên dưới là lịch sử UC02.
+
 - **Triển khai mới ngày 2026-11-10:** [bảo mật người dùng và login UC02](user-security.md) đã có Argon2id, JWT RS256/PEM, Bearer kiểm tra user/phiên/role từ database và transaction login có khóa user. Login `IMPLEMENTED`, 19 operation còn `DESIGN_ONLY`. Thông tin “chưa có JWT/endpoint” ở bàn giao các ngày trước bên dưới là lịch sử. Basic/form login/default user đã tắt; ứng dụng cần cặp PEM hợp lệ khi khởi động. Test dùng khóa tạm và database riêng.
 
 - **Quyết định mới ngày 2026-11-10:** [hoàn tất chức năng trước, xác thực service sau](confirmed-decisions.md#deferred-service-auth). Khi được yêu cầu code, Admin/Borrow/Gateway mặc định tin tưởng nhau; tạm chưa yêu cầu Service JWT hoặc kiểm tra danh tính/quyền service. Không cần chốt Q03/Q11a để code hai API nội bộ/introspection. Giữ user JWT, phiên, ownership và actor ADMIN trong X-Admin-Access-Token. Các mô tả Service JWT bên dưới là thiết kế đích sau khi hoàn tất chức năng. Bản thân quyết định hoãn xác thực service chỉ đổi docs; nền tảng user security/login UC02 đã được triển khai sau đó cùng ngày, chưa mở ba API nội bộ.

@@ -25,7 +25,7 @@ erDiagram
 
 VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, không có quan hệ FK trong sơ đồ.
 
-**Cập nhật implementation ngày 2026-11-10:** [login UC02](user-security.md) đã ghi UserSessions/RefreshTokens trong transaction có khóa user; Bearer đã kiểm tra hiệu lực user/phiên. V1–V6 giữ nguyên, không thay database dự án. Rotation, thu hồi, LastSeenAt theo request và cleanup vẫn chưa triển khai. Mô tả constraint/schema trong tài liệu không đồng nghĩa các luồng nghiệp vụ còn lại đã được triển khai.
+**Cập nhật implementation ngày 2026-11-10:** [login UC02](user-security.md) đã ghi UserSessions/RefreshTokens trong transaction có khóa user; Bearer đã kiểm tra hiệu lực user/phiên. V1–V6 giữ nguyên, không thay database dự án. Ngày 2026-11-11 đã bổ sung rotation UC03 và logout/thu hồi phiên UC04, khóa cùng user và giữ nguyên lịch sử token. LastSeenAt theo request, API quản lý phiên và cleanup vẫn chưa triển khai. Mô tả constraint/schema trong tài liệu không đồng nghĩa các luồng nghiệp vụ còn lại đã được triển khai.
 
 ## Migration V6 quản lý phiên
 

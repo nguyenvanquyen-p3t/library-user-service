@@ -16,6 +16,10 @@ public interface UserRepository extends Repository<User, Integer> {
     Optional<User> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.id = :id")
+    Optional<User> findByIdForUpdate(@Param("id") Integer id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from User u where u.userName = :userName")
     Optional<User> findByUserNameForUpdate(@Param("userName") String userName);
 

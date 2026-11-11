@@ -186,13 +186,15 @@ class LoginIntegrationTests extends UserSecurityTestKeys {
         }
     }
 
-    @Test void fullContextPreservesTwentyOpenApiOperationsAndOnlyLoginIsImplemented() throws Exception {
+    @Test void fullContextPreservesTwentyOpenApiOperationsAndThreeImplementedOperations() throws Exception {
         var response = get("/v3/api-docs", null);
         assertThat(response.statusCode()).isEqualTo(200);
         var paths = mapper.readTree(response.body()).path("paths"); int count = 0;
         for (var path : paths) for (var operation : path) count++;
         assertThat(count).isEqualTo(20);
         assertThat(paths.path("/api/v1/auth/login").path("post").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
+        assertThat(paths.path("/api/v1/auth/refresh").path("post").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
+        assertThat(paths.path("/api/v1/auth/logout").path("post").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
     }
 
     private Fixture user(String passwordHash, String status) {

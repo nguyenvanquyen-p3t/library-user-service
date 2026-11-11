@@ -2,7 +2,11 @@ package com.library.userservice.security;
 
 import com.library.userservice.auth.dto.TokenPair;
 import com.library.userservice.auth.service.LoginService;
+import com.library.userservice.auth.service.RefreshService;
+import com.library.userservice.auth.service.LogoutService;
 import com.library.userservice.auth.web.LoginController;
+import com.library.userservice.auth.web.RefreshController;
+import com.library.userservice.auth.web.LogoutController;
 import com.library.userservice.common.exception.ApiExceptionHandler;
 import com.library.userservice.config.ApiSecurityConfiguration;
 import com.library.userservice.config.DocumentationSecurityConfiguration;
@@ -51,18 +55,22 @@ class UserSecurityHttpTests extends UserSecurityTestKeys {
             "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration", "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration"})
     @Import({ApiSecurityConfiguration.class, DocumentationSecurityConfiguration.class, UserSecurityConfiguration.class,
             JsonConfiguration.class, SecurityErrorWriter.class, UserSessionAuthenticator.class, ApiExceptionHandler.class,
-            FixtureController.class, LoginController.class})
+            FixtureController.class, LoginController.class, RefreshController.class, LogoutController.class})
     static class Application {
         @Bean UserRepository users() { return mock(UserRepository.class); }
         @Bean UserSessionRepository sessions() { return mock(UserSessionRepository.class); }
         @Bean RoleRepository roles() { return mock(RoleRepository.class); }
         @Bean LoginService login() { return mock(LoginService.class); }
+        @Bean RefreshService refresh() { return mock(RefreshService.class); }
+        @Bean LogoutService logout() { return mock(LogoutService.class); }
     }
 
     @Autowired UserRepository users;
     @Autowired UserSessionRepository sessions;
     @Autowired RoleRepository roles;
     @Autowired LoginService login;
+    @Autowired RefreshService refresh;
+    @Autowired LogoutService logout;
     @Autowired UserAccessTokenService tokens;
     @Autowired JsonMapper mapper;
     @LocalServerPort int port;
@@ -73,7 +81,7 @@ class UserSecurityHttpTests extends UserSecurityTestKeys {
     private String access;
 
     @BeforeEach void setup() {
-        reset(users, sessions, roles, login);
+        reset(users, sessions, roles, login, refresh, logout);
         user = new User(); user.setStatus(UserStatus.ACTIVE);
         session = new UserSession(); session.setId(sid); session.setUserId(3); session.setExpiresAt(Instant.now().plusSeconds(3600));
         when(users.findById(3)).thenReturn(Optional.of(user));
@@ -143,9 +151,48 @@ class UserSecurityHttpTests extends UserSecurityTestKeys {
                 "{\"identifier\":\"reader\",\"password\":\"x\",\"roles\":[]}"))
             assertCode(post(body, "application/json"), 400, "VALIDATION_ERROR");
         assertCode(post("fixture", "text/plain"), 415, "UNSUPPORTED_MEDIA_TYPE");
-        assertCode(get("/api/v1/auth/refresh", null), 401, "AUTHENTICATION_REQUIRED");
+        assertCode(get("/api/v1/auth/refresh", null), 405, "METHOD_NOT_ALLOWED");
         assertCode(get("/login", null), 401, "AUTHENTICATION_REQUIRED");
         assertCode(send(request("GET", "/__security/principal", null).header("Authorization", "Basic Zml4dHVyZQ==")), 401, "ACCESS_TOKEN_INVALID");
+    }
+
+    @Test void refreshAndLogoutUseOnlyJsonTokenAndKeepErrorsUncacheable() throws Exception {
+        when(refresh.refresh(any())).thenReturn(new TokenPair("fixture-access", "fixture-refresh"));
+        for (String path : List.of("/api/v1/auth/refresh", "/api/v1/auth/logout")) {
+            String success = path.endsWith("refresh") ? "TOKEN_REFRESH_SUCCESS" : "LOGOUT_SUCCESS";
+            for (String bearer : new String[]{null, "invalid-or-expired"}) {
+                var result = send(request("POST", path, bearer).header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString("{\"refreshToken\":\"  giữ nguyên  \"}")));
+                assertCode(result, 200, success);
+                assertThat(result.headers().firstValue("Cache-Control")).contains("no-store");
+                if (path.endsWith("logout")) assertThat(mapper.readTree(result.body()).path("data").isNull()).isTrue();
+            }
+            assertCode(get(path, "invalid"), 405, "METHOD_NOT_ALLOWED");
+            for (String body : List.of("", "{")) assertPublicError(path, body, "application/json", "INVALID_REQUEST", 400);
+            for (String body : List.of("{}", "{\"refreshToken\":null}", "{\"refreshToken\":\"\"}",
+                    "{\"refreshToken\":12}", "{\"refreshToken\":true}", "{\"refreshToken\":[]}",
+                    "{\"refreshToken\":\"x\",\"userId\":3}"))
+                assertPublicError(path, body, "application/json", "VALIDATION_ERROR", 400);
+            assertPublicError(path, "refreshToken=x", "application/x-www-form-urlencoded", "UNSUPPORTED_MEDIA_TYPE", 415);
+            var cookieOnly = send(request("POST", path + "?refreshToken=x", "x").header("Cookie", "refreshToken=x")
+                    .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString("{}")));
+            assertCode(cookieOnly, 400, "VALIDATION_ERROR");
+        }
+        verify(refresh, times(2)).refresh(argThat(value -> value.refreshToken().equals("  giữ nguyên  ")));
+        verify(logout, times(2)).logout(argThat(value -> value.refreshToken().equals("  giữ nguyên  ")));
+        doThrow(new com.library.userservice.common.exception.ApplicationException(
+                com.library.userservice.common.api.ErrorCode.REFRESH_TOKEN_INVALID)).when(refresh).refresh(any());
+        assertPublicError("/api/v1/auth/refresh", "{\"refreshToken\":\"x\"}", "application/json", "REFRESH_TOKEN_INVALID", 401);
+        doThrow(new DataAccessResourceFailureException("private-fixture-detail")).when(logout).logout(any());
+        assertPublicError("/api/v1/auth/logout", "{\"refreshToken\":\"x\"}", "application/json", "SERVICE_UNAVAILABLE", 503);
+        assertCode(get("/api/v1/auth/register", null), 401, "AUTHENTICATION_REQUIRED");
+    }
+
+    private void assertPublicError(String path, String body, String type, String code, int status) throws Exception {
+        var result = send(request("POST", path, "stale").header("Content-Type", type).POST(HttpRequest.BodyPublishers.ofString(body)));
+        assertCode(result, status, code);
+        assertThat(result.headers().firstValue("Cache-Control")).contains("no-store");
+        assertThat(result.body()).doesNotContain("private-fixture-detail");
     }
 
     private HttpResponse<String> post(String body, String type) throws Exception {
