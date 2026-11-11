@@ -1,6 +1,6 @@
 # Yêu cầu nghiệp vụ
 
-Trạng thái: **UC02 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Trạng thái: **UC02–UC04 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -31,7 +31,7 @@ Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/c
 
 ## Ranh giới transaction
 
-**Đã triển khai ngày 2026-11-10:** UC02 giữ khóa user `PESSIMISTIC_WRITE`, tạo session/refresh token, ký JWT và commit trước khi trả token. Các writer khác trong bảng vẫn là yêu cầu cho đợt sau và phải khóa cùng user để tuần tự hóa. Xem [implementation và kiểm thử](user-security.md).
+**Đã triển khai ngày 2026-11-10:** UC02 giữ khóa user `PESSIMISTIC_WRITE`, tạo session/refresh token, ký JWT và commit trước khi trả token. Ngày 2026-11-11 bổ sung UC03/UC04 ở isolation READ_COMMITTED: projection owner → khóa user → đọc lại token/phiên → kiểm tra thời gian và thay đổi dữ liệu. Các writer password/status/revoke sau này phải khóa cùng user để tuần tự hóa. Xem [implementation và kiểm thử](user-security.md).
 
 Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở docs, không bắt buộc lặp trong chuỗi Actor–hệ thống ở Word. Bảng dưới tổng hợp thay đổi phải nhất quán; ngày 2026-10-31 chốt khóa cùng bản ghi user cho lệnh trạng thái cùng user, chưa chọn toàn bộ thứ tự khóa hoặc isolation level.
 
@@ -60,7 +60,7 @@ Chỉ báo thành công và trả token đăng nhập sau commit. Lỗi transact
 
 Login, refresh, đổi/reset/thiết lập mật khẩu, cập nhật trạng thái và thu hồi phiên phải được tuần tự hóa với thao tác thu hồi liên quan. Không để writer dùng kết quả kiểm tra user/phiên trước thu hồi để cấp token hoặc tạo dữ liệu trái với trạng thái sau transaction. Thu hồi và login mới có thứ tự trước/sau; UC12 không cấm login mới sau thao tác.
 
-Rotation chỉ thành công một lần cho một token; constraint không thay thế kiểm soát cạnh tranh. Tạo user/identity phải tuân thủ UNIQUE và rollback, không bỏ constraint để xử lý xung đột. Việc dùng OTP một lần, đếm lần nhập sai, vô hiệu mã cũ và giới hạn gửi cũng phải giữ đúng [Q05](confirmed-decisions.md#otp-password-policy) khi có request đồng thời. Tài liệu chưa chọn thứ tự khóa/isolation hoặc cách lưu trạng thái bổ sung.
+Rotation chỉ thành công một lần cho một token; constraint không thay thế kiểm soát cạnh tranh. Tạo user/identity phải tuân thủ UNIQUE và rollback, không bỏ constraint để xử lý xung đột. Việc dùng OTP một lần, đếm lần nhập sai, vô hiệu mã cũ và giới hạn gửi cũng phải giữ đúng [Q05](confirmed-decisions.md#otp-password-policy) khi có request đồng thời. UC03–UC04 đã chọn khóa user trước khi đọc lại token/phiên và isolation READ_COMMITTED; không nạp entity token trước khóa. Những writer khác phải giữ cùng quy ước; các chi tiết OTP chưa được lựa chọn bởi đợt này.
 
 ## Quản trị
 

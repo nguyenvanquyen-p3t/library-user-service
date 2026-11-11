@@ -207,10 +207,8 @@ paths:
       operationId: refreshTokens
       summary: Rotation refresh token
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
-
-        Kiểm tra token, user ACTIVE và session còn hiệu lực. Rotation một lần, giữ sid, không gia hạn session. Reuse chỉ bị từ chối, không thu hồi session/token thay thế vì sự kiện này. Session hết hạn thì từ chối dù token còn hạn; xem reuse và TTL.
-      x-implementation-status: DESIGN_ONLY
+        ĐÃ TRIỂN KHAI ngày 2026-11-11. Token → user → phiên: token hết hạn/thu hồi trả REFRESH_TOKEN_INVALID trước ACCOUNT_BANNED và SESSION_INACTIVE. Khóa user rồi đọc lại token/phiên; rotation trong transaction READ_COMMITTED, trả token sau commit. Giữ sid, TTL access 3600 giây/refresh 604800 giây; không gia hạn phiên hoặc LastSeenAt. Reuse không thu hồi phiên/token thay thế. Mọi response, gồm lỗi, có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#refresh
       security: []
       requestBody:
@@ -223,7 +221,13 @@ paths:
               refreshToken: d8K3mP7q...
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Thành công; dữ liệu ví dụ chỉ minh họa.
+          headers:
+            Cache-Control:
+              description: Không lưu response vào cache; áp dụng cả response lỗi.
+              schema:
+                type: string
+                enum: [no-store]
           content:
             application/json:
               schema:
@@ -260,10 +264,8 @@ paths:
       operationId: logout
       summary: Đăng xuất phiên hiện tại bằng refresh token
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
-
-        Thu hồi đúng session/token liên quan; session đã hết hạn/thu hồi trả thành công, giữ thời điểm/lý do cũ. Token không tìm thấy chỉ bảo đảm đăng xuất client; database lỗi không báo thu hồi server thành công. Client xóa token. Xem UC04; LOGOUT_SUCCESS bên dưới không chứng minh server vừa thu hồi được session.
-      x-implementation-status: DESIGN_ONLY
+        ĐÃ TRIỂN KHAI ngày 2026-11-11. Token cũ/hết hạn/đã rotation còn bản ghi vẫn xác định đúng phiên để logout; không yêu cầu user ACTIVE hoặc access token. Khóa user, thu hồi phiên với LOGOUT và refresh token còn hiệu lực trong transaction READ_COMMITTED. Phiên đã kết thúc/token không tìm thấy trả kết quả chung, không ghi đè lịch sử; lỗi database/commit trả lỗi. Mọi response, gồm lỗi, có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#logout
       security: []
       requestBody:
@@ -276,7 +278,13 @@ paths:
               refreshToken: d8K3mP7q...
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Thành công; dữ liệu ví dụ chỉ minh họa.
+          headers:
+            Cache-Control:
+              description: Không lưu response vào cache; áp dụng cả response lỗi.
+              schema:
+                type: string
+                enum: [no-store]
           content:
             application/json:
               schema:

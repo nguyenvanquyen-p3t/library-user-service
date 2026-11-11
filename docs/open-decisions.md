@@ -1,8 +1,10 @@
 # Quyết định còn mở
 
-Cập nhật danh mục: 2026-10-31. Schema request/response của 20 API, danh mục mã và introspection đã chốt trong các đợt 2026-10-25/26. Ngày 2026-10-31 chốt Service JWT/quyền Admin/Borrow và bằng chứng actor Admin, SMTP, quản trị trạng thái, lỗi tích hợp và cấu hình user access token Q14 với issuer chung không chia môi trường. Cấu hình Service JWT Q03/Q11a vẫn **PENDING DECISION**. Q09 chưa đóng toàn bộ; tổng phạm vi vẫn 7 bảng/20 API; login UC02 đã triển khai ngày 2026-11-10, 19 operation khác còn thiết kế. [OpenAPI/Swagger UI](api/openapi.md) được bổ sung ngày 2026-11-01 và vẫn đánh dấu các cấu hình còn mở. ID cũ được giữ để liên kết không đổi.
+Cập nhật danh mục: 2026-10-31. Schema request/response của 20 API, danh mục mã và introspection đã chốt trong các đợt 2026-10-25/26. Ngày 2026-10-31 chốt Service JWT/quyền Admin/Borrow và bằng chứng actor Admin, SMTP, quản trị trạng thái, lỗi tích hợp và cấu hình user access token Q14 với issuer chung không chia môi trường. Cấu hình Service JWT Q03/Q11a vẫn **PENDING DECISION**. Q09 chưa đóng toàn bộ; tổng phạm vi vẫn 7 bảng/20 API; login UC02 đã triển khai ngày 2026-11-10, refresh/logout UC03–UC04 ngày 2026-11-11; còn 17 operation thiết kế. [OpenAPI/Swagger UI](api/openapi.md) được bổ sung ngày 2026-11-01 và vẫn đánh dấu các cấu hình còn mở. ID cũ được giữ để liên kết không đổi.
 
 ## Các phần đã chốt
+
+**Bổ sung ngày 2026-11-11:** [UC03–UC04 và ưu tiên lỗi refresh](confirmed-decisions.md#refresh-logout-uc03-uc04) đã chốt/triển khai. Giữ nguyên LastSeenAt trong hai UC này; chính sách cập nhật chung vẫn mở. Không mở lại Q03/Q11a.
 
 **Cập nhật triển khai ngày 2026-11-10:** [nền tảng bảo mật/login UC02](confirmed-decisions.md#user-security-uc02) đã được duyệt và triển khai, gồm Argon2id, typ at+jwt, JWT không roles, dung sai JWT 30 giây và 401 SESSION_INACTIVE cho user Bearer BANNED. Q14 đã có runtime user JWT; các mục còn mở bên dưới không đổi, không tự mở lại xác nhận cũ.
 

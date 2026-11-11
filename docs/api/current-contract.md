@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Ngày 2026-11-10: login UC02 đã triển khai; 15 API gốc khác còn thiết kế.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11. Trong 16 API gốc có 3 IMPLEMENTED/13 DESIGN_ONLY; tổng 20 operation có 3/17.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
 
 ## Cách đọc trạng thái
 
@@ -178,6 +178,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ## POST /api/v1/auth/refresh
 
+**Đã triển khai — IMPLEMENTED ngày 2026-11-11.** [Implementation](../user-security.md#refresh-và-logout-uc03uc04): transaction READ_COMMITTED, khóa user rồi đọc lại token/phiên; ưu tiên lỗi token → user → phiên. Không cập nhật LastSeenAt; mọi response có Cache-Control no-store.
+
 **Luồng:** UC03. **Nguồn:** [Sheet1, hàng 5](source-catalog.md#post-apiv1authrefresh).
 
 **Xác thực/đầu vào:** Refresh token trong JSON; không yêu cầu access token còn hạn.
@@ -215,6 +217,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="logout"></a>
 
 ## POST /api/v1/auth/logout
+
+**Đã triển khai — IMPLEMENTED ngày 2026-11-11.** [Implementation](../user-security.md#refresh-và-logout-uc03uc04): không yêu cầu access token hoặc user ACTIVE; transaction READ_COMMITTED, khóa user, thu hồi phiên với LOGOUT và token còn hiệu lực. Mọi response có Cache-Control no-store.
 
 **Luồng:** UC04. **Nguồn:** [Sheet1, hàng 6](source-catalog.md#post-apiv1authlogout).
 

@@ -43,7 +43,7 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 
 ## Tình trạng hợp đồng API
 
-[16 API hiện hành](api/current-contract.md) tổng hợp ví dụ nguồn với các quyết định mới nhất; [API phiên](api/sessions.md) mô tả 4 API mới. Ngày 2026-11-10 riêng login UC02 đã triển khai, 19 operation còn lại thiết kế. “Hiện hành” không có nghĩa tất cả trường hoặc phản hồi đã chốt.
+[16 API hiện hành](api/current-contract.md) tổng hợp ví dụ nguồn với các quyết định mới nhất; [API phiên](api/sessions.md) mô tả 4 API mới. Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11. Tổng 3 operation triển khai/17 thiết kế. “Hiện hành” không có nghĩa tất cả trường hoặc phản hồi đã chốt.
 
 Dùng bốn nhãn nhất quán: **Đã xác nhận**, **Theo nguồn/chưa xác nhận**, **Đề xuất**, **PENDING DECISION**. Phân biệt các nhãn này với **Đã triển khai**: chỉ dùng trạng thái triển khai khi đối chiếu được code và kiểm tra thực tế. Ví dụ JSON không chứng minh required/null, validation hoặc đầy đủ các lỗi. Ngày 2026-10-25 chốt schema JSON/response của 16 API gốc, biến thể Google/mở rộng response và bộ HTTP/lỗi; ngày 2026-10-26 chốt ba API phiên, danh mục mã phản hồi và [bộ introspection](confirmed-decisions.md#introspection-contract). Schema request/response của 20 API, mã thành công của 19 API dùng envelope và request/response/lỗi/header introspection đã xác nhận; cấu hình JWT/hành vi tích hợp và tình huống/mã/chi tiết ngoài danh mục vẫn mở. Danh mục nguồn giữ ví dụ Excel lịch sử, không đổi nhãn hoặc mã theo quyết định mới.
 

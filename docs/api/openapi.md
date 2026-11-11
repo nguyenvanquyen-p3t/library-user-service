@@ -1,10 +1,10 @@
 # OpenAPI và Swagger UI
 
-Ngày 2026-11-01, chủ dự án yêu cầu xây dựng OpenAPI và Swagger UI. Ngày 2026-11-10 đã triển khai [bảo mật người dùng/login UC02](../user-security.md); **riêng login IMPLEMENTED, 19 operation khác DESIGN_ONLY**. Không thay migration hoặc tự chốt các quyết định còn mở.
+Ngày 2026-11-01, chủ dự án yêu cầu xây dựng OpenAPI và Swagger UI. Ngày 2026-11-10 đã triển khai [bảo mật người dùng/login UC02](../user-security.md); **login/refresh/logout IMPLEMENTED, 17 operation khác DESIGN_ONLY (cập nhật ngày 2026-11-11)**. Không thay migration hoặc tự chốt các quyết định còn mở.
 
 ## Đặc tả và trạng thái
 
-[user-service.yaml](../../backend/src/main/resources/openapi/user-service.yaml) là bản OpenAPI **3.0.3**, phiên bản hợp đồng `0.1.0-design`. File mô tả đủ 20 operation theo [bản đồ API](README.md), giữ operationId/schema/validation/ví dụ và lỗi. Login có `x-implementation-status: IMPLEMENTED`, 19 operation khác `DESIGN_ONLY`; x-design-source giữ liên kết Markdown. Response login có Cache-Control no-store. Controller login mang `@Hidden` để YAML không bị springdoc ghi đè; test trong context thật kiểm tra đủ 20 operation và trạng thái.
+[user-service.yaml](../../backend/src/main/resources/openapi/user-service.yaml) là bản OpenAPI **3.0.3**, phiên bản hợp đồng `0.1.0-design`. File mô tả đủ 20 operation theo [bản đồ API](README.md), giữ operationId/schema/validation/ví dụ và lỗi. Login/refresh/logout có `x-implementation-status: IMPLEMENTED`, 17 operation khác `DESIGN_ONLY`; x-design-source giữ liên kết Markdown. Response login/refresh/logout có Cache-Control no-store; hai API UC03–UC04 áp dụng cả response lỗi. Controller login/refresh/logout mang `@Hidden` để YAML không bị springdoc ghi đè; test trong context thật kiểm tra đủ 20 operation và trạng thái.
 
 [OpenApiConfiguration](../../backend/src/main/java/com/library/userservice/config/OpenApiConfiguration.java) đọc YAML từ classpath thành bean `OpenAPI`. springdoc phục vụ cùng hợp đồng ở JSON/YAML và Swagger UI. Không tạo controller giả cho các operation thiết kế. Khi triển khai controller sau này, phải đối chiếu hợp đồng này; tránh để annotation và YAML mô tả khác nhau hoặc làm mất nhãn trạng thái thực tế.
 
@@ -27,7 +27,7 @@ Chạy ứng dụng từ `backend/` theo [hướng dẫn cục bộ](../local-de
 
 Swagger UI tắt `Try it out` bằng `supported-submit-methods: []`, không lưu thông tin Authorize và không gửi đặc tả tới validator bên ngoài. Token trong ví dụ là dữ liệu giả. User JWT đã hoạt động trong nền tảng bảo mật; Authorize không làm operation DESIGN_ONLY trở thành endpoint đã triển khai.
 
-[DocumentationSecurityConfiguration](../../backend/src/main/java/com/library/userservice/config/DocumentationSecurityConfiguration.java) cho phép GET tài liệu và tài nguyên `/swagger-ui/**`. ApiSecurityConfiguration mở path login và bảo vệ các request còn lại bằng user Bearer. Runtime stateless, đã tắt Basic/form login/logout mặc định/CSRF và default user; không mở công khai `/api/v1/**`. Ba endpoint nội bộ vẫn chưa triển khai; xem [security hiện hành](../user-security.md).
+[DocumentationSecurityConfiguration](../../backend/src/main/java/com/library/userservice/config/DocumentationSecurityConfiguration.java) cho phép GET tài liệu và tài nguyên `/swagger-ui/**`. ApiSecurityConfiguration mở chính xác path login/refresh/logout (mọi method, bỏ qua Bearer cũ) và bảo vệ các request còn lại bằng user Bearer. Runtime stateless, đã tắt Basic/form login/logout mặc định/CSRF và default user; không mở công khai `/api/v1/**`. Ba endpoint nội bộ vẫn chưa triển khai; xem [security hiện hành](../user-security.md).
 
 ## Xác thực trong hợp đồng
 
