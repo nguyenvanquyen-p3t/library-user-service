@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung triển khai ngày 2026-11-12:** chủ dự án duyệt và yêu cầu triển khai [GET/PATCH hồ sơ UC06](#user-profile-uc06), gồm kiểm tra lại user/phiên sau khi lấy khóa user cho PATCH. Hiện có 5 IMPLEMENTED/15 DESIGN_ONLY; các số liệu trong quyết định theo ngày bên dưới là lịch sử.
+
 **Bổ sung triển khai ngày 2026-11-11:** chủ dự án duyệt và yêu cầu code [refresh/logout UC03–UC04](#refresh-logout-uc03-uc04). Login/refresh/logout đã triển khai, tổng 3 IMPLEMENTED/17 DESIGN_ONLY; giữ nguyên các xác nhận lịch sử bên dưới.
 
 **Bổ sung triển khai ngày 2026-11-10:** chủ dự án duyệt và yêu cầu code [nền tảng bảo mật người dùng và login UC02](#user-security-uc02). Login đã triển khai, 19 operation khác còn thiết kế. Các câu giới hạn phạm vi trong quyết định lịch sử bên dưới mô tả thời điểm xác nhận tương ứng.
@@ -393,3 +395,17 @@ Chủ dự án duyệt kế hoạch và yêu cầu triển khai hai endpoint hi�
 - Hai endpoint dùng refresh token trong JSON, bỏ qua Bearer cũ/sai và không nhận token qua cookie/query/Authorization. Mọi response, gồm lỗi validation/nghiệp vụ, có Cache-Control no-store. Các path khác giữ bảo vệ hiện có.
 
 Implementation tại [bảo mật UC03–UC04](user-security.md#refresh-và-logout-uc03uc04); HTTP tại [refresh](api/current-contract.md#refresh), [logout](api/current-contract.md#logout) và [bộ lỗi](api/http-errors.md#operations).
+
+<a id="user-profile-uc06"></a>
+
+## Hồ sơ UC06 — chốt ngày 2026-11-12
+
+Chủ dự án duyệt kế hoạch và yêu cầu triển khai GET/PATCH hồ sơ theo hợp đồng hiện hành, giữ nguyên V1–V6, 7 bảng và 20 operation. Không mở rộng trường hồ sơ hoặc thêm endpoint nghiệp vụ khác.
+
+- GET dùng READ_COMMITTED/readOnly; lấy user từ principal đã xác thực, user không còn tồn tại trả 401 SESSION_INACTIVE. Roles/providers đọc từ database, sắp xếp theo tên; hasPassword dựa trên hash khác null. Giữ đủ trường UserProfile hiện hành.
+- PATCH dùng READ_COMMITTED và khóa user PESSIMISTIC_WRITE, cùng khóa với login/refresh/logout; sau khóa lấy now rồi đọc lại phiên. User không còn/không ACTIVE hoặc phiên thiếu, sai owner, hết hạn/thu hồi trả 401 SESSION_INACTIVE, không lưu. Đây là lựa chọn chủ dự án xác nhận khi lập kế hoạch.
+- Chỉ cập nhật fullName/phoneNumber theo cờ presence; thiếu giữ nguyên, phoneNumber null để xóa. Hai PATCH cùng user tuần tự; khác trường không làm mất cập nhật của nhau, cùng trường theo thứ tự thực hiện trong database. Không cam kết thứ tự client gửi.
+- Trigger V5 giữ UpdatedAt; cùng giá trị vẫn thành công và không đổi timestamp. Không sửa phiên/token, LastSeenAt, mật khẩu, role, trạng thái hoặc identity. Dựng DTO trong transaction, chỉ trả thành công sau commit; lỗi lưu/dựng DTO/commit rollback.
+- Giữ filter Bearer và các lỗi đã chốt; không thêm Service JWT, dependency hoặc migration. Không mở lại các quyết định còn chờ ngoài UC06.
+
+Implementation và cách kiểm thử duy trì tại [hồ sơ cá nhân](user-profile.md); ranh giới transaction tại [requirements](requirements.md#ranh-giới-transaction).
