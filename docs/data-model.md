@@ -27,6 +27,8 @@ VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, kh�
 
 **Cập nhật implementation ngày 2026-11-10:** [login UC02](user-security.md) đã ghi UserSessions/RefreshTokens trong transaction có khóa user; Bearer đã kiểm tra hiệu lực user/phiên. V1–V6 giữ nguyên, không thay database dự án. Ngày 2026-11-11 đã bổ sung rotation UC03 và logout/thu hồi phiên UC04, khóa cùng user và giữ nguyên lịch sử token. LastSeenAt theo request, API quản lý phiên và cleanup vẫn chưa triển khai. Mô tả constraint/schema trong tài liệu không đồng nghĩa các luồng nghiệp vụ còn lại đã được triển khai.
 
+**Bổ sung implementation ngày 2026-11-12:** [UC06](user-profile.md) đã đọc/cập nhật hồ sơ qua repository hiện có; PATCH khóa user và kiểm tra lại phiên. Giữ trigger UpdatedAt, V1–V6 và dữ liệu ngoài hai trường hồ sơ.
+
 ## Migration V6 quản lý phiên
 
 **Trạng thái cập nhật ngày 2026-10-25:** chủ dự án xác nhận V6 đã áp dụng vào database dự án. Thông tin này thay trạng thái chưa áp dụng trong bàn giao ngày 2026-10-22; ngày 2026-10-25 là ngày xác nhận, không xác định ngày chạy migration. Đợt cập nhật tài liệu này không truy vấn database hoặc chạy lại migration; xác nhận này không thay thế kết quả kiểm thử constraint/API.

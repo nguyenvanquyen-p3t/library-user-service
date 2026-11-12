@@ -1,6 +1,6 @@
 # Yêu cầu nghiệp vụ
 
-Trạng thái: **UC02–UC04 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Trạng thái: **UC02–UC04 và UC06 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 | UC03 | Thu hồi token cũ, tạo refresh token mới và liên kết rotation cùng phiên |
 | UC04 | Thu hồi phiên được xác định từ refresh token và các refresh token còn hiệu lực của phiên |
 | UC05 | Cập nhật PasswordHash, dùng OTP một lần và thu hồi toàn bộ phiên/refresh token liên quan |
-| UC06 cập nhật | Lưu các trường hồ sơ được phép; trigger Users.UpdatedAt nằm trong transaction cập nhật |
+| UC06 cập nhật | Đã triển khai: READ_COMMITTED, khóa user rồi kiểm tra lại user/phiên, chỉ lưu fullName/phoneNumber; trigger Users.UpdatedAt trong transaction; thành công sau commit |
 | UC07 | Cập nhật PasswordHash và thu hồi toàn bộ phiên/refresh token, kể cả phiên gọi |
 | UC08 identity đã có | Tạo session và refresh token sau khi kiểm tra user ACTIVE |
 | UC08 tự liên kết | Thêm identity GOOGLE cho user hiện có, tạo session và refresh token; không tạo user hoặc thay role/password |
@@ -55,6 +55,8 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 | Mở khóa qua API nội bộ | Đổi BANNED → ACTIVE; không phục hồi phiên/token cũ. Retry/lệnh đồng thời/audit theo Q10 đã chốt |
 
 Chỉ báo thành công và trả token đăng nhập sau commit. Lỗi transaction phải rollback các thay đổi trong transaction, không cập nhật một phần. UC04 áp dụng [ngoại lệ đã chốt](confirmed-decisions.md#logout): không tìm được session chỉ bảo đảm đăng xuất client; database lỗi không được báo thu hồi server thành công. Email và xóa token client không thuộc transaction database.
+
+**UC06 chốt và triển khai ngày 2026-11-12:** [PATCH hồ sơ](confirmed-decisions.md#user-profile-uc06) khóa cùng user với login/refresh/logout, lấy now sau khóa và đọc lại phiên. User không còn/không ACTIVE hoặc phiên thiếu/sai owner/hết hạn/thu hồi trả 401 SESSION_INACTIVE, không lưu. Hai PATCH tuần tự, trường bị bỏ qua không ghi đè; cùng trường theo thứ tự database. Lỗi lưu/dựng DTO/commit rollback; GET READ_COMMITTED/readOnly không thay đổi dữ liệu. Xem [implementation UC06](user-profile.md).
 
 ## Tính nhất quán khi có request đồng thời
 

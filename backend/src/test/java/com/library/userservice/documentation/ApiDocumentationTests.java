@@ -77,7 +77,7 @@ class ApiDocumentationTests {
             for (var operation : path) {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
-                        Set.of("login", "refreshTokens", "logout").contains(operation.path("operationId").asText())
+                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile").contains(operation.path("operationId").asText())
                                 ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }

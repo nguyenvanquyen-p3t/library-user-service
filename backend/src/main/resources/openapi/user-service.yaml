@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login UC02 đã triển khai, 19 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04 và GET/PATCH hồ sơ UC06 đã triển khai, 15 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; chỉ login UC02 đã triển khai.
+  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04 và GET/PATCH hồ sơ UC06 đã triển khai, 15 operation khác còn DESIGN_ONLY.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -415,10 +415,10 @@ paths:
       operationId: getMyProfile
       summary: Xem hồ sơ của mình
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        ĐÃ TRIỂN KHAI UC06 — 2026-11-12.
 
         Chỉ trả hồ sơ người gọi, không nhận userId tùy ý, không trả hash/secret. Chỉ xem không thay đổi hồ sơ. Xem UC06.
-      x-implementation-status: DESIGN_ONLY
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#profile-get
       security:
       - UserAccessToken: []
@@ -461,10 +461,11 @@ paths:
       operationId: updateMyProfile
       summary: Cập nhật hồ sơ của mình
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        ĐÃ TRIỂN KHAI UC06 — 2026-11-12.
 
         Chỉ sửa fullName/phoneNumber của mình, không sửa roles/status/password/username/email. Theo PATCH đã chốt, bỏ qua trường để giữ nguyên; fullName không null/trắng, phoneNumber null để xóa, chuỗi rỗng bị từ chối; không nhận body rỗng hoặc trường ngoài danh sách. Trigger cập nhật Users.UpdatedAt khi dữ liệu thực sự đổi; xem schema.
-      x-implementation-status: DESIGN_ONLY
+        Transaction READ_COMMITTED khóa user trước khi đọc lại user/phiên; mất hiệu lực sau khi chờ khóa trả 401 SESSION_INACTIVE, không lưu. Chỉ trả thành công sau commit.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#profile-update
       security:
       - UserAccessToken: []

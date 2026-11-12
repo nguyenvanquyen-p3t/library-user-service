@@ -13,6 +13,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 
 ## Hiện trạng cần biết
 
+- **Triển khai ngày 2026-11-12:** [GET/PATCH hồ sơ UC06](user-profile.md) đã có, tổng 5 IMPLEMENTED/15 DESIGN_ONLY. PATCH dùng READ_COMMITTED, khóa user rồi kiểm tra lại user/phiên; mất hiệu lực trong lúc chờ trả 401 SESSION_INACTIVE. Đã chạy 55 test không database và 84 test toàn bộ trên PostgreSQL tạm; chi tiết tại [kiểm thử](development.md#kiểm-thử-hiện-có). Các số liệu triển khai và kết quả theo ngày bên dưới là lịch sử, không phải hiện trạng mới nhất.
+
 - **Triển khai ngày 2026-11-11:** [refresh/logout UC03–UC04](user-security.md#refresh-và-logout-uc03uc04) đã có transaction READ_COMMITTED, khóa user trước khi đọc lại token/phiên, rotation một lần và logout bằng token cũ. Tổng 3 operation IMPLEMENTED/17 DESIGN_ONLY. Ba path login/refresh/logout công khai, bỏ qua Bearer cũ; các path khác giữ bảo vệ. Những đoạn ngày 2026-11-10 bên dưới là lịch sử UC02.
 
 - **Triển khai mới ngày 2026-11-10:** [bảo mật người dùng và login UC02](user-security.md) đã có Argon2id, JWT RS256/PEM, Bearer kiểm tra user/phiên/role từ database và transaction login có khóa user. Login `IMPLEMENTED`, 19 operation còn `DESIGN_ONLY`. Thông tin “chưa có JWT/endpoint” ở bàn giao các ngày trước bên dưới là lịch sử. Basic/form login/default user đã tắt; ứng dụng cần cặp PEM hợp lệ khi khởi động. Test dùng khóa tạm và database riêng.

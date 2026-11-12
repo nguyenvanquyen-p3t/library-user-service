@@ -8,18 +8,20 @@ Theo [README dự án](../README.md) để bắt đầu nhanh hoặc [hướng d
 
 ## Quy trình thay đổi
 
-1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi 7 bảng/20 API; không có API role, blacklist hoặc Redis. Đã có migration, docs, OpenAPI/Swagger, [nền tảng backend](foundation.md) và [bảo mật/login UC02](user-security.md); Ngày 2026-11-11 thêm refresh/logout UC03–UC04; 17 operation khác chờ yêu cầu triển khai. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
+1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi 7 bảng/20 API; không có API role, blacklist hoặc Redis. Đã có migration, docs, OpenAPI/Swagger, [nền tảng backend](foundation.md) và [bảo mật/login UC02](user-security.md); Ngày 2026-11-11 thêm refresh/logout UC03–UC04; GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12; 15 operation khác chờ yêu cầu triển khai. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
 2. Tra cứu operation tại [bản đồ API](api/README.md) và bản hiện hành được liên kết; danh mục nguồn chỉ để truy vết Excel. Chốt phần request/response/auth/lỗi liên quan còn PENDING DECISION trước khi tích hợp; riêng cấu hình Service JWT Q03/Q11a chốt ở bước sau khi hoàn tất chức năng theo quyết định ngày 2026-11-10.
 3. Khi được yêu cầu triển khai, viết code và kiểm thử hành vi; thêm migration mới nếu cần thay schema đã được chia sẻ. Với yêu cầu docs-only, chỉ sửa và kiểm tra tài liệu.
 4. Cập nhật trạng thái docs theo phần thực sự hoàn thành. Ghi rõ kiểm thử đã chạy và giới hạn môi trường trong PR.
 
-Đã có package theo chức năng, entity/repository, DTO và [nền tảng bảo mật/login UC02](user-security.md) ngày 2026-11-10. Controller/service login, refresh và logout đã triển khai; UC03–UC04 bổ sung ngày 2026-11-11. Các phần tiếp theo giữ transaction tách khỏi xử lý HTTP, không trả entity chứa hash và khóa cùng bản ghi user để tuần tự với login. Quy tắc nền tảng được duy trì tại [foundation.md](foundation.md).
+Đã có package theo chức năng, entity/repository, DTO và [nền tảng bảo mật/login UC02](user-security.md) ngày 2026-11-10. Controller/service login, refresh và logout đã triển khai; UC03–UC04 bổ sung ngày 2026-11-11. [GET/PATCH hồ sơ UC06](user-profile.md) đã triển khai ngày 2026-11-12. Các phần tiếp theo giữ transaction tách khỏi xử lý HTTP, không trả entity chứa hash và khóa cùng bản ghi user để tuần tự với login. Quy tắc nền tảng được duy trì tại [foundation.md](foundation.md).
 
 ## Kiểm thử hiện có
 
+Ngày 2026-11-12 bổ sung UserProfileServiceTests, UserProfileHttpTests và UserProfileIntegrationTests; kiểm tra UC06 và xác thực lại user/phiên sau khóa user. Nhóm tích hợp chỉ bật khi chọn rõ UserDB_test, dùng khóa tạm và dọn đúng fixture theo ID.
+
 Ngày 2026-11-11 bổ sung `RefreshLogoutServiceTests` (Clock/biên thời gian/thứ tự lỗi), mở rộng `UserSecurityHttpTests` và thêm `RefreshLogoutIntegrationTests` (rotation/logout, rollback tại COMMIT và cạnh tranh có kiểm soát). Test tích hợp chỉ bật khi system property chọn rõ UserDB_test, dùng khóa tạm và dọn đúng ID fixture.
 
-Đã bổ sung `UserSecurityTests` (Argon2id/JWT/khóa và biên thời gian), `UserSecurityHttpTests` (filter chain thật với repository giả lập, không database) và `LoginIntegrationTests` (HTTP/login trên PostgreSQL, rollback lỗi lưu/ký/COMMIT, cạnh tranh khóa user, OpenAPI trong context thật). Nhóm không database dùng lệnh `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests" test` từ `backend/`.
+Đã bổ sung `UserSecurityTests` (Argon2id/JWT/khóa và biên thời gian), `UserSecurityHttpTests` (filter chain thật với repository giả lập, không database) và `LoginIntegrationTests` (HTTP/login trên PostgreSQL, rollback lỗi lưu/ký/COMMIT, cạnh tranh khóa user, OpenAPI trong context thật). Nhóm không database dùng lệnh `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests" test` từ `backend/`.
 
 Test context/persistence/login dùng khóa RSA ngẫu nhiên trong thư mục tạm, không dùng khóa dự án. `LoginIntegrationTests` chỉ bật khi system property chọn rõ `UserDB_test`; test có commit thật và dọn đúng user fixture bằng ID sau mỗi ca, khác với rollback fixture của test persistence. Không thêm database test tự động hoặc thay V1–V6. Kết quả chạy mới được ghi bên dưới; kết quả 2026-11-03 tiếp tục là lịch sử nền tảng trước UC02.
 
@@ -37,11 +39,21 @@ Test context/persistence/login dùng khóa RSA ngẫu nhiên trong thư mục t�
 
 **Kết quả ngày 2026-11-11 — UC03–UC04:** đã chạy nhóm không database **43 test** và toàn bộ suite **64 test**, không lỗi hoặc bỏ qua. Toàn bộ suite gồm 17 nền tảng, 5 persistence, 4 tài liệu, 8 crypto/biên phiên, 5 HTTP security, 9 service refresh/logout, 6 login tích hợp, 9 refresh/logout tích hợp và 1 context. Dùng Java 25/Maven Wrapper, PostgreSQL 18.4 tạm biệt lập trong `backend/target/uc0304-postgres`, loopback cổng 55433, database UserDB_test, tài khoản fixture và bỏ import `.env`. Flyway V1–V6 chạy trên database mới, Hibernate validate 7 entity; giữ nguyên migration/database dự án. Đã chứng minh rotation cùng sid, logout bằng token cũ, rollback cả lỗi COMMIT, hai refresh chỉ một thành công và refresh/logout tuần tự ở cả hai thứ tự có chờ khóa thực. Khóa test tự sinh; fixture dọn theo ID. Kiểm tra cuối không còn user/session/refresh token fixture, đủ 6 migration thành công ở V6; PostgreSQL tạm đã dừng. OpenAPI đã validate, 23 Markdown/622 link và 84 block JSON hợp lệ; 3 IMPLEMENTED/17 DESIGN_ONLY. Kết quả 2026-11-03/10 ở trên tiếp tục là lịch sử, không thay thế test 17 operation còn lại.
 
-Lệnh toàn bộ suite đã dùng từ `backend/` (credentials chỉ là fixture của instance tạm):
+Lệnh toàn bộ suite ngày 2026-11-11 đã dùng từ `backend/` (credentials chỉ là fixture của instance tạm):
 
 ```powershell
 .\mvnw.cmd -o "-Dspring.config.import=" "-Dspring.datasource.url=jdbc:postgresql://127.0.0.1:55433/UserDB_test" "-Dspring.datasource.username=uc0304_fixture" "-Dspring.datasource.password=uc0304-test-only" test
 ```
+
+**Kết quả ngày 2026-11-12 — UC06:** nhóm không database **55 test** và toàn bộ suite **84 test** đều thành công, không lỗi hoặc bỏ qua. Bổ sung 7 service, 5 HTTP và 8 tích hợp UC06 trên 64 test hiện hữu. Dùng Java 25.0.4.1/Maven Wrapper, PostgreSQL 18.4 tạm biệt lập trong `backend/target/uc06-postgres`, chỉ loopback cổng 55434, database UserDB_test, tài khoản fixture và bỏ import `.env`. Flyway V1–V6 chạy trên database mới, Hibernate validate; giữ nguyên migration, database và khóa dự án. Các ca mới chứng minh ownership/principal, PATCH presence/null, role/provider hiện tại, trigger UpdatedAt, không sửa phiên/token, rollback lỗi lưu/dựng DTO/COMMIT, hai PATCH chờ khóa thực và kiểm tra lại user/phiên sau khi chờ (BANNED, thu hồi, hết hạn tại biên Clock). Trước khi dừng PostgreSQL tạm đã xác nhận không còn user/session/refresh token fixture và đủ 6 migration thành công ở V6. PostgreSQL tạm đã dừng. OpenAPI hợp lệ với 20 operation, đúng 5 IMPLEMENTED/15 DESIGN_ONLY; 210 ví dụ và 22 ca schema hợp lệ theo mong đợi; kiểm tra 24 Markdown, 651 link và 84 block JSON thành công. Các kết quả ngày trước giữ nguyên là lịch sử; 15 operation còn thiết kế chưa được kiểm thử nghiệp vụ.
+
+Lệnh toàn bộ suite UC06 từ `backend/` (cluster test tạm dùng trust trên loopback, tài khoản fixture không có mật khẩu):
+
+```powershell
+.\mvnw.cmd -o "-Dspring.config.import=" "-Dspring.datasource.url=jdbc:postgresql://127.0.0.1:55434/UserDB_test" "-Dspring.datasource.username=uc06_fixture" "-Dspring.datasource.password=" test
+```
+
+Log kiểm thử và script kiểm tra của lần chạy nằm trong `backend/target/`, không được Git theo dõi. Lượt đầu Maven trong sandbox không truy cập được cache nên chưa chạy test; các kết quả thành công trên được chạy lại với quyền truy cập cache hiện hữu.
 
 ## Kế hoạch kiểm thử khi triển khai
 

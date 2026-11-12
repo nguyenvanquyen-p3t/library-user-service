@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11. Trong 16 API gốc có 3 IMPLEMENTED/13 DESIGN_ONLY; tổng 20 operation có 3/17.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12. Trong 16 API gốc có 5 IMPLEMENTED/11 DESIGN_ONLY; tổng 20 operation có 5/15.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
 
 ## Cách đọc trạng thái
 
@@ -337,6 +337,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ## GET /api/v1/users/me
 
+**Đã triển khai — IMPLEMENTED ngày 2026-11-12.** [Implementation UC06](../user-profile.md): READ_COMMITTED/readOnly, user từ principal, role/provider hiện tại từ database; user không còn trả 401 SESSION_INACTIVE. Không thay đổi dữ liệu.
+
 **Luồng:** UC06. **Nguồn:** [Sheet1, hàng 9](source-catalog.md#get-apiv1usersme).
 
 **Xác thực/đầu vào:** `Authorization: Bearer <access-token>`; user ACTIVE, phiên đúng user từ sub/sid và còn hiệu lực.
@@ -377,6 +379,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="profile-update"></a>
 
 ## PATCH /api/v1/users/me
+
+**Đã triển khai — IMPLEMENTED ngày 2026-11-12.** [Implementation UC06](../user-profile.md): READ_COMMITTED, khóa user rồi kiểm tra lại user ACTIVE/phiên đúng owner và còn hiệu lực, lấy now sau khóa; không đạt trả 401 SESSION_INACTIVE. Chỉ lưu trường hiện diện; trigger giữ UpdatedAt; lỗi lưu/dựng DTO/commit rollback. Thành công sau commit.
 
 **Luồng:** UC06. **Nguồn:** [Sheet1, hàng 10](source-catalog.md#patch-apiv1usersme).
 
