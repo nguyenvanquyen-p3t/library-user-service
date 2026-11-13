@@ -8,15 +8,16 @@ Tiếp tục dự án hoặc bắt đầu chat mới: đọc [bàn giao phát tr
 
 ## Trạng thái dự án
 
-Dự án đã có nền tảng backend/bảo mật và triển khai login/refresh/logout UC02–UC04 và GET/PATCH hồ sơ UC06; các chức năng còn lại tiếp tục theo thiết kế.
+Dự án đã có nền tảng backend/bảo mật và triển khai login/refresh/logout UC02–UC04 và GET/PATCH hồ sơ UC06, đổi mật khẩu UC07; các chức năng còn lại tiếp tục theo thiết kế.
 
 Ngày 2026-11-10, chủ dự án chốt [triển khai chức năng trước, xác thực service sau](docs/confirmed-decisions.md#deferred-service-auth): khi code chức năng, các service mặc định tin tưởng nhau, chưa yêu cầu Service JWT hoặc kiểm tra quyền service. Sau khi hoàn tất tất cả chức năng mới bổ sung cơ chế này. Xác thực user/phiên, ownership và actor ADMIN vẫn giữ nguyên. Sau đó cùng ngày đã yêu cầu và triển khai [nền tảng bảo mật người dùng và login UC02](docs/user-security.md).
 
 - **Đã có:** cấu hình Spring Boot, Maven Wrapper, migration Flyway V1–V6 cho 7 bảng, [nền tảng entity/repository, DTO, validation và lỗi](docs/foundation.md), test nền tảng/context và [OpenAPI/Swagger UI](docs/api/openapi.md) cho 20 operation thiết kế.
 - **Đã triển khai:** `POST /api/v1/auth/login`, Argon2id, JWT RS256, phiên/refresh token và xác thực Bearer kiểm tra database; xem [bảo mật người dùng](docs/user-security.md).
 - **Đã triển khai thêm ngày 2026-11-11:** `POST /api/v1/auth/refresh` và `POST /api/v1/auth/logout`; rotation/thu hồi phiên trong transaction có khóa user. Tổng 3 operation IMPLEMENTED.
-- **Đã triển khai ngày 2026-11-12:** [GET/PATCH hồ sơ UC06](docs/user-profile.md), PATCH kiểm tra lại user/phiên sau khóa user. Tổng hiện tại 5 IMPLEMENTED/15 DESIGN_ONLY.
-- **Chưa triển khai:** 15 operation còn lại, gồm đăng ký, mật khẩu, Google/SMTP, API quản lý phiên, API nội bộ và introspection/Gateway. Không có API quản lý role.
+- **Đã triển khai ngày 2026-11-12:** [GET/PATCH hồ sơ UC06](docs/user-profile.md), PATCH kiểm tra lại user/phiên sau khóa user. Tại mốc này có 5 IMPLEMENTED/15 DESIGN_ONLY.
+- **Đã triển khai ngày 2026-11-13:** [đổi mật khẩu UC07](docs/user-password.md), thu hồi mọi phiên/token còn hiệu lực trong cùng transaction. Tổng hiện tại 6 IMPLEMENTED/14 DESIGN_ONLY.
+- **Chưa triển khai:** 14 operation còn lại, gồm đăng ký, reset/thiết lập mật khẩu, Google/SMTP, API quản lý phiên, API nội bộ và introspection/Gateway. Không có API quản lý role.
 
 V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Chi tiết trạng thái tại [mô hình dữ liệu](docs/data-model.md#migration-v6-quản-lý-phiên).
 
@@ -73,7 +74,7 @@ File dùng định dạng Java properties: `KEY=value`, không bao giá trị b�
 
 Ứng dụng cần cặp khóa PEM đã cấu hình trong `.secrets/`; thiếu/sai khóa sẽ dừng khởi động, không tự sinh lại. Xem [cấu hình khóa](docs/user-security.md#cấu-hình-khóa-và-khởi-động). Login cần tài khoản ACTIVE có hash Argon2id đúng định dạng; không có user/mật khẩu mặc định hoặc endpoint đăng ký trong đợt này.
 
-Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 5 operation đã triển khai, 15 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
+Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 6 operation đã triển khai, 14 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
 
 Xem [hướng dẫn môi trường cục bộ](docs/local-development.md) để cấu hình chi tiết, đóng gói JAR và xử lý lỗi.
 
@@ -91,7 +92,7 @@ Sau đó chạy từ `backend/`, dùng credentials đã cấu hình:
 .\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test
 ```
 
-Có thể kiểm tra riêng nền tảng, bảo mật và Swagger mà không dùng database bằng `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests" test` từ `backend/`. Test persistence/login/refresh/logout tích hợp chỉ bật khi system property chọn rõ `UserDB_test`; test login có commit và dọn đúng fixture. Chưa có database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
+Có thể kiểm tra riêng nền tảng, bảo mật và Swagger mà không dùng database bằng `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests" test` từ `backend/`. Test persistence/login/refresh/logout tích hợp chỉ bật khi system property chọn rõ `UserDB_test`; test login có commit và dọn đúng fixture. Chưa có database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
 
 ## Tài liệu và đóng góp
 

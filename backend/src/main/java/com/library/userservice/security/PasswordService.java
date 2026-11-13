@@ -16,6 +16,8 @@ public class PasswordService {
         dummyHash = encoder.encode(Base64.getEncoder().encodeToString(dummy));
     }
 
+    public String encode(String password) { return encoder.encode(password); }
+
     public boolean matches(String password, String hash) {
         if (hash == null || !hash.matches("\\{argon2id}\\$argon2id\\$v=19\\$m=19456,t=2,p=1\\$[A-Za-z0-9+/]{22}\\$[A-Za-z0-9+/]{43}")) {
             encoder.matches(password, dummyHash);

@@ -36,7 +36,7 @@ class UserSecurityTests extends UserSecurityTestKeys {
         var encoder = new UserSecurityConfiguration().passwordEncoder();
         var passwords = new PasswordService(encoder);
         String password = "  mật khẩu " + "密".repeat(100) + " ";
-        String first = encoder.encode(password), second = encoder.encode(password);
+        String first = passwords.encode(password), second = passwords.encode(password);
         assertThat(first.equals(second)).isFalse();
         assertThat(first.startsWith("{argon2id}$argon2id$v=19$m=19456,t=2,p=1$")).isTrue();
         assertThat(passwords.matches(password, first)).isTrue();

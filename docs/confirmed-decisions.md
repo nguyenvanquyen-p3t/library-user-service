@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung triển khai ngày 2026-11-13:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [đổi mật khẩu UC07](#user-password-uc07). Tổng hiện tại 6 IMPLEMENTED/14 DESIGN_ONLY; các số liệu theo ngày bên dưới là lịch sử.
+
 **Bổ sung triển khai ngày 2026-11-12:** chủ dự án duyệt và yêu cầu triển khai [GET/PATCH hồ sơ UC06](#user-profile-uc06), gồm kiểm tra lại user/phiên sau khi lấy khóa user cho PATCH. Hiện có 5 IMPLEMENTED/15 DESIGN_ONLY; các số liệu trong quyết định theo ngày bên dưới là lịch sử.
 
 **Bổ sung triển khai ngày 2026-11-11:** chủ dự án duyệt và yêu cầu code [refresh/logout UC03–UC04](#refresh-logout-uc03-uc04). Login/refresh/logout đã triển khai, tổng 3 IMPLEMENTED/17 DESIGN_ONLY; giữ nguyên các xác nhận lịch sử bên dưới.
@@ -409,3 +411,17 @@ Chủ dự án duyệt kế hoạch và yêu cầu triển khai GET/PATCH hồ s
 - Giữ filter Bearer và các lỗi đã chốt; không thêm Service JWT, dependency hoặc migration. Không mở lại các quyết định còn chờ ngoài UC06.
 
 Implementation và cách kiểm thử duy trì tại [hồ sơ cá nhân](user-profile.md); ranh giới transaction tại [requirements](requirements.md#ranh-giới-transaction).
+
+<a id="user-password-uc07"></a>
+
+## Đổi mật khẩu UC07 — chốt ngày 2026-11-13
+
+Chủ dự án duyệt kế hoạch và yêu cầu triển khai PUT /api/v1/users/me/password, giữ V1–V6, 7 bảng/20 operation và không mở endpoint khác.
+
+- Chủ dự án chọn **chỉ thu hồi bản ghi còn hiệu lực**: phiên/token chưa thu hồi và chưa hết hạn tại now của thao tác. Giữ nguyên bản ghi đã hết hạn hoặc đã thu hồi, không ghi đè thời điểm/lý do cũ. Phiên do UC07 thu hồi ghi PASSWORD_CHANGED; token còn hiệu lực vẫn bị thu hồi dù phiên chứa nó đã kết thúc.
+- READ_COMMITTED, khóa user PESSIMISTIC_WRITE cùng login/refresh/logout/PATCH; lấy now sau khóa và đọc lại phiên. User không tồn tại/không ACTIVE hoặc phiên thiếu/sai owner/thu hồi/hết hạn trả 401 SESSION_INACTIVE trước kiểm tra mật khẩu.
+- PasswordHash null trả 409 PASSWORD_NOT_CONFIGURED; mật khẩu hiện tại sai hoặc hash hỏng/không hỗ trợ trả 400 CURRENT_PASSWORD_INCORRECT. Hash mới dùng Argon2id hiện có; không thêm quy tắc cấm mật khẩu mới trùng mật khẩu hiện tại.
+- Đổi hash và thu hồi mọi phiên/token còn hiệu lực, kể cả phiên gọi, cùng transaction; chỉ trả 200 PASSWORD_CHANGE_SUCCESS/data null sau commit. Lỗi hash/lưu/thu hồi/commit rollback; không cấp token mới. Client xóa token và đăng nhập lại.
+- Giữ identity Google, roles, hồ sơ, LastSeenAt, metadata và liên kết rotation. UpdatedAt do trigger V5 quản lý. Không thêm Service JWT, dependency hoặc cleanup.
+
+Implementation và kiểm thử duy trì tại [mật khẩu](user-password.md); hợp đồng HTTP tại [UC07](api/current-contract.md#password-change). Các mục PENDING DECISION ngoài UC07 giữ nguyên.

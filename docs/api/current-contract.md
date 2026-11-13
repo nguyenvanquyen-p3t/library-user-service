@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12. Trong 16 API gốc có 5 IMPLEMENTED/11 DESIGN_ONLY; tổng 20 operation có 5/15.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Trong 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; tổng 20 operation có 6/14.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
 
 ## Cách đọc trạng thái
 
@@ -429,6 +429,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="password-change"></a>
 
 ## PUT /api/v1/users/me/password
+
+**Đã triển khai — IMPLEMENTED ngày 2026-11-13.** [UC07](../user-password.md) dùng READ_COMMITTED, khóa user rồi kiểm tra lại user/phiên; mất hiệu lực trả 401 SESSION_INACTIVE. Đổi hash Argon2id và thu hồi mọi phiên/token còn hiệu lực, kể cả phiên gọi, cùng transaction. Phiên ghi PASSWORD_CHANGED; giữ nguyên bản ghi đã hết hạn/thu hồi và identity Google. Thành công sau commit; sai mật khẩu/hash hỏng dùng 400 CURRENT_PASSWORD_INCORRECT.
 
 **Luồng:** UC07. **Nguồn:** [Sheet1, hàng 11](source-catalog.md#put-apiv1usersmepassword).
 

@@ -13,6 +13,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 
 ## Hiện trạng cần biết
 
+**Triển khai ngày 2026-11-13:** [đổi mật khẩu UC07](user-password.md) đã có; tổng 6 IMPLEMENTED/14 DESIGN_ONLY. READ_COMMITTED, khóa cùng user và kiểm tra lại user/phiên sau khóa; đổi hash và thu hồi mọi phiên/token còn hiệu lực cùng transaction. Giữ nguyên lịch sử đã kết thúc. Các mốc/số liệu theo ngày bên dưới là lịch sử. Kết quả kiểm tra đợt này tại [development](development.md#kiểm-thử-hiện-có).
+
 - **Triển khai ngày 2026-11-12:** [GET/PATCH hồ sơ UC06](user-profile.md) đã có, tổng 5 IMPLEMENTED/15 DESIGN_ONLY. PATCH dùng READ_COMMITTED, khóa user rồi kiểm tra lại user/phiên; mất hiệu lực trong lúc chờ trả 401 SESSION_INACTIVE. Đã chạy 55 test không database và 84 test toàn bộ trên PostgreSQL tạm; chi tiết tại [kiểm thử](development.md#kiểm-thử-hiện-có). Các số liệu triển khai và kết quả theo ngày bên dưới là lịch sử, không phải hiện trạng mới nhất.
 
 - **Triển khai ngày 2026-11-11:** [refresh/logout UC03–UC04](user-security.md#refresh-và-logout-uc03uc04) đã có transaction READ_COMMITTED, khóa user trước khi đọc lại token/phiên, rotation một lần và logout bằng token cũ. Tổng 3 operation IMPLEMENTED/17 DESIGN_ONLY. Ba path login/refresh/logout công khai, bỏ qua Bearer cũ; các path khác giữ bảo vệ. Những đoạn ngày 2026-11-10 bên dưới là lịch sử UC02.

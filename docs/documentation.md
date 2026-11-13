@@ -31,6 +31,7 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 | Package/entity/repository/DTO/validation/exception đã triển khai | [Nền tảng backend](foundation.md) | Tóm tắt hiện trạng và link; chính sách/HTTP tiếp tục duy trì tại tài liệu thiết kế tương ứng |
 | Bảo mật người dùng, cấu hình khóa và login UC02 đã triển khai | [Bảo mật người dùng](user-security.md) | Quyết định tại sổ quyết định, HTTP tại operation; chỉ đánh dấu operation thực sự triển khai |
 | GET/PATCH hồ sơ UC06 đã triển khai | [Hồ sơ cá nhân](user-profile.md) | Quyết định tại sổ quyết định; HTTP/schema tại bản API hiện hành |
+| Đổi mật khẩu UC07 đã triển khai | [Mật khẩu](user-password.md) | Quyết định tại sổ quyết định; HTTP/schema tại bản API hiện hành |
 | Trách nhiệm và kiến trúc mục tiêu | [Kiến trúc](architecture.md), [tích hợp nội bộ](api/internal-integration.md) | Link tới thành phần hoặc hợp đồng liên quan |
 | HTTP của 16 API gốc | [Bản API hiện hành](api/current-contract.md) | Link từng operation từ [bản đồ 20 API](api/README.md); tích hợp nội bộ không chép JSON |
 | HTTP của 4 API mới | [API phiên/introspection](api/sessions.md) | Link từng operation; schema/phân trang/API phiên và request/response introspection đã chốt; lỗi/header dẫn về HTTP/lỗi, cấu hình JWT còn mở |
@@ -44,7 +45,7 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 
 ## Tình trạng hợp đồng API
 
-[16 API hiện hành](api/current-contract.md) tổng hợp ví dụ nguồn với các quyết định mới nhất; [API phiên](api/sessions.md) mô tả 4 API mới. Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12. Tổng 5 operation triển khai/15 thiết kế. “Hiện hành” không có nghĩa tất cả trường hoặc phản hồi đã chốt.
+[16 API hiện hành](api/current-contract.md) tổng hợp ví dụ nguồn với các quyết định mới nhất; [API phiên](api/sessions.md) mô tả 4 API mới. Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12, đổi mật khẩu UC07 ngày 2026-11-13. Tổng 6 operation triển khai/14 thiết kế. “Hiện hành” không có nghĩa tất cả trường hoặc phản hồi đã chốt.
 
 Dùng bốn nhãn nhất quán: **Đã xác nhận**, **Theo nguồn/chưa xác nhận**, **Đề xuất**, **PENDING DECISION**. Phân biệt các nhãn này với **Đã triển khai**: chỉ dùng trạng thái triển khai khi đối chiếu được code và kiểm tra thực tế. Ví dụ JSON không chứng minh required/null, validation hoặc đầy đủ các lỗi. Ngày 2026-10-25 chốt schema JSON/response của 16 API gốc, biến thể Google/mở rộng response và bộ HTTP/lỗi; ngày 2026-10-26 chốt ba API phiên, danh mục mã phản hồi và [bộ introspection](confirmed-decisions.md#introspection-contract). Schema request/response của 20 API, mã thành công của 19 API dùng envelope và request/response/lỗi/header introspection đã xác nhận; cấu hình JWT/hành vi tích hợp và tình huống/mã/chi tiết ngoài danh mục vẫn mở. Danh mục nguồn giữ ví dụ Excel lịch sử, không đổi nhãn hoặc mã theo quyết định mới.
 
