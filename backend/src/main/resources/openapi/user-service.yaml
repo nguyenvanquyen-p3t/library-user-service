@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04 và GET/PATCH hồ sơ UC06 đã triển khai, 15 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06 và đổi mật khẩu UC07 đã triển khai, 14 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04 và GET/PATCH hồ sơ UC06 đã triển khai, 15 operation khác còn DESIGN_ONLY.
+  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06 và đổi mật khẩu UC07 đã triển khai, 14 operation khác còn DESIGN_ONLY.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -522,10 +522,10 @@ paths:
       operationId: changePassword
       summary: Đổi mật khẩu và thu hồi mọi phiên
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        ĐÃ TRIỂN KHAI ngày 2026-11-13.
 
-        Đổi PasswordHash và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction. Giữ identity Google; client xóa token và đăng nhập lại. Chưa có password thì UC09. Xem UC07.
-      x-implementation-status: DESIGN_ONLY
+        READ_COMMITTED, khóa user rồi kiểm tra lại user ACTIVE và phiên đúng owner/chưa thu hồi/chưa hết hạn; mất hiệu lực trả SESSION_INACTIVE. Xác minh mật khẩu hiện tại, lưu hash Argon2id mới và thu hồi mọi phiên/refresh token còn hiệu lực, kể cả phiên gọi, cùng transaction. Phiên ghi PASSWORD_CHANGED. Giữ lịch sử đã hết hạn/thu hồi, LastSeenAt và identity Google. Thành công sau commit; client xóa token và đăng nhập lại. Chưa có password trả PASSWORD_NOT_CONFIGURED, mật khẩu sai/hash hỏng trả CURRENT_PASSWORD_INCORRECT. Xem UC07.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#password-change
       security:
       - UserAccessToken: []

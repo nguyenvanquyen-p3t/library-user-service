@@ -1,8 +1,10 @@
 # Quyết định còn mở
 
-Cập nhật danh mục: 2026-10-31. Schema request/response của 20 API, danh mục mã và introspection đã chốt trong các đợt 2026-10-25/26. Ngày 2026-10-31 chốt Service JWT/quyền Admin/Borrow và bằng chứng actor Admin, SMTP, quản trị trạng thái, lỗi tích hợp và cấu hình user access token Q14 với issuer chung không chia môi trường. Cấu hình Service JWT Q03/Q11a vẫn **PENDING DECISION**. Q09 chưa đóng toàn bộ; tổng phạm vi vẫn 7 bảng/20 API; login UC02 đã triển khai ngày 2026-11-10, refresh/logout UC03–UC04 ngày 2026-11-11, [GET/PATCH hồ sơ UC06](user-profile.md) ngày 2026-11-12; còn 15 operation thiết kế. [OpenAPI/Swagger UI](api/openapi.md) được bổ sung ngày 2026-11-01 và vẫn đánh dấu các cấu hình còn mở. ID cũ được giữ để liên kết không đổi.
+Cập nhật danh mục: 2026-10-31. Schema request/response của 20 API, danh mục mã và introspection đã chốt trong các đợt 2026-10-25/26. Ngày 2026-10-31 chốt Service JWT/quyền Admin/Borrow và bằng chứng actor Admin, SMTP, quản trị trạng thái, lỗi tích hợp và cấu hình user access token Q14 với issuer chung không chia môi trường. Cấu hình Service JWT Q03/Q11a vẫn **PENDING DECISION**. Q09 chưa đóng toàn bộ; tổng phạm vi vẫn 7 bảng/20 API; login UC02 đã triển khai ngày 2026-11-10, refresh/logout UC03–UC04 ngày 2026-11-11, [GET/PATCH hồ sơ UC06](user-profile.md) ngày 2026-11-12, [đổi mật khẩu UC07](user-password.md) ngày 2026-11-13; còn 14 operation thiết kế. [OpenAPI/Swagger UI](api/openapi.md) được bổ sung ngày 2026-11-01 và vẫn đánh dấu các cấu hình còn mở. ID cũ được giữ để liên kết không đổi.
 
 ## Các phần đã chốt
+
+**Bổ sung ngày 2026-11-13:** [UC07](confirmed-decisions.md#user-password-uc07) đã chốt/triển khai: chỉ thu hồi phiên/token chưa thu hồi và chưa hết hạn, giữ nguyên lịch sử đã kết thúc; kiểm tra lại user/phiên dưới khóa. Không còn câu hỏi bắt buộc cho UC07; các mục PENDING DECISION khác giữ nguyên.
 
 **Bổ sung ngày 2026-11-12:** [UC06](confirmed-decisions.md#user-profile-uc06) chốt kiểm tra lại user/phiên sau khóa cho PATCH và đã triển khai. Các mục PENDING DECISION ngoài UC06 bên dưới giữ nguyên.
 

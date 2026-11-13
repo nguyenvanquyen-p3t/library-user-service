@@ -22,6 +22,13 @@ public interface RefreshTokenRepository extends Repository<RefreshToken, Integer
 
     List<RefreshToken> findBySessionId(UUID sessionId);
 
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update RefreshToken t set t.revokedAt = :now
+            where t.userId = :userId and t.revokedAt is null and t.expiresAt > :now
+            """)
+    int revokeActiveByUser(@Param("userId") Integer userId, @Param("now") Instant now);
+
     @Modifying
     @Query("""
             update RefreshToken t set t.revokedAt = :now

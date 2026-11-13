@@ -1,6 +1,6 @@
 # Hồ sơ cá nhân UC06
 
-GET/PATCH hồ sơ triển khai ngày 2026-11-12 theo kế hoạch chủ dự án duyệt. Cùng login/refresh/logout, tổng **5 IMPLEMENTED/15 DESIGN_ONLY**; giữ nguyên 7 bảng và Flyway V1–V6. Hợp đồng HTTP tại [GET](api/current-contract.md#profile-get), [PATCH](api/current-contract.md#profile-update), [schema JSON](api/json-schema.md#profile-patch); quyết định tại [UC06](confirmed-decisions.md#user-profile-uc06).
+GET/PATCH hồ sơ triển khai ngày 2026-11-12 theo kế hoạch chủ dự án duyệt. Tại mốc UC06 có 5 IMPLEMENTED/15 DESIGN_ONLY; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), tổng hiện tại **6 IMPLEMENTED/14 DESIGN_ONLY**. Giữ nguyên 7 bảng và Flyway V1–V6. Hợp đồng HTTP tại [GET](api/current-contract.md#profile-get), [PATCH](api/current-contract.md#profile-update), [schema JSON](api/json-schema.md#profile-patch); quyết định tại [UC06](confirmed-decisions.md#user-profile-uc06).
 
 ## Thành phần và xác thực
 

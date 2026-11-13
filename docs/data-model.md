@@ -31,6 +31,8 @@ VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, kh�
 
 ## Migration V6 quản lý phiên
 
+**Implementation UC07 ngày 2026-11-13:** [đổi mật khẩu](user-password.md) cập nhật PasswordHash và thu hồi mọi phiên/token còn hiệu lực trong transaction khóa user. Phiên ghi PASSWORD_CHANGED; giữ nguyên lịch sử đã kết thúc, liên kết rotation và LastSeenAt. Giữ nguyên V1–V6; không có migration mới.
+
 **Trạng thái cập nhật ngày 2026-10-25:** chủ dự án xác nhận V6 đã áp dụng vào database dự án. Thông tin này thay trạng thái chưa áp dụng trong bàn giao ngày 2026-10-22; ngày 2026-10-25 là ngày xác nhận, không xác định ngày chạy migration. Đợt cập nhật tài liệu này không truy vấn database hoặc chạy lại migration; xác nhận này không thay thế kết quả kiểm thử constraint/API.
 
 [V6__create_user_sessions.sql](../backend/src/main/resources/db/migration/V6__create_user_sessions.sql) lấy khóa bảng RefreshTokens và dừng ngay nếu có bất kỳ bản ghi nào, kể cả đã hết hạn/thu hồi. Không tự xóa/thu hồi token, không backfill phiên giả. Phải chạy bằng transaction của Flyway; không chạy từng statement thủ công. Khi triển khai trên môi trường khác, cần kiểm tra trạng thái migration của môi trường đó trước khi chạy.
