@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06 và đổi mật khẩu UC07 đã triển khai, 14 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 đã triển khai, 11 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06 và đổi mật khẩu UC07 đã triển khai, 14 operation khác còn DESIGN_ONLY.
+  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 đã triển khai, 11 operation khác còn DESIGN_ONLY.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -989,7 +989,7 @@ paths:
 
         **Đã xác nhận HTTP 200, schema và messageCode SESSION_LIST_SUCCESS; message minh họa**, thời điểm minh họa với session có thời hạn 30 ngày:
 
-      x-implementation-status: DESIGN_ONLY
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/sessions.md#session-list
       security:
       - UserAccessToken: []
@@ -1057,7 +1057,7 @@ paths:
 
         Không có request body. Người gọi phải có phiên hiện tại hợp lệ và chỉ được thu hồi phiên của chính mình. UC11 chỉ cho chọn phiên khác: UI ẩn hoặc vô hiệu hóa thao tác thu hồi tại phiên isCurrent; server vẫn từ chối sessionId trùng sid đã xác minh, không thay đổi phiên/token. Đăng xuất phiên hiện tại dùng UC04. Đây là yêu cầu đã chốt, thay đề xuất cũ cho chọn phiên hiện tại. Cập nhật RevokedAt/RevocationReason của phiên còn hiệu lực và thu hồi refresh token liên quan trong cùng transaction. **Đã xác nhận ngày 2026-10-26:** thành công HTTP 200, messageCode SESSION_REVOKE_SUCCESS, data luôn null; message minh họa.
 
-      x-implementation-status: DESIGN_ONLY
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/sessions.md#session-revoke
       security:
       - UserAccessToken: []
@@ -1108,7 +1108,7 @@ paths:
 
         Không có request body; không nhận currentSessionId từ client. Giữ phiên có sid lấy từ token đã xác minh, thu hồi các phiên còn hiệu lực khác và refresh token liên quan trong một transaction. **Đã xác nhận ngày 2026-10-26:** HTTP 200, messageCode OTHER_SESSIONS_REVOKED; data theo schema RevokeOthersResult chỉ gồm revokedCount bắt buộc, không null, integer/int64 từ 0 trở lên; message minh họa.
 
-      x-implementation-status: DESIGN_ONLY
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/sessions.md#session-revoke-others
       security:
       - UserAccessToken: []

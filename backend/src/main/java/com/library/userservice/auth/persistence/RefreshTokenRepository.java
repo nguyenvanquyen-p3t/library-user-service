@@ -22,6 +22,18 @@ public interface RefreshTokenRepository extends Repository<RefreshToken, Integer
 
     List<RefreshToken> findBySessionId(UUID sessionId);
 
+    // Gọi dưới khóa user và trước khi thu hồi phiên, dùng cùng now cho cả hai bulk update.
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update RefreshToken t set t.revokedAt = :now
+            where t.userId = :userId and t.revokedAt is null and t.expiresAt > :now
+            and t.sessionId in (select s.id from UserSession s
+                where s.userId = :userId and s.id <> :currentSid
+                and s.revokedAt is null and s.expiresAt > :now)
+            """)
+    int revokeActiveByOtherActiveSessions(@Param("userId") Integer userId, @Param("currentSid") UUID currentSid,
+            @Param("now") Instant now);
+
     @Modifying(flushAutomatically = true)
     @Query("""
             update RefreshToken t set t.revokedAt = :now

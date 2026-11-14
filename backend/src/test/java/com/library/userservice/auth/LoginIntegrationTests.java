@@ -186,7 +186,7 @@ class LoginIntegrationTests extends UserSecurityTestKeys {
         }
     }
 
-    @Test void fullContextPreservesTwentyOpenApiOperationsAndSixImplementedOperations() throws Exception {
+    @Test void fullContextPreservesTwentyOpenApiOperationsAndNineImplementedOperations() throws Exception {
         var response = get("/v3/api-docs", null);
         assertThat(response.statusCode()).isEqualTo(200);
         var paths = mapper.readTree(response.body()).path("paths"); int count = 0;
@@ -198,6 +198,9 @@ class LoginIntegrationTests extends UserSecurityTestKeys {
         assertThat(paths.path("/api/v1/users/me").path("get").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
         assertThat(paths.path("/api/v1/users/me").path("patch").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
         assertThat(paths.path("/api/v1/users/me/password").path("put").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
+        assertThat(paths.path("/api/v1/users/me/sessions").path("get").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
+        assertThat(paths.path("/api/v1/users/me/sessions/{sessionId}").path("delete").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
+        assertThat(paths.path("/api/v1/users/me/sessions/revoke-others").path("post").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
     }
 
     private Fixture user(String passwordHash, String status) {

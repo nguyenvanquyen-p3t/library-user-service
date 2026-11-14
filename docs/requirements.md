@@ -1,6 +1,6 @@
 # Yêu cầu nghiệp vụ
 
-Trạng thái: **UC02–UC04, UC06 và UC07 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Trạng thái: **UC02–UC04, UC06, UC07 và UC10–UC12 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -49,8 +49,8 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 | UC08 tự liên kết | Thêm identity GOOGLE cho user hiện có, tạo session và refresh token; không tạo user hoặc thay role/password |
 | UC08 hoàn tất đăng ký | Tạo user, identity GOOGLE, READER, session và refresh token; xung đột UNIQUE identity rollback toàn bộ |
 | UC09 | Cập nhật PasswordHash, dùng OTP một lần và thu hồi toàn bộ phiên/refresh token; giữ identity Google |
-| UC11 | Thu hồi phiên đích khác phiên hiện tại cùng refresh token liên quan; không ghi đè thời điểm/lý do thu hồi cũ |
-| UC12 | Thu hồi các phiên khác còn hiệu lực cùng refresh token liên quan, giữ phiên có sid đã xác minh |
+| UC11 | Đã triển khai: READ_COMMITTED, khóa user/kiểm tra lại phiên gọi; phiên đích còn hiệu lực ghi SESSION_REVOKED và thu hồi token còn hiệu lực; giữ lịch sử đã kết thúc |
+| UC12 | Đã triển khai: READ_COMMITTED, khóa user/kiểm tra lại phiên gọi; thu hồi token còn hiệu lực thuộc các phiên khác còn hiệu lực trước khi ghi OTHER_SESSIONS_REVOKED lên phiên; giữ phiên gọi |
 | Khóa tài khoản qua API nội bộ | Đổi ACTIVE → BANNED, thu hồi mọi phiên và refresh token còn hiệu lực liên quan |
 | Mở khóa qua API nội bộ | Đổi BANNED → ACTIVE; không phục hồi phiên/token cũ. Retry/lệnh đồng thời/audit theo Q10 đã chốt |
 
@@ -59,6 +59,8 @@ Chỉ báo thành công và trả token đăng nhập sau commit. Lỗi transact
 **UC06 chốt và triển khai ngày 2026-11-12:** [PATCH hồ sơ](confirmed-decisions.md#user-profile-uc06) khóa cùng user với login/refresh/logout, lấy now sau khóa và đọc lại phiên. User không còn/không ACTIVE hoặc phiên thiếu/sai owner/hết hạn/thu hồi trả 401 SESSION_INACTIVE, không lưu. Hai PATCH tuần tự, trường bị bỏ qua không ghi đè; cùng trường theo thứ tự database. Lỗi lưu/dựng DTO/commit rollback; GET READ_COMMITTED/readOnly không thay đổi dữ liệu. Xem [implementation UC06](user-profile.md).
 
 ## Tính nhất quán khi có request đồng thời
+
+**UC10–UC12 ngày 2026-11-14:** [quản lý phiên](user-sessions.md) dùng cùng khóa user cho hai writer, lấy now sau khóa và kiểm tra lại phiên gọi. UC10 dùng REPEATABLE_READ/readOnly để kiểm tra caller, count và lấy trang trong một snapshot; không khóa user hoặc ghi LastSeenAt.
 
 **UC07 ngày 2026-11-13:** [đổi mật khẩu](user-password.md) dùng cùng khóa user, lấy now sau khóa và kiểm tra lại phiên như PATCH. Login/refresh hoàn tất trước UC07 thì phiên/token vừa tạo thuộc phạm vi thu hồi; login sau UC07 phải dùng mật khẩu mới. Hai UC07 đã qua Bearer vẫn tuần tự: request sau thấy phiên bị thu hồi và trả SESSION_INACTIVE. Chỉ cập nhật bản ghi chưa thu hồi/chưa hết hạn; không ghi đè lịch sử.
 

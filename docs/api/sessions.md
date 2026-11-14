@@ -1,10 +1,10 @@
 # Thiết kế API quản lý phiên và introspection
 
-Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Bốn endpoint phiên/introspection chưa triển khai; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie.
+Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Ba endpoint quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection chưa triển khai; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie.
 
 ## Những điểm đã chốt
 
-**Implementation ngày 2026-11-10:** [login UC02/nền tảng user JWT](../user-security.md) đã tạo session và refresh token đúng schema hiện có, kiểm tra user/phiên/role cho Bearer. Bốn endpoint trong tài liệu này vẫn chưa triển khai; ngày 2026-11-11 đã thêm rotation UC03 và thu hồi phiên bằng logout UC04; API quản lý phiên và introspection/Gateway chưa triển khai. JWT được cấp bởi login đã dùng được trong nền tảng Bearer; chưa có endpoint introspection để Gateway gọi.
+**Implementation ngày 2026-11-10:** [login UC02/nền tảng user JWT](../user-security.md) đã tạo session và refresh token đúng schema hiện có, kiểm tra user/phiên/role cho Bearer. Tại mốc UC02 bốn endpoint trong tài liệu này chưa triển khai; ngày 2026-11-11 đã thêm rotation UC03 và thu hồi phiên bằng logout UC04; ngày 2026-11-14 đã thêm [quản lý phiên UC10–UC12](../user-sessions.md); introspection/Gateway chưa triển khai. JWT được cấp bởi login đã dùng được trong nền tảng Bearer; chưa có endpoint introspection để Gateway gọi.
 
 - Thêm UserSessions, liên kết RefreshTokens.SessionId. Không có bảng Devices riêng: thông tin thiết bị là metadata của phiên, không phải bằng chứng danh tính.
 - Theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-service-auth), giai đoạn chức năng mặc định tin tưởng Gateway, chưa yêu cầu Service JWT hoặc kiểm tra quyền service. Sau khi hoàn tất tất cả chức năng mới bổ sung **Service JWT**, tách khỏi access token người dùng được kiểm tra.
@@ -13,13 +13,15 @@ Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp 
 - Migration V6 chỉ chạy khi **RefreshTokens hoàn toàn rỗng**, kể cả không còn bản ghi token hết hạn/đã thu hồi. Không tự xóa, thu hồi hoặc gán phiên giả cho token cũ.
 - API quản lý role vẫn ngoài phạm vi. Không thêm Redis hoặc JWT blacklist.
 
-Hành vi được ghi là **Đã xác nhận** tuân theo sổ quyết định. [Schema JSON](json-schema.md) và [HTTP/lỗi](http-errors.md) áp dụng kiểu ID/thời gian, status và các mã đã nêu; ba API phiên dùng envelope chung, introspection có định dạng riêng. Chủ dự án chốt ngày 2026-10-26 [ba API phiên](../confirmed-decisions.md#session-response-contract) và [introspection](../confirmed-decisions.md#introspection-contract). User access token Q14 chốt ngày 2026-10-31; cấu hình Service JWT còn Q03/Q11a, các tình huống/mã/chi tiết ngoài danh mục vẫn thuộc [Q09](../open-decisions.md#q09). Chưa có API đang chạy.
+Hành vi được ghi là **Đã xác nhận** tuân theo sổ quyết định. [Schema JSON](json-schema.md) và [HTTP/lỗi](http-errors.md) áp dụng kiểu ID/thời gian, status và các mã đã nêu; ba API phiên dùng envelope chung, introspection có định dạng riêng. Chủ dự án chốt ngày 2026-10-26 [ba API phiên](../confirmed-decisions.md#session-response-contract) và [introspection](../confirmed-decisions.md#introspection-contract). User access token Q14 chốt ngày 2026-10-31; cấu hình Service JWT còn Q03/Q11a, các tình huống/mã/chi tiết ngoài danh mục vẫn thuộc [Q09](../open-decisions.md#q09). Ba API phiên đã triển khai; introspection còn thiết kế.
 
 Chính sách [token](../confirmed-decisions.md#user-tokens) và [thời hạn session](../confirmed-decisions.md#session-lifetime) được duy trì tại sổ quyết định. Session hết hạn thì access token bị introspection từ chối và refresh thất bại dù token còn hạn riêng; refresh không gia hạn session. LastSeenAt chỉ phục vụ hiển thị hoạt động gần nhất. Chi tiết Service JWT còn [Q11a](../open-decisions.md#q11a).
 
 <a id="session-list"></a>
 
 ## Danh sách phiên của chính mình
+
+**IMPLEMENTED ngày 2026-11-14:** [UC10](../user-sessions.md) dùng REPEATABLE_READ/readOnly, kiểm tra caller, đếm và lấy trang trong cùng snapshot/now. Giữ LastSeenAt và metadata đã lưu.
 
 `GET /api/v1/users/me/sessions?page=0&size=20`
 
@@ -81,7 +83,7 @@ Sắp xếp cố định `createdAt` giảm dần, rồi `id` tăng dần nếu 
 }
 ```
 
-`isCurrent` do server so sánh với sid đã xác minh; phiên hiện tại có thể nằm ở trang khác. Khi thiếu metadata trả deviceName/clientType null; client có thể hiển thị “Thiết bị không xác định”. Không trả token/hash hoặc UserAgent thô. lastSeenAt không có nghĩa thiết bị đang online, không quyết định hết hạn phiên; chính sách cập nhật giới hạn tần suất vẫn cần thống nhất ở bước code.
+`isCurrent` do server so sánh với sid đã xác minh; phiên hiện tại có thể nằm ở trang khác. Khi thiếu metadata trả deviceName/clientType null; client có thể hiển thị “Thiết bị không xác định”. Không trả token/hash hoặc UserAgent thô. lastSeenAt không có nghĩa thiết bị đang online, không quyết định hết hạn phiên; ngày 2026-11-14 đã chốt giữ giá trị đã lưu trong UC10–UC12; chính sách cập nhật chung vẫn mở.
 
 Ví dụ data khi yêu cầu trang vượt số lượng kết quả (HTTP 200, vẫn giữ tổng số phiên phù hợp):
 
@@ -97,6 +99,8 @@ Ví dụ data khi yêu cầu trang vượt số lượng kết quả (HTTP 200, 
 <a id="session-revoke"></a>
 
 ## Đăng xuất một phiên khác (UC11)
+
+**IMPLEMENTED ngày 2026-11-14:** khóa user/kiểm tra lại caller, phiên đích còn hiệu lực ghi SESSION_REVOKED và thu hồi token còn hiệu lực cùng transaction. Phiên đích đã kết thúc không sửa phiên/token. [Chi tiết](../user-sessions.md).
 
 `DELETE /api/v1/users/me/sessions/{sessionId}`
 
@@ -117,6 +121,8 @@ Không có request body. Người gọi phải có phiên hiện tại hợp l�
 
 ## Đăng xuất các phiên khác
 
+**IMPLEMENTED ngày 2026-11-14:** khóa user/kiểm tra lại caller; thu hồi token còn hiệu lực thuộc các phiên khác còn hiệu lực trước khi ghi OTHER_SESSIONS_REVOKED lên phiên; giữ lịch sử đã kết thúc. [Chi tiết](../user-sessions.md).
+
 `POST /api/v1/users/me/sessions/revoke-others`
 
 Không có request body; không nhận currentSessionId từ client. Giữ phiên có sid lấy từ token đã xác minh, thu hồi các phiên còn hiệu lực khác và refresh token liên quan trong một transaction. **Đã xác nhận ngày 2026-10-26:** HTTP 200, messageCode OTHER_SESSIONS_REVOKED; data theo schema RevokeOthersResult chỉ gồm revokedCount bắt buộc, không null, integer/int64 từ 0 trở lên; message minh họa.
@@ -132,7 +138,7 @@ Không có request body; không nhận currentSessionId từ client. Giữ phiê
 
 revokedCount chỉ đếm số phiên còn hiệu lực được chính thao tác này thu hồi thành công, không đếm phiên hiện tại, phiên đã thu hồi/hết hạn hoặc số refresh token. Không có phiên cần thu hồi thì HTTP 200 với revokedCount 0; gọi lại khi chưa có phiên mới cũng trả 0. Transaction thất bại phải trả lỗi, không trả thành công hoặc số đếm một phần. Ví dụ đang dùng A, còn B/C hợp lệ: lần đầu thu hồi B/C trả 2, gọi lại khi chưa có phiên mới trả 0.
 
-Thao tác này không cấm đăng nhập mới sau transaction. Các writer phải tuần tự hóa với thu hồi theo [yêu cầu nhất quán](../requirements.md#tính-nhất-quán-khi-có-request-đồng-thời); chưa chọn thứ tự khóa hoặc isolation cụ thể.
+Thao tác này không cấm đăng nhập mới sau transaction. Các writer phải tuần tự hóa với thu hồi theo [yêu cầu nhất quán](../requirements.md#tính-nhất-quán-khi-có-request-đồng-thời); UC11/UC12 đã dùng READ_COMMITTED, khóa user rồi lấy now/kiểm tra lại caller theo [quyết định ngày 2026-11-14](../confirmed-decisions.md#user-sessions-uc10-uc12).
 
 ## Lỗi API người dùng
 
@@ -263,4 +269,4 @@ V6 kiểm tra RefreshTokens rỗng trước khi thay đổi schema, thêm UserSe
 
 **Kế hoạch kiểm thử migration khi được yêu cầu**, trên PostgreSQL riêng: chạy V1–V6 trên database mới; từ chối V6 khi V1–V5 có token; giữ nguyên dữ liệu khi thất bại; kiểm tra FK khác user/khác phiên, SessionId bắt buộc/bất biến, thời gian và xóa token thay thế.
 
-Khi được yêu cầu code API: kiểm thử JWT/Service JWT độc lập, ownership, từ chối thu hồi phiên hiện tại ở UC11, giữ phiên hiện tại ở UC12, thu hồi lặp lại, refresh cạnh tranh revoke, token cũ sau mở khóa, Gateway timeout và chặn đường đi vòng. Chưa có test endpoint phiên/introspection; test login UC02 và nền tảng user security đã có. Không dùng các mục này làm tuyên bố đã pass API phiên/introspection.
+Khi được yêu cầu code API: kiểm thử JWT/Service JWT độc lập, ownership, từ chối thu hồi phiên hiện tại ở UC11, giữ phiên hiện tại ở UC12, thu hồi lặp lại, refresh cạnh tranh revoke, token cũ sau mở khóa, Gateway timeout và chặn đường đi vòng. Đã có test endpoint phiên UC10–UC12; chưa có test endpoint introspection; test login UC02 và nền tảng user security đã có. Kết quả thực tế UC10–UC12 tại [development](../development.md#kiểm-thử-hiện-có); kế hoạch introspection không phải bằng chứng đã pass.

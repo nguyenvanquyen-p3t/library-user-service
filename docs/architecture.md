@@ -1,6 +1,6 @@
 # Kiến trúc và phạm vi
 
-Trạng thái: kiến trúc mục tiêu; [nền tảng bảo mật/login UC02](user-security.md) đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11, GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12, đổi mật khẩu UC07 ngày 2026-11-13; 14 operation khác còn thiết kế. Bản bàn giao 2026-10-24/25 ghi trạng thái V6 theo xác nhận chủ dự án; đợt UC02 không thay migration/database dự án.
+Trạng thái: kiến trúc mục tiêu; [nền tảng bảo mật/login UC02](user-security.md) đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11, GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12, đổi mật khẩu UC07 ngày 2026-11-13; quản lý phiên UC10–UC12 ngày 2026-11-14; 11 operation khác còn thiết kế. Bản bàn giao 2026-10-24/25 ghi trạng thái V6 theo xác nhận chủ dự án; đợt UC02 không thay migration/database dự án.
 
 ## Ranh giới trách nhiệm
 
@@ -44,7 +44,7 @@ Ngày 2026-10-31 chốt [Service JWT/quyền riêng cho Admin/Borrow và access 
 
 `backend/pom.xml` khai báo Java 25 và Spring Boot 4.1.1, cùng Web MVC, Security, Validation, Data JPA, Flyway và PostgreSQL driver. Đây là phiên bản repo đang dùng, không phải tuyên bố về phiên bản mới nhất của các công nghệ.
 
-`application.yml` đặt cổng 5001, import `.env` tùy chọn. Hibernate validate schema; Flyway quản lý schema. Đã có JWT RS256, Argon2id, Bearer và login UC02. Google, email, Gateway, discovery, message broker, Docker và CI chưa có. [OpenAPI/Swagger UI](api/openapi.md) giữ đủ 20 operation, login/refresh/logout, GET/PATCH hồ sơ UC06 và đổi mật khẩu UC07 `IMPLEMENTED`, 14 operation khác `DESIGN_ONLY`.
+`application.yml` đặt cổng 5001, import `.env` tùy chọn. Hibernate validate schema; Flyway quản lý schema. Đã có JWT RS256, Argon2id, Bearer và login UC02. Google, email, Gateway, discovery, message broker, Docker và CI chưa có. [OpenAPI/Swagger UI](api/openapi.md) giữ đủ 20 operation, login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 `IMPLEMENTED`, 11 operation khác `DESIGN_ONLY`.
 
 JWT và user/phiên được xác minh bởi [nền tảng bảo mật](user-security.md); role đọc hiện tại từ database, không chứa trong JWT. Chưa có health endpoint hoặc Actuator.
 
@@ -56,4 +56,4 @@ API cập nhật hồ sơ không được trở thành đường sửa `roles`, 
 
 Gateway gọi introspection để User Service xác minh JWT và trạng thái user/phiên. Danh tính Gateway tách khỏi user token được kiểm tra; service nghiệp vụ vẫn kiểm tra quyền trên dữ liệu. Không cho client đi vòng vào backend hoặc tin header danh tính tùy ý. Xem [hợp đồng Gateway](api/sessions.md#danh-tính-gateway-và-vận-hành).
 
-Chính sách [token](confirmed-decisions.md#user-tokens) và [thời hạn phiên](confirmed-decisions.md#session-lifetime) được duy trì ở sổ quyết định. Thu hồi refresh token đơn thuần không vô hiệu JWT; thiết kế kiểm tra phiên ở lần introspection sau commit. Không cam kết hủy request đã qua kiểm tra. Nền tảng Bearer đã kiểm tra phiên; UC04 đã thu hồi phiên và refresh token ngày 2026-11-11. Các API quản lý phiên và introspection/Gateway chưa triển khai.
+Chính sách [token](confirmed-decisions.md#user-tokens) và [thời hạn phiên](confirmed-decisions.md#session-lifetime) được duy trì ở sổ quyết định. Thu hồi refresh token đơn thuần không vô hiệu JWT; thiết kế kiểm tra phiên ở lần introspection sau commit. Không cam kết hủy request đã qua kiểm tra. Nền tảng Bearer đã kiểm tra phiên; UC04 đã thu hồi phiên và refresh token ngày 2026-11-11. API quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection/Gateway chưa triển khai.

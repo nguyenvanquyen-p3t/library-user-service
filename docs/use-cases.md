@@ -1,6 +1,6 @@
 # Luồng nghiệp vụ UC01–UC12
 
-Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
+Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
 Các mục kết quả mô tả nhánh thành công, không áp dụng cho nhánh bị từ chối. Client là Web/Android; các bước gọi API tự động không yêu cầu người dùng thao tác trực tiếp. Chính sách xem [sổ quyết định](confirmed-decisions.md), transaction xem [requirements](requirements.md), request/response xem [16 API hiện hành](api/current-contract.md) và [API phiên](api/sessions.md). Các điểm chưa đủ để code được ghi tại [open-decisions](open-decisions.md), không ngầm coi đề xuất là quyết định. Liên kết được cập nhật ngày 2026-10-24; không đối chiếu lại Word trong đợt này.
 
@@ -29,7 +29,7 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 
 ## UC02 Đăng nhập Local
 
-**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); UC03–UC04 được bổ sung ngày 2026-11-11, UC06 được bổ sung ngày 2026-11-12, UC07 được bổ sung ngày 2026-11-13, 7 use case khác vẫn thiết kế. Metadata thiết bị null; các nhánh hướng dẫn Google/UC09 chưa có endpoint tương ứng.
+**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); UC03–UC04 được bổ sung ngày 2026-11-11, UC06 được bổ sung ngày 2026-11-12, UC07 được bổ sung ngày 2026-11-13, tại mốc UC07 còn 7 use case thiết kế; ngày 2026-11-14 đã thêm UC10–UC12. Metadata thiết bị null; các nhánh hướng dẫn Google/UC09 chưa có endpoint tương ứng.
 
 **Actor:** READER/LIBRARIAN/ADMIN. **Ưu tiên:** cao. Nhánh thành công cần tài khoản ACTIVE đã có mật khẩu; đây là điều kiện được hệ thống kiểm tra, vẫn có nhánh từ chối tương ứng.
 
@@ -135,6 +135,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 
 ## UC10 Xem danh sách phiên
 
+**Đã triển khai ngày 2026-11-14:** [implementation UC10](user-sessions.md). Snapshot REPEATABLE_READ/readOnly, giữ LastSeenAt đã lưu.
+
 **Actor:** người ACTIVE đã đăng nhập, phiên hợp lệ. **Ưu tiên:** trung bình.
 
 1. Người dùng mở Bảo mật tài khoản → Quản lý phiên đăng nhập.
@@ -144,6 +146,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 **Ngoại lệ:** danh tính/phiên không hợp lệ → xác thực lại; không có kết quả phù hợp hoặc trang vượt kết quả → danh sách trống; tải lỗi → báo và cho thử lại. **Kết quả:** chỉ xem, không thu hồi phiên; không lộ token/hash. Metadata có thể thiếu, không phải bằng chứng danh tính. [Phân trang/sắp xếp đã chốt ngày 2026-10-26](api/sessions.md#session-list); không tự đưa phiên hiện tại lên đầu, phiên này có thể nằm ở trang khác. lastSeenAt là hoạt động đã ghi nhận, không khẳng định đang online.
 
 ## UC11 Đăng xuất một phiên khác
+
+**Đã triển khai ngày 2026-11-14:** [implementation UC11](user-sessions.md). Khóa user và kiểm tra lại phiên gọi; ghi SESSION_REVOKED, giữ lịch sử đã kết thúc.
 
 **Actor:** người đã đăng nhập với phiên hợp lệ. **Ưu tiên:** cao.
 
@@ -157,6 +161,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 **Kết quả:** chỉ phiên đích mất hiệu lực; phiên hiện tại và các phiên khác không ảnh hưởng. Đăng xuất bản thân dùng UC04. Đây là lựa chọn chủ dự án đã nêu và Word hiện tại thể hiện, thay đề xuất API cũ cho chọn phiên hiện tại.
 
 ## UC12 Đăng xuất tất cả phiên khác
+
+**Đã triển khai ngày 2026-11-14:** [implementation UC12](user-sessions.md). Khóa user, kiểm tra lại caller, thu hồi token trước phiên; ghi OTHER_SESSIONS_REVOKED và đếm phiên thực sự cập nhật.
 
 **Actor:** người ACTIVE đang có phiên hợp lệ. **Ưu tiên:** cao.
 
