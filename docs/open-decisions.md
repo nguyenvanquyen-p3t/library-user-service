@@ -1,8 +1,10 @@
 # Quyết định còn mở
 
-Cập nhật danh mục: 2026-10-31. Schema request/response của 20 API, danh mục mã và introspection đã chốt trong các đợt 2026-10-25/26. Ngày 2026-10-31 chốt Service JWT/quyền Admin/Borrow và bằng chứng actor Admin, SMTP, quản trị trạng thái, lỗi tích hợp và cấu hình user access token Q14 với issuer chung không chia môi trường. Cấu hình Service JWT Q03/Q11a vẫn **PENDING DECISION**. Q09 chưa đóng toàn bộ; tổng phạm vi vẫn 7 bảng/20 API; login UC02 đã triển khai ngày 2026-11-10, refresh/logout UC03–UC04 ngày 2026-11-11, [GET/PATCH hồ sơ UC06](user-profile.md) ngày 2026-11-12, [đổi mật khẩu UC07](user-password.md) ngày 2026-11-13; còn 14 operation thiết kế. [OpenAPI/Swagger UI](api/openapi.md) được bổ sung ngày 2026-11-01 và vẫn đánh dấu các cấu hình còn mở. ID cũ được giữ để liên kết không đổi.
+Cập nhật danh mục: 2026-10-31. Schema request/response của 20 API, danh mục mã và introspection đã chốt trong các đợt 2026-10-25/26. Ngày 2026-10-31 chốt Service JWT/quyền Admin/Borrow và bằng chứng actor Admin, SMTP, quản trị trạng thái, lỗi tích hợp và cấu hình user access token Q14 với issuer chung không chia môi trường. Cấu hình Service JWT Q03/Q11a vẫn **PENDING DECISION**. Q09 chưa đóng toàn bộ; tổng phạm vi vẫn 7 bảng/20 API; login UC02 đã triển khai ngày 2026-11-10, refresh/logout UC03–UC04 ngày 2026-11-11, [GET/PATCH hồ sơ UC06](user-profile.md) ngày 2026-11-12, [đổi mật khẩu UC07](user-password.md) ngày 2026-11-13; ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md); còn 11 operation thiết kế. [OpenAPI/Swagger UI](api/openapi.md) được bổ sung ngày 2026-11-01 và vẫn đánh dấu các cấu hình còn mở. ID cũ được giữ để liên kết không đổi.
 
 ## Các phần đã chốt
+
+**Bổ sung ngày 2026-11-14:** [UC10–UC12](confirmed-decisions.md#user-sessions-uc10-uc12) đã chốt/triển khai: SESSION_REVOKED cho UC11, OTHER_SESSIONS_REVOKED cho UC12; giữ LastSeenAt hiện tại trong đợt này. UC10 dùng snapshot chỉ đọc; UC11/UC12 kiểm tra lại phiên gọi dưới khóa user. Tổng 9 IMPLEMENTED/11 DESIGN_ONLY.
 
 **Bổ sung ngày 2026-11-13:** [UC07](confirmed-decisions.md#user-password-uc07) đã chốt/triển khai: chỉ thu hồi phiên/token chưa thu hồi và chưa hết hạn, giữ nguyên lịch sử đã kết thúc; kiểm tra lại user/phiên dưới khóa. Không còn câu hỏi bắt buộc cho UC07; các mục PENDING DECISION khác giữ nguyên.
 
@@ -44,7 +46,7 @@ Mỗi hàng nêu phần cần chốt trước khi triển khai hoặc tích hợ
 | <a id="q11a"></a>Q11a | Bên phát Service JWT Gateway, thuật toán, issuer/audience/subject, TTL, tập claim và phân phối/rotation khóa | Chốt trước bước bổ sung xác thực service sau khi hoàn tất chức năng; không chặn triển khai introspection kiểm tra user token/phiên. Quyền tokens:introspect vẫn là thiết kế đích, chưa thực thi trong giai đoạn tin tưởng service. Không suy ra thuật toán từ RS256 của user token |
 | <a id="q15"></a>Q15 | Thời gian lưu/xóa UserSessions | Chốt trước khi xây tác vụ dọn phiên. Retention refresh token đã chốt không cho phép suy ra thời điểm xóa bản ghi phiên |
 
-Q13–Q15 được tập hợp khi bàn giao docs ngày 2026-10-22; Q13 đã chốt ngày 2026-10-25, Q14 chốt ngày 2026-10-31, Q15 vẫn mở. Mã lý do cho khóa/UC11/UC12 và chính sách cập nhật LastSeenAt vẫn cần thống nhất khi hoàn thiện thiết kế tương ứng; xem [schema](data-model.md#migration-v6-quản-lý-phiên) và [API phiên](api/sessions.md#danh-sách-phiên-của-chính-mình), không tự coi ví dụ là enum SQL hoặc cấu hình đã chốt.
+Q13–Q15 được tập hợp khi bàn giao docs ngày 2026-10-22; Q13 đã chốt ngày 2026-10-25, Q14 chốt ngày 2026-10-31, Q15 vẫn mở. Mã lý do khóa tài khoản và chính sách cập nhật LastSeenAt chung vẫn cần thống nhất khi hoàn thiện thiết kế tương ứng; xem [schema](data-model.md#migration-v6-quản-lý-phiên) và [API phiên](api/sessions.md#danh-sách-phiên-của-chính-mình), không tự coi ví dụ là enum SQL hoặc cấu hình đã chốt.
 
 Không coi RS256/TTL 5 phút, bảng định danh issuer/audience/subject mẫu, kid hoặc phương án public key/JWKS/rotation dành cho Service JWT trong đề xuất là đã xác nhận. Việc giữ Q03/Q11a mở không ảnh hưởng cấu hình user access token Q14 và introspection không cache đã chốt.
 

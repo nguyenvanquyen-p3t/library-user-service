@@ -25,7 +25,7 @@ erDiagram
 
 VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, không có quan hệ FK trong sơ đồ.
 
-**Cập nhật implementation ngày 2026-11-10:** [login UC02](user-security.md) đã ghi UserSessions/RefreshTokens trong transaction có khóa user; Bearer đã kiểm tra hiệu lực user/phiên. V1–V6 giữ nguyên, không thay database dự án. Ngày 2026-11-11 đã bổ sung rotation UC03 và logout/thu hồi phiên UC04, khóa cùng user và giữ nguyên lịch sử token. LastSeenAt theo request, API quản lý phiên và cleanup vẫn chưa triển khai. Mô tả constraint/schema trong tài liệu không đồng nghĩa các luồng nghiệp vụ còn lại đã được triển khai.
+**Cập nhật implementation ngày 2026-11-10:** [login UC02](user-security.md) đã ghi UserSessions/RefreshTokens trong transaction có khóa user; Bearer đã kiểm tra hiệu lực user/phiên. V1–V6 giữ nguyên, không thay database dự án. Ngày 2026-11-11 đã bổ sung rotation UC03 và logout/thu hồi phiên UC04, khóa cùng user và giữ nguyên lịch sử token. Tại mốc UC03–UC04 chưa có API quản lý phiên; ngày 2026-11-14 đã thêm [UC10–UC12](user-sessions.md), không đổi schema. LastSeenAt theo request và cleanup vẫn chưa triển khai. Mô tả constraint/schema trong tài liệu không đồng nghĩa các luồng nghiệp vụ còn lại đã được triển khai.
 
 **Bổ sung implementation ngày 2026-11-12:** [UC06](user-profile.md) đã đọc/cập nhật hồ sơ qua repository hiện có; PATCH khóa user và kiểm tra lại phiên. Giữ trigger UpdatedAt, V1–V6 và dữ liệu ngoài hai trường hồ sơ.
 
@@ -39,7 +39,7 @@ VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, kh�
 
 UserSessions.Id do backend tạo UUID khi triển khai đăng nhập, không tự sinh UUID hoặc TTL trong migration. ExpiresAt phải sau CreatedAt; LastSeenAt và RevokedAt không được trước CreatedAt. Phiên chưa thu hồi phải có RevocationReason NULL; phiên đã thu hồi cần lý do không trống. Lý do là mã nội bộ được backend chọn, không nhận tùy ý từ client; danh sách mã chi tiết chưa bị cố định bằng enum SQL.
 
-Các mã lý do đã có trong bản Word đối chiếu 2026-10-22: UC04 `LOGOUT`, UC05 `PASSWORD_RESET`, UC07 `PASSWORD_CHANGED`, UC09 `PASSWORD_SET`. Giữ các mã này khi triển khai luồng tương ứng. Mã cho khóa tài khoản và UC11/UC12 cần thống nhất khi hoàn thiện hợp đồng; không suy ra danh sách enum SQL từ các ví dụ. Thu hồi lặp không ghi đè thời điểm/lý do cũ theo quy tắc UC04/UC11.
+Các mã lý do đã có trong bản Word đối chiếu 2026-10-22: UC04 `LOGOUT`, UC05 `PASSWORD_RESET`, UC07 `PASSWORD_CHANGED`, UC09 `PASSWORD_SET`. Giữ các mã này khi triển khai luồng tương ứng. Ngày 2026-11-14 chốt UC11 SESSION_REVOKED, UC12 OTHER_SESSIONS_REVOKED; mã cho khóa tài khoản vẫn cần thống nhất; không suy ra danh sách enum SQL từ các ví dụ. Thu hồi lặp không ghi đè thời điểm/lý do cũ theo quy tắc UC04/UC11.
 
 RefreshTokens thêm **SessionId UUID NOT NULL**. FK `(SessionId, UserId)` trỏ tới UserSessions bảo đảm chủ sở hữu khớp. FK thay thế `(ReplacedByTokenId, UserId, SessionId)` yêu cầu token mới cùng user và cùng phiên; giữ các ràng buộc tuyến tính từ V4. Trigger không cho thay SessionId của token đã tạo. Xóa token thay thế chỉ bỏ ReplacedByTokenId, giữ nguyên UserId và SessionId của token cũ.
 

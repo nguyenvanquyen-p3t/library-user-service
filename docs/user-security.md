@@ -1,6 +1,6 @@
 # Nền tảng bảo mật người dùng và login UC02
 
-Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), tổng 6 IMPLEMENTED/14 DESIGN_ONLY. Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation.
+Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), tổng 9 IMPLEMENTED/11 DESIGN_ONLY. Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation.
 
 ## Thành phần và trách nhiệm
 
@@ -78,7 +78,7 @@ Không log DTO/exception chứa thông tin xác thực. Đã tắt chi tiết re
 Các test dùng khóa RSA tạm tự sinh; không đọc private key dự án. Chạy nhóm không dùng database từ `backend/`:
 
 ```powershell
-.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests" test
+.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests" test
 ```
 
 Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **chỉ chọn `UserDB_test`; không dùng database dự án hoặc xóa token để vượt V6**:
@@ -91,4 +91,4 @@ Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **ch�
 
 `RefreshLogoutServiceTests` dùng Clock kiểm soát để kiểm tra biên thời gian và thứ tự lỗi. `RefreshLogoutIntegrationTests` chỉ bật trên UserDB_test, kiểm tra HTTP/commit thật, lịch sử rotation, logout bằng token cũ, rollback lỗi lưu/ký/COMMIT, hai refresh và refresh/logout ở cả hai thứ tự có chờ khóa thực. Fixture được dọn theo ID user; khóa test tạm như UC02.
 
-Chưa có API quản lý phiên UC10–UC12, introspection, đăng ký, reset/thiết lập mật khẩu hoặc quản trị trạng thái. Đổi mật khẩu UC07 đã triển khai ngày 2026-11-13. GET/PATCH hồ sơ UC06 đã triển khai; xem [transaction UC06](user-profile.md#transaction-và-patch). Chưa có Gateway, xác thực actor Admin, CORS, rate limit login, Google/SMTP hoặc cleanup. Không coi 6 API đã chạy là hoàn tất bảo mật/tích hợp toàn hệ thống. Kết quả lần chạy được ghi ở [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có).
+[API quản lý phiên UC10–UC12](user-sessions.md) đã triển khai ngày 2026-11-14. Chưa có introspection, đăng ký, reset/thiết lập mật khẩu hoặc quản trị trạng thái. Đổi mật khẩu UC07 đã triển khai ngày 2026-11-13. GET/PATCH hồ sơ UC06 đã triển khai; xem [transaction UC06](user-profile.md#transaction-và-patch). Chưa có Gateway, xác thực actor Admin, CORS, rate limit login, Google/SMTP hoặc cleanup. Không coi 9 API đã chạy là hoàn tất bảo mật/tích hợp toàn hệ thống. Kết quả lần chạy được ghi ở [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có).

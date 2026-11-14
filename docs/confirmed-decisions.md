@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung triển khai ngày 2026-11-14:** chủ dự án chốt hai mã lý do riêng, giữ LastSeenAt hiện tại, duyệt kế hoạch và yêu cầu triển khai [quản lý phiên UC10–UC12](#user-sessions-uc10-uc12). Tổng hiện tại 9 IMPLEMENTED/11 DESIGN_ONLY; các mốc bên dưới là lịch sử.
+
 **Bổ sung triển khai ngày 2026-11-13:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [đổi mật khẩu UC07](#user-password-uc07). Tổng hiện tại 6 IMPLEMENTED/14 DESIGN_ONLY; các số liệu theo ngày bên dưới là lịch sử.
 
 **Bổ sung triển khai ngày 2026-11-12:** chủ dự án duyệt và yêu cầu triển khai [GET/PATCH hồ sơ UC06](#user-profile-uc06), gồm kiểm tra lại user/phiên sau khi lấy khóa user cho PATCH. Hiện có 5 IMPLEMENTED/15 DESIGN_ONLY; các số liệu trong quyết định theo ngày bên dưới là lịch sử.
@@ -425,3 +427,17 @@ Chủ dự án duyệt kế hoạch và yêu cầu triển khai PUT /api/v1/user
 - Giữ identity Google, roles, hồ sơ, LastSeenAt, metadata và liên kết rotation. UpdatedAt do trigger V5 quản lý. Không thêm Service JWT, dependency hoặc cleanup.
 
 Implementation và kiểm thử duy trì tại [mật khẩu](user-password.md); hợp đồng HTTP tại [UC07](api/current-contract.md#password-change). Các mục PENDING DECISION ngoài UC07 giữ nguyên.
+
+<a id="user-sessions-uc10-uc12"></a>
+
+## Quản lý phiên UC10–UC12 — chốt ngày 2026-11-14
+
+Chủ dự án chọn hai mã RevocationReason riêng: UC11 SESSION_REVOKED, UC12 OTHER_SESSIONS_REVOKED; tiếp tục giữ LastSeenAt đã lưu, chưa cập nhật theo request. Sau đó duyệt kế hoạch và yêu cầu triển khai ba endpoint hiện hành; giữ 7 bảng, 20 operation và V1–V6.
+
+- UC10 dùng REPEATABLE_READ/readOnly, kiểm tra lại user ACTIVE và phiên gọi trong snapshot; cùng now cho kiểm tra, đếm và lấy trang. Danh sách/tổng nhất quán trong một response; các lần tải khác nhau có thể thay đổi. Phân trang/sắp xếp/schema giữ hợp đồng đã chốt.
+- UC11/UC12 dùng READ_COMMITTED, khóa user PESSIMISTIC_WRITE cùng login/refresh/logout/password/PATCH, lấy now sau khóa rồi đọc lại phiên gọi. User không còn/không ACTIVE hoặc phiên thiếu/sai owner/thu hồi/hết hạn trả SESSION_INACTIVE trước nghiệp vụ thu hồi.
+- UC11 chỉ thu hồi phiên khác còn hiệu lực cùng token còn hiệu lực của phiên đó; phiên đích đã kết thúc trả kết quả chung và không sửa phiên/token. Giữ lỗi chọn phiên hiện tại và 404 không tồn tại/khác owner đã chốt.
+- UC12 chỉ chọn các phiên khác còn hiệu lực; thu hồi token còn hiệu lực thuộc nhóm phiên đó trước, rồi thu hồi phiên, cùng transaction/now. Không xử lý lại token của phiên đã kết thúc. Giữ phiên hiện tại và token của nó. revokedCount đếm số phiên thực sự cập nhật, không đếm token.
+- Chỉ trả thành công sau commit; lỗi ghi/dựng kết quả/commit rollback toàn bộ. Giữ lịch sử đã hết hạn/thu hồi, liên kết rotation, metadata, LastSeenAt và các dữ liệu ngoài phiên/token. Không thêm cleanup, Service JWT hoặc introspection.
+
+Implementation tại [quản lý phiên](user-sessions.md), HTTP tại [API phiên](api/sessions.md), kiểm thử tại [development](development.md#kiểm-thử-hiện-có). Chính sách cập nhật LastSeenAt chung và mã lý do khóa tài khoản vẫn chưa chốt.
