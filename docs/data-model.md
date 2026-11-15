@@ -53,6 +53,8 @@ Backend phải áp dụng [thời hạn session/token đã chốt](confirmed-dec
 
 ## Chuẩn hóa và kiểm tra
 
+GET user nội bộ ngày 2026-11-15 đọc Users/UserRoles/Roles qua repository hiện hữu trong transaction READ_COMMITTED/readOnly; implementation tại [tích hợp nội bộ](api/internal-integration.md#tra-cứu-user).
+
 V3 đặt các ràng buộc chuẩn hóa username/email, role/provider và dữ liệu hồ sơ. Xem [lưu ý triển khai](#lưu-ý-cho-bước-triển-khai-backend) để chuẩn hóa đúng trước lưu/tra cứu; không dùng constraint thay validation email/password/phone ở ứng dụng.
 
 [Schema JSON chốt ngày 2026-10-25](api/json-schema.md#validation) quy định validation tầng API, gồm số điện thoại 8–15 chữ số có thể bắt đầu bằng `+`. Cột PhoneNumber vẫn varchar(20), nullable; không sửa migration hoặc coi quy tắc API là constraint đã có trong database. PATCH hồ sơ dùng null để xóa số điện thoại.

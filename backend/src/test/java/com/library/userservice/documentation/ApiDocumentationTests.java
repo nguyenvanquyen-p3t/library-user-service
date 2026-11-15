@@ -77,7 +77,7 @@ class ApiDocumentationTests {
             for (var operation : path) {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
-                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken").contains(operation.path("operationId").asText())
+                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser").contains(operation.path("operationId").asText())
                                 ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }
@@ -92,6 +92,13 @@ class ApiDocumentationTests {
         assertThat(adminSecurity.size()).isEqualTo(1);
         assertThat(adminSecurity.get(0).has("ServiceJwt")).isTrue();
         assertThat(adminSecurity.get(0).has("AdminAccessToken")).isTrue();
+        var internalUser = paths.path("/api/v1/internal/users/{id}").path("get");
+        assertThat(internalUser.path("security").get(0).has("ServiceJwt")).isTrue();
+        assertThat(internalUser.path("description").asText()).contains("mặc định tin tưởng", "Service JWT");
+        for (JsonNode response : internalUser.path("responses")) {
+            var resolved = response.has("$ref") ? document.at(response.path("$ref").asText().substring(1)) : response;
+            assertThat(resolved.path("headers").path("Cache-Control").path("schema").path("enum").get(0).asText()).isEqualTo("no-store");
+        }
         var introspection = paths.path("/api/v1/internal/oauth2/introspect").path("post");
         assertThat(introspection.path("security").get(0).has("ServiceJwt")).isTrue();
         assertThat(introspection.path("description").asText()).contains("mặc định tin tưởng", "Service JWT");
@@ -137,7 +144,7 @@ class ApiDocumentationTests {
 
     @Test
     void documentationAllowlistKeepsOtherPathsProtected() throws Exception {
-        assertThat(get("/api/v1/internal/users/3").statusCode()).isEqualTo(401);
+        assertThat(get("/api/v1/internal/users/3/status").statusCode()).isEqualTo(401);
         assertThat(get("/api/v1/users/me").statusCode()).isEqualTo(401);
     }
 

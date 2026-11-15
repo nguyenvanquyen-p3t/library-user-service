@@ -1,6 +1,6 @@
 # Nền tảng bảo mật người dùng và login UC02
 
-Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), tổng 10 IMPLEMENTED/10 DESIGN_ONLY. Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation.
+Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Thành phần và trách nhiệm
 
@@ -43,7 +43,7 @@ Login nhận đúng `identifier` và `password`, trả envelope với `LOGIN_SUC
 
 Các writer password/status/refresh/revoke sau này phải khóa cùng user trước khi đọc/ghi dữ liệu phiên/token để tuần tự với login. Tầng xác thực request chỉ kiểm tra tại thời điểm đọc; không cam kết hủy request đã qua kiểm tra trước commit thu hồi.
 
-Runtime từ ngày 2026-11-15 dùng bốn filter chain, thêm chain riêng cho [introspection](api/sessions.md#introspect) mặc định tin tưởng service; ba chain còn lại gồm: GET tài liệu công khai; ba path login/refresh/logout mọi method công khai để MVC trả 405/415 và bỏ qua Bearer cũ; các request còn lại yêu cầu user Bearer. Header writer của chain công khai đặt Cache-Control no-store cả khi validation/nghiệp vụ lỗi. HTTP Basic, form login, logout mặc định, CSRF và HTTP session đã tắt; default user tự sinh của Spring Boot cũng bị loại. Không nhận token qua cookie/query, không tin header tự khai user/role. Error dispatch giữ lỗi HTTP gốc. Method security được bật cho endpoint có kiểm tra quyền sau này.
+Runtime sau GET user nội bộ ngày 2026-11-15 dùng năm filter chain. Chain tra cứu /api/v1/internal/users/{id} riêng mặc định tin tưởng service và bỏ qua Authorization, mọi response có Cache-Control no-store; các path /status/path con tiếp tục qua chain Bearer. Tại mốc introspection cùng ngày đã dùng bốn filter chain, thêm chain riêng cho [introspection](api/sessions.md#introspect) mặc định tin tưởng service; ba chain còn lại gồm: GET tài liệu công khai; ba path login/refresh/logout mọi method công khai để MVC trả 405/415 và bỏ qua Bearer cũ; các request còn lại yêu cầu user Bearer. Header writer của chain công khai đặt Cache-Control no-store cả khi validation/nghiệp vụ lỗi. HTTP Basic, form login, logout mặc định, CSRF và HTTP session đã tắt; default user tự sinh của Spring Boot cũng bị loại. Không nhận token qua cookie/query, không tin header tự khai user/role. Error dispatch giữ lỗi HTTP gốc. Method security được bật cho endpoint có kiểm tra quyền sau này.
 
 ## Refresh và logout UC03–UC04
 
@@ -78,7 +78,7 @@ Không log DTO/exception chứa thông tin xác thực. Đã tắt chi tiết re
 Các test dùng khóa RSA tạm tự sinh; không đọc private key dự án. Chạy nhóm không dùng database từ `backend/`:
 
 ```powershell
-.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests" test
+.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests,InternalUserServiceTests,InternalUserHttpTests" test
 ```
 
 Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **chỉ chọn `UserDB_test`; không dùng database dự án hoặc xóa token để vượt V6**:

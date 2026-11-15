@@ -19,7 +19,8 @@ Ngày 2026-11-10, chủ dự án chốt [triển khai chức năng trước, xá
 - **Đã triển khai ngày 2026-11-13:** [đổi mật khẩu UC07](docs/user-password.md), thu hồi mọi phiên/token còn hiệu lực trong cùng transaction. Tại mốc UC07 có 6 IMPLEMENTED/14 DESIGN_ONLY.
 - **Đã triển khai ngày 2026-11-14:** [quản lý phiên UC10–UC12](docs/user-sessions.md): xem phiên, thu hồi một phiên khác và thu hồi mọi phiên khác; tổng **9 IMPLEMENTED/11 DESIGN_ONLY**.
 - **Đã triển khai ngày 2026-11-15:** [introspection cho Gateway](docs/api/sessions.md#introspect), kiểm tra user JWT/phiên/roles, chưa yêu cầu Service JWT; tổng **10 IMPLEMENTED/10 DESIGN_ONLY**.
-- **Chưa triển khai:** 10 operation còn lại, gồm đăng ký, reset/thiết lập mật khẩu, Google/SMTP và hai API user nội bộ. Gateway chưa triển khai. Không có API quản lý role.
+- **Đã triển khai tiếp ngày 2026-11-15:** [GET user nội bộ](docs/api/internal-integration.md#tra-cứu-user) cho Borrow/Admin, mặc định tin tưởng service, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
+- **Chưa triển khai:** 9 operation còn lại, gồm đăng ký, reset/thiết lập mật khẩu, Google/SMTP và PATCH trạng thái nội bộ. Gateway chưa triển khai. Không có API quản lý role.
 
 V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Chi tiết trạng thái tại [mô hình dữ liệu](docs/data-model.md#migration-v6-quản-lý-phiên).
 
@@ -76,7 +77,7 @@ File dùng định dạng Java properties: `KEY=value`, không bao giá trị b�
 
 Ứng dụng cần cặp khóa PEM đã cấu hình trong `.secrets/`; thiếu/sai khóa sẽ dừng khởi động, không tự sinh lại. Xem [cấu hình khóa](docs/user-security.md#cấu-hình-khóa-và-khởi-động). Login cần tài khoản ACTIVE có hash Argon2id đúng định dạng; không có user/mật khẩu mặc định hoặc endpoint đăng ký trong đợt này.
 
-Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 10 operation đã triển khai, 10 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
+Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 11 operation đã triển khai, 9 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
 
 Xem [hướng dẫn môi trường cục bộ](docs/local-development.md) để cấu hình chi tiết, đóng gói JAR và xử lý lỗi.
 
@@ -94,7 +95,7 @@ Sau đó chạy từ `backend/`, dùng credentials đã cấu hình:
 .\mvnw.cmd "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/UserDB_test" test
 ```
 
-Có thể kiểm tra riêng nền tảng, bảo mật và Swagger mà không dùng database bằng `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests" test` từ `backend/`. Test persistence/login/refresh/logout tích hợp chỉ bật khi system property chọn rõ `UserDB_test`; test login và quản lý phiên có commit và dọn đúng fixture. Chưa có database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
+Có thể kiểm tra riêng nền tảng, bảo mật và Swagger mà không dùng database bằng `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests,InternalUserServiceTests,InternalUserHttpTests" test` từ `backend/`. Test persistence/login/refresh/logout tích hợp chỉ bật khi system property chọn rõ `UserDB_test`; test login và quản lý phiên có commit và dọn đúng fixture. Chưa có database kiểm thử tự động. Xem [hướng dẫn phát triển](docs/development.md).
 
 ## Tài liệu và đóng góp
 

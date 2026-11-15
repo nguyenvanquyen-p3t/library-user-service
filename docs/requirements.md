@@ -1,6 +1,6 @@
 # Yêu cầu nghiệp vụ
 
-Trạng thái: **UC02–UC04, UC06, UC07 và UC10–UC12 đã triển khai; các thao tác khác còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Trạng thái: **UC02–UC04, UC06, UC07, UC10–UC12, introspection và GET user nội bộ đã triển khai; 9 operation còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -30,6 +30,8 @@ Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/c
 Áp dụng [chính sách Q05](confirmed-decisions.md#otp-password-policy) cho UC01/UC05/UC07/UC09 theo chức năng tương ứng; [OTP REGISTER](confirmed-decisions.md#register-otp-binding) chỉ gắn email/purpose. Các giá trị TTL, số lần thử/gửi lại và giới hạn mật khẩu được duy trì tại sổ quyết định. [Q06 chốt ngày 2026-10-31](confirmed-decisions.md#otp-email-delivery): commit hash OTP mới/vô hiệu mã cũ trước khi gửi SMTP đồng bộ; lần cấp mã vẫn tính giới hạn dù SMTP lỗi, không tự cấp mã retry. REGISTER/SET_PASSWORD gửi lỗi trả 503; PASSWORD_RESET giữ 200/thông báo chung. Chỉ còn lựa chọn/cấu hình môi trường SMTP chưa chốt.
 
 ## Ranh giới transaction
+
+**GET user nội bộ ngày 2026-11-15:** InternalUserService dùng READ_COMMITTED/readOnly, đọc user rồi roles hiện tại và dựng DTO trong transaction; trả cả ACTIVE/BANNED. Hai truy vấn theo READ_COMMITTED; thao tác đọc không khóa user hoặc ghi LastSeenAt. Lỗi mở/đọc/hoàn tất transaction đi qua handler nền tảng. [Implementation](api/internal-integration.md#tra-cứu-user).
 
 **Introspection ngày 2026-11-15:** tái sử dụng transaction readOnly hiện hữu của UserSessionAuthenticator, READ_COMMITTED mặc định, không khóa user. Service điều phối không mở transaction bao ngoài; chỉ chuyển ACCESS_TOKEN_INVALID/SESSION_INACTIVE thành active false sau khi proxy xác thực kết thúc. Không ghi LastSeenAt hoặc cache kết quả; lỗi hạ tầng vẫn trả lỗi. Không thêm cam kết snapshot hoặc hủy request đã vượt kiểm tra trước commit thu hồi. [Implementation](api/sessions.md#introspect).
 

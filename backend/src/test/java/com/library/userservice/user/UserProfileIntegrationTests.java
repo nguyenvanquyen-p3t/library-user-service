@@ -202,7 +202,7 @@ class UserProfileIntegrationTests extends UserSecurityTestKeys {
         }
     }
 
-    @Test void fullContextPublishesExactlyTenImplementedOperationsWithoutDuplicates() throws Exception {
+    @Test void fullContextPublishesExactlyElevenImplementedOperationsWithoutDuplicates() throws Exception {
         var response = request("GET", "/v3/api-docs", null, null); assertThat(response.statusCode()).isEqualTo(200);
         var paths = mapper.readTree(response.body()).path("paths");
         var ids = new java.util.HashSet<String>(); var implemented = new java.util.HashSet<String>(); int count = 0;
@@ -211,7 +211,7 @@ class UserProfileIntegrationTests extends UserSecurityTestKeys {
             if (operation.path("x-implementation-status").asText().equals("IMPLEMENTED")) implemented.add(id);
         }
         assertThat(count).isEqualTo(20);
-        assertThat(implemented).containsExactlyInAnyOrder("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken");
+        assertThat(implemented).containsExactlyInAnyOrder("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser");
     }
 
     private Fixture fixture() {

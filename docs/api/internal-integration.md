@@ -1,6 +1,6 @@
 # Tích hợp nội bộ
 
-Trạng thái: **hai API user nội bộ còn thiết kế; introspection đã triển khai ngày 2026-11-15** tại [hợp đồng](sessions.md#introspect). Gateway và Service JWT chưa triển khai. Cập nhật cách trình bày: 2026-10-24. Nguồn: Excel Sheet1 hàng 18–19 và [quyết định đã xác nhận](../confirmed-decisions.md). Tài liệu này duy trì trách nhiệm và điều kiện tích hợp; request/response nằm tại bản API hiện hành.
+Trạng thái: **GET user nội bộ và introspection đã triển khai ngày 2026-11-15; PATCH trạng thái còn thiết kế**, tổng 11 IMPLEMENTED/9 DESIGN_ONLY tại [hợp đồng](sessions.md#introspect). Gateway và Service JWT chưa triển khai. Cập nhật cách trình bày: 2026-10-24. Nguồn: Excel Sheet1 hàng 18–19 và [quyết định đã xác nhận](../confirmed-decisions.md). Tài liệu này duy trì trách nhiệm và điều kiện tích hợp; request/response nằm tại bản API hiện hành.
 
 **Đã xác nhận bổ sung ngày 2026-10-31:** [Q03](../confirmed-decisions.md#internal-service-auth) dùng Service JWT riêng cho Admin/Borrow, quyền từng service và header chứng minh actor Admin; [Q10](../confirmed-decisions.md#admin-status-contract) chốt retry/cạnh tranh/audit trạng thái. Gateway dùng Service JWT gọi [introspection](sessions.md#introspection-endpoint-rfc-7662). Cấu hình Service JWT tiếp tục **PENDING DECISION** tại [Q03](../open-decisions.md#q03)/[Q11a](../open-decisions.md#q11a). [User access token Q14](../confirmed-decisions.md#access-token-key-pair) đã chốt riêng; không dùng user token thay danh tính service.
 
@@ -14,7 +14,7 @@ Theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-servi
 | PATCH trạng thái | Không yêu cầu thông tin xác thực service; vẫn bắt buộc X-Admin-Access-Token, actor ACTIVE, phiên hợp lệ và role ADMIN hiện tại |
 | POST introspection | Không yêu cầu thông tin xác thực service; vẫn xác minh user access token từ form, trạng thái user/phiên và roles hiện tại |
 
-Admin/Borrow/Gateway vẫn có trách nhiệm nghiệp vụ như thiết kế; giai đoạn này chưa chứng minh danh tính service gọi hoặc thực thi quyền theo service. Thông tin service trong audit chỉ là ngữ cảnh chưa xác thực. Các kiểm tra actor, cấm khóa ADMIN, transaction/thu hồi phiên và lỗi nghiệp vụ/hạ tầng giữ nguyên. Chưa có endpoint được triển khai hoặc thay đổi security runtime trong lần cập nhật docs này.
+Admin/Borrow/Gateway vẫn có trách nhiệm nghiệp vụ như thiết kế; giai đoạn này chưa chứng minh danh tính service gọi hoặc thực thi quyền theo service. Thông tin service trong audit chỉ là ngữ cảnh chưa xác thực. Các kiểm tra actor, cấm khóa ADMIN, transaction/thu hồi phiên và lỗi nghiệp vụ/hạ tầng giữ nguyên. Đợt ghi nhận quyết định ban đầu chỉ đổi docs; ngày 2026-11-15 đã triển khai introspection và GET user nội bộ với chain riêng mặc định tin tưởng service.
 
 ## Xác thực và phân quyền service
 
@@ -32,7 +32,15 @@ User Service giới hạn quyền theo service đã được tin cậy, không c
 
 ## Tra cứu user
 
-[GET /api/v1/internal/users/{id}](current-contract.md#internal-user-get) yêu cầu Service JWT của Borrow hoặc Admin với quyền users:read; không cho client Web/Android gọi trực tiếp. Tên “Service Token” trong Excel là nguồn lịch sử, không thay lựa chọn Service JWT đã chốt.
+**IMPLEMENTED ngày 2026-11-15:** [GET /api/v1/internal/users/{id}](current-contract.md#internal-user-get) phục vụ Borrow/Admin. Runtime mặc định tin tưởng service gọi theo quyết định ngày 2026-11-10. ServiceJwt/users:read trong OpenAPI là hợp đồng đích của bước bảo mật service.
+
+`internal.web.InternalUserController` nhận id integer dương/int32, trả ApiResponse<InternalUserSummary> với USER_GET_SUCCESS. DTO đủ năm trường id/userName/fullName/status/roles; roles hiện tại từ database theo tên tăng dần, mảng rỗng trả []. User không tồn tại dùng 404 USER_NOT_FOUND. ID không dương dùng 400 VALIDATION_ERROR/OUT_OF_RANGE; sai kiểu hoặc vượt int32 dùng TYPE_MISMATCH.
+
+`internal.service.InternalUserService.getUser` dùng READ_COMMITTED/readOnly, tái sử dụng UserRepository.findById và RoleRepository.findNamesByUserId. Dựng DTO trong transaction, chỉ trả thành công sau khi transaction hoàn tất. Hai truy vấn theo READ_COMMITTED. Thao tác đọc không khóa user hoặc cập nhật dữ liệu.
+
+Chain stateless riêng khớp đúng mẫu /api/v1/internal/users/{id}, bỏ qua Authorization, kể cả header sai/hết hạn/lặp. Danh tính trong header/query/cookie không tham gia chọn user. Cache-Control no-store áp dụng cả thành công/lỗi. Method ghi tới đúng path dùng lỗi 405 nền tảng; các path /status hoặc path con khác vẫn được chain user Bearer bảo vệ khi chưa triển khai. Lỗi phụ thuộc tạm thời dùng 503 SERVICE_UNAVAILABLE; lỗi ngoài dự kiến dùng 500 INTERNAL_ERROR.
+
+InternalUserServiceTests kiểm tra mapping/404/lỗi repository; InternalUserHttpTests kiểm tra HTTP/filter/validation/header và ranh giới matcher. InternalUserIntegrationTests chỉ bật khi system property chọn rõ UserDB_test, dùng RSA tạm, fixture theo ID, xác nhận transaction đọc thật, roles hiện tại, ACTIVE/BANNED và dữ liệu trước/sau. Kết quả chạy thực tế tại [development](../development.md#kiểm-thử-hiện-có).
 
 API trả cả user BANNED để service gọi tự kiểm tra nghiệp vụ. HTTP 200 chỉ xác nhận tra cứu thành công, không bảo đảm đủ điều kiện mượn. Borrow Service chịu trách nhiệm kiểm tra điều kiện nghiệp vụ từ status/roles và dữ liệu thuộc phạm vi của mình.
 
@@ -59,4 +67,4 @@ Timeout chưa xác định được kết quả commit: Admin đọc lại user 
 | Retry và cạnh tranh | [Q10 đã chốt](../confirmed-decisions.md#admin-status-contract): trạng thái đích, tuần tự hóa theo user, đối soát timeout, audit và cấm khóa ADMIN; không bảo đảm exactly-once |
 | Dữ liệu | Các writer trạng thái/login/refresh/password/thu hồi phải giữ [tính nhất quán](../requirements.md#tính-nhất-quán-khi-có-request-đồng-thời); không ghi trực tiếp UserDB từ service khác |
 
-Kế hoạch kiểm thử khi được yêu cầu code chức năng: gọi nội bộ không có Service JWT, actor Admin thiếu/sai/không đủ quyền vẫn bị từ chối, user không tồn tại, tra cứu BANNED, khóa/mở khóa lặp, cạnh tranh khóa với login/refresh, không phục hồi phiên/token và introspection sau thu hồi. Kiểm thử danh tính/quyền service và chặn caller không được phép được thực hiện ở bước bổ sung Service JWT sau khi hoàn tất chức năng. Kiểm thử API quản lý role thuộc phiên bản mở rộng. Đây là kế hoạch, chưa phải kết quả kiểm thử.
+Kế hoạch kiểm thử khi được yêu cầu code chức năng: gọi nội bộ không có Service JWT, actor Admin thiếu/sai/không đủ quyền vẫn bị từ chối, user không tồn tại, tra cứu BANNED, khóa/mở khóa lặp, cạnh tranh khóa với login/refresh, không phục hồi phiên/token và introspection sau thu hồi. Kiểm thử danh tính/quyền service và chặn caller không được phép được thực hiện ở bước bổ sung Service JWT sau khi hoàn tất chức năng. Kiểm thử API quản lý role thuộc phiên bản mở rộng. Các ca GET user nội bộ đã có kiểm thử ngày 2026-11-15. Các ca PATCH trạng thái và Service JWT tiếp tục là kế hoạch.
