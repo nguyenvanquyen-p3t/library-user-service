@@ -1,6 +1,6 @@
 # Nền tảng bảo mật người dùng và login UC02
 
-Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), tổng 9 IMPLEMENTED/11 DESIGN_ONLY. Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation.
+Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), tổng 10 IMPLEMENTED/10 DESIGN_ONLY. Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation.
 
 ## Thành phần và trách nhiệm
 
@@ -43,7 +43,7 @@ Login nhận đúng `identifier` và `password`, trả envelope với `LOGIN_SUC
 
 Các writer password/status/refresh/revoke sau này phải khóa cùng user trước khi đọc/ghi dữ liệu phiên/token để tuần tự với login. Tầng xác thực request chỉ kiểm tra tại thời điểm đọc; không cam kết hủy request đã qua kiểm tra trước commit thu hồi.
 
-Runtime dùng ba filter chain: GET tài liệu công khai; ba path login/refresh/logout mọi method công khai để MVC trả 405/415 và bỏ qua Bearer cũ; các request còn lại yêu cầu user Bearer. Header writer của chain công khai đặt Cache-Control no-store cả khi validation/nghiệp vụ lỗi. HTTP Basic, form login, logout mặc định, CSRF và HTTP session đã tắt; default user tự sinh của Spring Boot cũng bị loại. Không nhận token qua cookie/query, không tin header tự khai user/role. Error dispatch giữ lỗi HTTP gốc. Method security được bật cho endpoint có kiểm tra quyền sau này.
+Runtime từ ngày 2026-11-15 dùng bốn filter chain, thêm chain riêng cho [introspection](api/sessions.md#introspect) mặc định tin tưởng service; ba chain còn lại gồm: GET tài liệu công khai; ba path login/refresh/logout mọi method công khai để MVC trả 405/415 và bỏ qua Bearer cũ; các request còn lại yêu cầu user Bearer. Header writer của chain công khai đặt Cache-Control no-store cả khi validation/nghiệp vụ lỗi. HTTP Basic, form login, logout mặc định, CSRF và HTTP session đã tắt; default user tự sinh của Spring Boot cũng bị loại. Không nhận token qua cookie/query, không tin header tự khai user/role. Error dispatch giữ lỗi HTTP gốc. Method security được bật cho endpoint có kiểm tra quyền sau này.
 
 ## Refresh và logout UC03–UC04
 
@@ -67,7 +67,7 @@ Nếu refresh đã commit nhưng mất response, token cũ không được cấp
 | Database/phụ thuộc tạm không khả dụng, không mở được transaction | 503 `SERVICE_UNAVAILABLE` |
 | Lỗi ngoài dự kiến | 500 `INTERNAL_ERROR` |
 
-Lỗi filter dùng envelope hiện có, data null, `Cache-Control: no-store`; 401 có `WWW-Authenticate: Bearer`. Không biến lỗi database thành lỗi token. Các request không có controller nghiệp vụ vẫn chưa phải API hoạt động dù đã qua filter. Ba operation nội bộ sẽ có chính sách service tin tưởng khi được triển khai; chưa mở chúng trong đợt UC02. Actor ADMIN và introspection vẫn là bước sau.
+Lỗi filter dùng envelope hiện có, data null, `Cache-Control: no-store`; 401 có `WWW-Authenticate: Bearer`. Không biến lỗi database thành lỗi token. Các request không có controller nghiệp vụ vẫn chưa phải API hoạt động dù đã qua filter. Ba operation nội bộ sẽ có chính sách service tin tưởng khi được triển khai; chưa mở chúng trong đợt UC02. Actor ADMIN vẫn là bước sau; introspection đã mở ngày 2026-11-15 theo quyết định hoãn Service JWT.
 
 Không log DTO/exception chứa thông tin xác thực. Đã tắt chi tiết request và log Hibernate JDBC error/bind/extract có thể chứa hash trong lỗi constraint; handler chỉ ghi loại exception. Không bật lại các log này hoặc log SQL/HTTP body có dữ liệu thật.
 
@@ -78,7 +78,7 @@ Không log DTO/exception chứa thông tin xác thực. Đã tắt chi tiết re
 Các test dùng khóa RSA tạm tự sinh; không đọc private key dự án. Chạy nhóm không dùng database từ `backend/`:
 
 ```powershell
-.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests" test
+.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests" test
 ```
 
 Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **chỉ chọn `UserDB_test`; không dùng database dự án hoặc xóa token để vượt V6**:
@@ -91,4 +91,4 @@ Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **ch�
 
 `RefreshLogoutServiceTests` dùng Clock kiểm soát để kiểm tra biên thời gian và thứ tự lỗi. `RefreshLogoutIntegrationTests` chỉ bật trên UserDB_test, kiểm tra HTTP/commit thật, lịch sử rotation, logout bằng token cũ, rollback lỗi lưu/ký/COMMIT, hai refresh và refresh/logout ở cả hai thứ tự có chờ khóa thực. Fixture được dọn theo ID user; khóa test tạm như UC02.
 
-[API quản lý phiên UC10–UC12](user-sessions.md) đã triển khai ngày 2026-11-14. Chưa có introspection, đăng ký, reset/thiết lập mật khẩu hoặc quản trị trạng thái. Đổi mật khẩu UC07 đã triển khai ngày 2026-11-13. GET/PATCH hồ sơ UC06 đã triển khai; xem [transaction UC06](user-profile.md#transaction-và-patch). Chưa có Gateway, xác thực actor Admin, CORS, rate limit login, Google/SMTP hoặc cleanup. Không coi 9 API đã chạy là hoàn tất bảo mật/tích hợp toàn hệ thống. Kết quả lần chạy được ghi ở [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có).
+[API quản lý phiên UC10–UC12](user-sessions.md) đã triển khai ngày 2026-11-14. Introspection đã có ngày 2026-11-15. Chưa có đăng ký, reset/thiết lập mật khẩu hoặc quản trị trạng thái. Đổi mật khẩu UC07 đã triển khai ngày 2026-11-13. GET/PATCH hồ sơ UC06 đã triển khai; xem [transaction UC06](user-profile.md#transaction-và-patch). Chưa có Gateway, xác thực actor Admin, CORS, rate limit login, Google/SMTP hoặc cleanup. Không coi 10 API đã chạy là hoàn tất bảo mật/tích hợp toàn hệ thống. Kết quả lần chạy được ghi ở [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có).

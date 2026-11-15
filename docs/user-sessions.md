@@ -1,6 +1,6 @@
 # Quản lý phiên UC10–UC12
 
-Triển khai ngày 2026-11-14 theo kế hoạch chủ dự án duyệt. Tổng hiện tại **9 IMPLEMENTED/11 DESIGN_ONLY**, giữ nguyên 7 bảng và Flyway V1–V6. Chính sách tại [quyết định UC10–UC12](confirmed-decisions.md#user-sessions-uc10-uc12); request/response tại [API phiên](api/sessions.md). Introspection vẫn DESIGN_ONLY.
+Triển khai ngày 2026-11-14 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), tổng hiện tại **10 IMPLEMENTED/10 DESIGN_ONLY**, giữ nguyên 7 bảng và Flyway V1–V6. Chính sách tại [quyết định UC10–UC12](confirmed-decisions.md#user-sessions-uc10-uc12); request/response tại [API phiên](api/sessions.md). Gateway và Service JWT vẫn chưa triển khai.
 
 ## HTTP và xác thực
 

@@ -1,10 +1,10 @@
 # Thiết kế API quản lý phiên và introspection
 
-Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Ba endpoint quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection chưa triển khai; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie.
+Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Ba endpoint quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection đã triển khai ngày 2026-11-15; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie.
 
 ## Những điểm đã chốt
 
-**Implementation ngày 2026-11-10:** [login UC02/nền tảng user JWT](../user-security.md) đã tạo session và refresh token đúng schema hiện có, kiểm tra user/phiên/role cho Bearer. Tại mốc UC02 bốn endpoint trong tài liệu này chưa triển khai; ngày 2026-11-11 đã thêm rotation UC03 và thu hồi phiên bằng logout UC04; ngày 2026-11-14 đã thêm [quản lý phiên UC10–UC12](../user-sessions.md); introspection/Gateway chưa triển khai. JWT được cấp bởi login đã dùng được trong nền tảng Bearer; chưa có endpoint introspection để Gateway gọi.
+**Implementation ngày 2026-11-10:** [login UC02/nền tảng user JWT](../user-security.md) đã tạo session và refresh token đúng schema hiện có, kiểm tra user/phiên/role cho Bearer. Tại mốc UC02 bốn endpoint trong tài liệu này chưa triển khai; ngày 2026-11-11 đã thêm rotation UC03 và thu hồi phiên bằng logout UC04; ngày 2026-11-14 đã thêm [quản lý phiên UC10–UC12](../user-sessions.md); ngày 2026-11-15 đã thêm introspection để Gateway gọi, Gateway chưa triển khai.
 
 - Thêm UserSessions, liên kết RefreshTokens.SessionId. Không có bảng Devices riêng: thông tin thiết bị là metadata của phiên, không phải bằng chứng danh tính.
 - Theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-service-auth), giai đoạn chức năng mặc định tin tưởng Gateway, chưa yêu cầu Service JWT hoặc kiểm tra quyền service. Sau khi hoàn tất tất cả chức năng mới bổ sung **Service JWT**, tách khỏi access token người dùng được kiểm tra.
@@ -13,7 +13,7 @@ Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp 
 - Migration V6 chỉ chạy khi **RefreshTokens hoàn toàn rỗng**, kể cả không còn bản ghi token hết hạn/đã thu hồi. Không tự xóa, thu hồi hoặc gán phiên giả cho token cũ.
 - API quản lý role vẫn ngoài phạm vi. Không thêm Redis hoặc JWT blacklist.
 
-Hành vi được ghi là **Đã xác nhận** tuân theo sổ quyết định. [Schema JSON](json-schema.md) và [HTTP/lỗi](http-errors.md) áp dụng kiểu ID/thời gian, status và các mã đã nêu; ba API phiên dùng envelope chung, introspection có định dạng riêng. Chủ dự án chốt ngày 2026-10-26 [ba API phiên](../confirmed-decisions.md#session-response-contract) và [introspection](../confirmed-decisions.md#introspection-contract). User access token Q14 chốt ngày 2026-10-31; cấu hình Service JWT còn Q03/Q11a, các tình huống/mã/chi tiết ngoài danh mục vẫn thuộc [Q09](../open-decisions.md#q09). Ba API phiên đã triển khai; introspection còn thiết kế.
+Hành vi được ghi là **Đã xác nhận** tuân theo sổ quyết định. [Schema JSON](json-schema.md) và [HTTP/lỗi](http-errors.md) áp dụng kiểu ID/thời gian, status và các mã đã nêu; ba API phiên dùng envelope chung, introspection có định dạng riêng. Chủ dự án chốt ngày 2026-10-26 [ba API phiên](../confirmed-decisions.md#session-response-contract) và [introspection](../confirmed-decisions.md#introspection-contract). User access token Q14 chốt ngày 2026-10-31; cấu hình Service JWT còn Q03/Q11a, các tình huống/mã/chi tiết ngoài danh mục vẫn thuộc [Q09](../open-decisions.md#q09). Ba API phiên và introspection đã triển khai; Service JWT/Gateway còn ở bước sau.
 
 Chính sách [token](../confirmed-decisions.md#user-tokens) và [thời hạn session](../confirmed-decisions.md#session-lifetime) được duy trì tại sổ quyết định. Session hết hạn thì access token bị introspection từ chối và refresh thất bại dù token còn hạn riêng; refresh không gia hạn session. LastSeenAt chỉ phục vụ hiển thị hoạt động gần nhất. Chi tiết Service JWT còn [Q11a](../open-decisions.md#q11a).
 
@@ -161,6 +161,21 @@ Client xóa token và yêu cầu đăng nhập lại khi phiên bị thu hồi; 
 
 `POST /api/v1/internal/oauth2/introspect`
 
+**IMPLEMENTED ngày 2026-11-15:** `internal.web.IntrospectionController` và `internal.service.IntrospectionService` đã triển khai. Tổng hiện tại **10 IMPLEMENTED/10 DESIGN_ONLY**. Chỉ endpoint User Service đã có; Gateway và xác thực Service JWT chưa triển khai. Các mốc triển khai trước ngày này trong tài liệu là lịch sử.
+
+**Implementation và transaction đọc**
+
+- Security dùng chain riêng chỉ cho đúng path introspection, không chạy filter user Bearer hoặc xác thực service. Authorization không được dùng thay token trong form, kể cả header sai/hết hạn. Path nội bộ khác tiếp tục được bảo vệ như trước.
+- Controller `@Hidden` giữ YAML là nguồn OpenAPI. Dùng `FormHttpMessageConverter` với input stream body gốc; không dựng form từ servlet parameter map vì cách đó trộn query vào body. Query/cookie không thay thế token; trường lạ hoặc tham số lặp trong body bị từ chối. Form rỗng/sai encoding trả 400; JSON hoặc media type khác trả 415.
+- Tái sử dụng `UserAccessTokenService.verify` và `UserSessionAuthenticator.authenticate`. JWT giữ chính sách `typ=at+jwt`, kid tin cậy, RS256, claim và dung sai 30 giây hiện có; JWT có khoảng trắng bao quanh không được tự trim để chấp nhận. Hạn phiên không có dung sai.
+- Authenticator mở transaction readOnly hiện hữu, dùng READ_COMMITTED mặc định của PostgreSQL. Service điều phối không mở transaction bao ngoài; chỉ bắt ACCESS_TOKEN_INVALID/SESSION_INACTIVE sau khi lời gọi transactional kết thúc để trả inactive. Không khóa user, không ghi user/phiên/token/LastSeenAt và không cache kết quả. Không cam kết snapshot chung cho mọi truy vấn hoặc hủy request đã vượt kiểm tra trước khi thu hồi commit.
+- Active response dùng claim từ JWT đã xác minh và roles hiện tại từ database, kể cả mảng rỗng. Lỗi mở/đọc transaction hoặc phụ thuộc tạm thời trả 503; lỗi ngoài dự kiến trả 500, không trở thành inactive.
+- Mọi response ứng dụng dùng application/json và Cache-Control no-store. Method khác POST trả 405/Allow POST, gồm OPTIONS; HEAD giữ status/header và không có body theo ngữ nghĩa HTTP. Lỗi riêng dùng IntrospectionErrorFormatter, không qua envelope chung. Ba lỗi 401 Service JWT bên dưới chỉ thuộc hợp đồng đích cho bước bảo mật service sau.
+
+**Kiểm thử implementation**
+
+`IntrospectionServiceTests` kiểm tra mapping/nguồn roles, giữ token/hint và chỉ chuyển đúng hai mã xác thực thành inactive. `IntrospectionHttpTests` dùng HTTP/filter/controller/mapper thật với repository giả lập, không database/.env; kiểm tra form body độc lập query/cookie, schema/header, bỏ qua Authorization, method/media type và lỗi hạ tầng. `IntrospectionIntegrationTests` chỉ bật khi system property chọn rõ UserDB_test, dùng RSA tạm và fixture theo ID; kiểm tra transaction đọc thật, JWT/phiên tại biên, roles hiện tại, không thay đổi dữ liệu và introspection sau rotation/logout/đổi mật khẩu/UC11/UC12 commit. Kết quả thực tế tại [development](../development.md#kiểm-thử-hiện-có).
+
 **Giai đoạn chức năng theo quyết định ngày 2026-11-10:** Gateway không cần gửi Service JWT; User Service mặc định tin tưởng service gọi, bỏ qua bước danh tính/quyền Gateway và xử lý user token trong form. User token vẫn được xác minh đầy đủ theo điều kiện active bên dưới. Q11a chưa chốt không chặn triển khai introspection.
 
 ```http
@@ -211,7 +226,7 @@ Server bỏ qua hint khi cần xác định token; hint không thay đổi loạ
 | `iat` | integer/int64, Unix timestamp theo giây, lấy từ user JWT |
 | `roles` | array string lấy từ database, không có role thì [] |
 
-Ví dụ HTTP 200, schema đã xác nhận; iss/aud theo Q14 chốt ngày 2026-10-31, giá trị user/session/thời gian minh họa. User JWT đã có cấu hình runtime; response introspection dưới đây vẫn là thiết kế:
+Ví dụ HTTP 200, schema đã xác nhận; iss/aud theo Q14 chốt ngày 2026-10-31, giá trị user/session/thời gian minh họa. User JWT đã có cấu hình runtime; response introspection dưới đây là ví dụ theo implementation ngày 2026-11-15:
 
 ```json
 {
@@ -245,7 +260,7 @@ Mọi response introspection dùng Content-Type application/json và Cache-Contr
 
 ## Danh tính Gateway và vận hành
 
-Các yêu cầu danh tính/quyền Gateway, lỗi 401 xác thực service và kiểm thử Service JWT dưới đây được áp dụng ở bước bổ sung xác thực service **sau khi hoàn tất tất cả chức năng**. Giai đoạn chức năng mặc định tin tưởng Gateway theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-service-auth); kiểm tra user token/phiên, lỗi form/hạ tầng và Cache-Control no-store vẫn áp dụng. Nền tảng user security/login UC02 đã thay cấu hình runtime; xác thực service và endpoint introspection vẫn chưa triển khai.
+Các yêu cầu danh tính/quyền Gateway, lỗi 401 xác thực service và kiểm thử Service JWT dưới đây được áp dụng ở bước bổ sung xác thực service **sau khi hoàn tất tất cả chức năng**. Giai đoạn chức năng mặc định tin tưởng Gateway theo [quyết định ngày 2026-11-10](../confirmed-decisions.md#deferred-service-auth); kiểm tra user token/phiên, lỗi form/hạ tầng và Cache-Control no-store vẫn áp dụng. Nền tảng user security/login UC02 đã thay cấu hình runtime; endpoint introspection đã triển khai ngày 2026-11-15; xác thực service vẫn hoãn.
 
 **Đã chốt Service JWT** và quyền Gateway tokens:introspect theo [Q03 ngày 2026-10-31](../confirmed-decisions.md#internal-service-auth). Vẫn **PENDING DECISION** về bên phát token, thuật toán, issuer, audience dành riêng cho introspection, subject của Gateway, TTL, tập claim/cách biểu diễn quyền và phân phối/rotation khóa. Chủ dự án giữ cấu hình Service JWT Q11a để nghiên cứu thêm; Q14 đã chốt riêng cho user token, không mặc định áp RS256/5 phút, issuer/audience/kid hoặc phương án public key/JWKS sang Service JWT. Không tự chọn HTTP Basic, API Key hoặc dùng Private Key người dùng cho Gateway.
 
@@ -269,4 +284,4 @@ V6 kiểm tra RefreshTokens rỗng trước khi thay đổi schema, thêm UserSe
 
 **Kế hoạch kiểm thử migration khi được yêu cầu**, trên PostgreSQL riêng: chạy V1–V6 trên database mới; từ chối V6 khi V1–V5 có token; giữ nguyên dữ liệu khi thất bại; kiểm tra FK khác user/khác phiên, SessionId bắt buộc/bất biến, thời gian và xóa token thay thế.
 
-Khi được yêu cầu code API: kiểm thử JWT/Service JWT độc lập, ownership, từ chối thu hồi phiên hiện tại ở UC11, giữ phiên hiện tại ở UC12, thu hồi lặp lại, refresh cạnh tranh revoke, token cũ sau mở khóa, Gateway timeout và chặn đường đi vòng. Đã có test endpoint phiên UC10–UC12; chưa có test endpoint introspection; test login UC02 và nền tảng user security đã có. Kết quả thực tế UC10–UC12 tại [development](../development.md#kiểm-thử-hiện-có); kế hoạch introspection không phải bằng chứng đã pass.
+Khi được yêu cầu code API: kiểm thử JWT/Service JWT độc lập, ownership, từ chối thu hồi phiên hiện tại ở UC11, giữ phiên hiện tại ở UC12, thu hồi lặp lại, refresh cạnh tranh revoke, token cũ sau mở khóa, Gateway timeout và chặn đường đi vòng. Đã có test endpoint phiên UC10–UC12; đã có test endpoint introspection ngày 2026-11-15; test login UC02 và nền tảng user security đã có. Kết quả thực tế UC10–UC12 tại [development](../development.md#kiểm-thử-hiện-có); các ca Gateway/Service JWT chưa triển khai vẫn là kế hoạch, không phải bằng chứng đã pass.

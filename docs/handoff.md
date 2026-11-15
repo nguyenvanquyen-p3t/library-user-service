@@ -13,6 +13,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 
 ## Hiện trạng cần biết
 
+**Triển khai ngày 2026-11-15:** [introspection](api/sessions.md#introspect) đã có, tổng **10 IMPLEMENTED/10 DESIGN_ONLY**. Dùng nền tảng user JWT/transaction đọc, form body và JSON riêng, chưa yêu cầu Service JWT. Gateway/hai API user nội bộ chưa triển khai; các số liệu theo ngày bên dưới là lịch sử. Kết quả tại [development](development.md#kiểm-thử-hiện-có).
+
 **Triển khai ngày 2026-11-14:** [quản lý phiên UC10–UC12](user-sessions.md) đã có; tổng **9 IMPLEMENTED/11 DESIGN_ONLY**. UC10 dùng snapshot REPEATABLE_READ; UC11/UC12 READ_COMMITTED, khóa user và kiểm tra lại user/phiên gọi. Lý do thu hồi SESSION_REVOKED/OTHER_SESSIONS_REVOKED; giữ LastSeenAt và lịch sử đã kết thúc. Các mốc/số liệu theo ngày bên dưới là lịch sử. Kết quả kiểm tra mới tại [development](development.md#kiểm-thử-hiện-có).
 
 **Triển khai ngày 2026-11-13:** [đổi mật khẩu UC07](user-password.md) đã có; tổng 6 IMPLEMENTED/14 DESIGN_ONLY. READ_COMMITTED, khóa cùng user và kiểm tra lại user/phiên sau khóa; đổi hash và thu hồi mọi phiên/token còn hiệu lực cùng transaction. Giữ nguyên lịch sử đã kết thúc. Các mốc/số liệu theo ngày bên dưới là lịch sử. Kết quả kiểm tra đợt này tại [development](development.md#kiểm-thử-hiện-có).

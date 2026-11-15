@@ -5,7 +5,7 @@ import org.springframework.util.MultiValueMap;
 import com.library.userservice.common.api.ErrorCode;
 import com.library.userservice.common.exception.ApplicationException;
 
-/** Chỉ kiểm tra form; xác thực/quyền Gateway phải hoàn tất trước khi gọi. */
+/** Kiểm tra form; Service JWT/quyền Gateway được bổ sung sau giai đoạn chức năng. */
 public record IntrospectionRequest(String token, String token_type_hint) {
     public IntrospectionRequest {
         if (token == null || token.isEmpty()) throw new ApplicationException(ErrorCode.INVALID_REQUEST);

@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 đã triển khai, 11 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection đã triển khai, 10 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 đã triển khai, 11 operation khác còn DESIGN_ONLY.
+  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection đã triển khai, 10 operation khác còn DESIGN_ONLY.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -1141,14 +1141,16 @@ paths:
       - Nội bộ
       operationId: introspectUserAccessToken
       summary: Gateway kiểm tra user access token và phiên (RFC 7662)
-      description: 'THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI. Gateway gửi Service JWT trong Authorization, user access
-        token trong form token. Kiểm tra danh tính/quyền Gateway trước token người dùng. Chỉ user access token được
+      description: 'IMPLEMENTED ngày 2026-11-15. Giai đoạn chức năng mặc định tin tưởng service gọi, không yêu cầu
+        hoặc xác minh Authorization/Service JWT. User access token chỉ lấy từ form body token; query/cookie không thay thế.
+        Service JWT/quyền Gateway và lỗi 401 dưới đây là hợp đồng đích sau khi hoàn tất chức năng, chưa áp dụng runtime.
+        Khi bổ sung xác thực service mới kiểm tra danh tính/quyền Gateway trước token người dùng. Chỉ user access token được
         introspect; refresh/registration/Service JWT trong token trả active false. JWT đúng chữ ký/issuer/audience/thời
         hạn, user ACTIVE, phiên đúng user/còn hiệu lực mới active true. Phiên hết hạn/thu hồi làm active false dù
         JWT còn hạn. Roles lấy từ database; không cache active response. Lỗi hạ tầng/xác thực Gateway không trở
         thành inactive. PENDING DECISION Q11a: bên phát/cấu hình Service JWT Gateway, không suy ra từ user RS256/Q14.
         Kết nối triển khai yêu cầu TLS.'
-      x-implementation-status: DESIGN_ONLY
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/sessions.md#introspect
       x-required-service-permission: tokens:introspect
       security:
@@ -1293,7 +1295,7 @@ paths:
                 - no-store
               description: Mọi response introspection không được cache.
         '401':
-          description: 'Thiếu xác thực: {} và Bearer; token sai: invalid_token; thiếu quyền: insufficient_scope.
+          description: 'Hợp đồng đích khi bổ sung Service JWT; chưa áp dụng runtime. Thiếu xác thực: {} và Bearer; token sai: invalid_token; thiếu quyền: insufficient_scope.
             Cả ba đều 401, không dùng 403/envelope.'
           content:
             application/json:

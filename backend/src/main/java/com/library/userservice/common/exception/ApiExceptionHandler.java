@@ -5,6 +5,7 @@ import com.library.userservice.common.api.ErrorCode;
 import com.library.userservice.common.api.FieldViolation;
 import com.library.userservice.common.api.ValidationErrorData;
 import com.library.userservice.common.validation.ValidationCode;
+import com.library.userservice.internal.web.IntrospectionController;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -44,11 +45,27 @@ public class ApiExceptionHandler {
         if (exception instanceof org.springframework.security.access.AccessDeniedException) throw exception;
         // 405/415 có thể xảy ra trước khi Spring chọn controller nên selector basePackages không đủ.
         if (!isProjectHandler(request)) throw exception;
-        var response = handle(exception);
+        var response = IntrospectionController.PATH.equals(request.getServletPath())
+                ? handleIntrospection(exception) : handle(exception);
         if (response.getStatusCode().is5xxServerError())
             org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class)
                     .error("Không xử lý được request, loại lỗi: {}", exception.getClass().getName());
         return response;
+    }
+
+    private ResponseEntity<Object> handleIntrospection(Exception exception) {
+        var reason = IntrospectionErrorFormatter.Reason.INTERNAL_ERROR;
+        if (exception instanceof HttpRequestMethodNotSupportedException)
+            reason = IntrospectionErrorFormatter.Reason.METHOD_NOT_ALLOWED;
+        else if (exception instanceof HttpMediaTypeNotSupportedException)
+            reason = IntrospectionErrorFormatter.Reason.UNSUPPORTED_MEDIA_TYPE;
+        else if (exception instanceof HttpMessageNotReadableException
+                || exception instanceof ApplicationException app && app.code() == ErrorCode.INVALID_REQUEST)
+            reason = IntrospectionErrorFormatter.Reason.INVALID_REQUEST;
+        else if (exception instanceof TransientDataAccessException || exception instanceof DataAccessResourceFailureException
+                || exception instanceof org.springframework.transaction.CannotCreateTransactionException)
+            reason = IntrospectionErrorFormatter.Reason.UNAVAILABLE;
+        return IntrospectionErrorFormatter.format(reason);
     }
 
     private boolean isProjectHandler(HttpServletRequest request) {

@@ -1,6 +1,6 @@
 # Đổi mật khẩu UC07
 
-`PUT /api/v1/users/me/password` triển khai ngày 2026-11-13 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), tổng hiện tại **9 IMPLEMENTED/11 DESIGN_ONLY**, giữ nguyên 7 bảng và V1–V6. Hợp đồng tại [UC07](api/current-contract.md#password-change), chính sách tại [quyết định UC07](confirmed-decisions.md#user-password-uc07), validation tại [schema JSON](api/json-schema.md#validation).
+`PUT /api/v1/users/me/password` triển khai ngày 2026-11-13 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), tổng hiện tại **10 IMPLEMENTED/10 DESIGN_ONLY**, giữ nguyên 7 bảng và V1–V6. Hợp đồng tại [UC07](api/current-contract.md#password-change), chính sách tại [quyết định UC07](confirmed-decisions.md#user-password-uc07), validation tại [schema JSON](api/json-schema.md#validation).
 
 ## HTTP và xác thực
 

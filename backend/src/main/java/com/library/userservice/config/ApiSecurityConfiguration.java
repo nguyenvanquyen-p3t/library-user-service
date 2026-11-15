@@ -2,6 +2,8 @@ package com.library.userservice.config;
 
 import com.library.userservice.common.api.ErrorCode;
 import com.library.userservice.security.SecurityErrorWriter;
+import com.library.userservice.security.IntrospectionProtocolFilter;
+import com.library.userservice.internal.web.IntrospectionController;
 import com.library.userservice.security.UserAccessTokenService;
 import com.library.userservice.security.UserBearerAuthenticationFilter;
 import com.library.userservice.security.UserSessionAuthenticator;
@@ -15,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
@@ -30,6 +33,16 @@ public class ApiSecurityConfiguration {
 
     @Bean
     @Order(3)
+    SecurityFilterChain introspectionSecurityFilterChain(HttpSecurity http, JsonMapper mapper) throws Exception {
+        // Chỉ hoãn Service JWT; user token trong form vẫn được xác minh đầy đủ ở service.
+        return stateless(http).securityMatcher(IntrospectionController.PATH)
+                .headers(headers -> headers.addHeaderWriter((request, response) -> response.setHeader("Cache-Control", "no-store")))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .addFilterBefore(new IntrospectionProtocolFilter(mapper), AnonymousAuthenticationFilter.class).build();
+    }
+
+    @Bean
+    @Order(4)
     SecurityFilterChain userApiSecurityFilterChain(HttpSecurity http, UserAccessTokenService tokens,
             UserSessionAuthenticator sessions, SecurityErrorWriter errors) throws Exception {
         return stateless(http)

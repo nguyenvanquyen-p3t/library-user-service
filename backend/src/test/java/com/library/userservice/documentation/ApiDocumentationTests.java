@@ -77,7 +77,7 @@ class ApiDocumentationTests {
             for (var operation : path) {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
-                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions").contains(operation.path("operationId").asText())
+                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken").contains(operation.path("operationId").asText())
                                 ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }
@@ -93,6 +93,8 @@ class ApiDocumentationTests {
         assertThat(adminSecurity.get(0).has("ServiceJwt")).isTrue();
         assertThat(adminSecurity.get(0).has("AdminAccessToken")).isTrue();
         var introspection = paths.path("/api/v1/internal/oauth2/introspect").path("post");
+        assertThat(introspection.path("security").get(0).has("ServiceJwt")).isTrue();
+        assertThat(introspection.path("description").asText()).contains("mặc định tin tưởng", "Service JWT");
         assertThat(introspection.path("requestBody").path("content").has("application/x-www-form-urlencoded")).isTrue();
         assertThat(introspection.path("responses").path("401").path("headers").has("WWW-Authenticate")).isTrue();
         for (JsonNode response : introspection.path("responses")) {
