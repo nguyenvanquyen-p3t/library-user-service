@@ -4,6 +4,7 @@ import com.library.userservice.common.api.ErrorCode;
 import com.library.userservice.security.SecurityErrorWriter;
 import com.library.userservice.security.IntrospectionProtocolFilter;
 import com.library.userservice.internal.web.IntrospectionController;
+import com.library.userservice.internal.web.InternalUserController;
 import com.library.userservice.security.UserAccessTokenService;
 import com.library.userservice.security.UserBearerAuthenticationFilter;
 import com.library.userservice.security.UserSessionAuthenticator;
@@ -43,6 +44,15 @@ public class ApiSecurityConfiguration {
 
     @Bean
     @Order(4)
+    SecurityFilterChain internalUserSecurityFilterChain(HttpSecurity http) throws Exception {
+        // Giai đoạn chức năng tin tưởng service gọi; chỉ khớp operation tra cứu user.
+        return stateless(http).securityMatcher(InternalUserController.PATH)
+                .headers(headers -> headers.addHeaderWriter((request, response) -> response.setHeader("Cache-Control", "no-store")))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).build();
+    }
+
+    @Bean
+    @Order(5)
     SecurityFilterChain userApiSecurityFilterChain(HttpSecurity http, UserAccessTokenService tokens,
             UserSessionAuthenticator sessions, SecurityErrorWriter errors) throws Exception {
         return stateless(http)

@@ -1,6 +1,6 @@
 # Thiết kế API quản lý phiên và introspection
 
-Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Ba endpoint quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection đã triển khai ngày 2026-11-15; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie.
+Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Ba endpoint quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection đã triển khai ngày 2026-11-15; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Những điểm đã chốt
 
@@ -161,7 +161,7 @@ Client xóa token và yêu cầu đăng nhập lại khi phiên bị thu hồi; 
 
 `POST /api/v1/internal/oauth2/introspect`
 
-**IMPLEMENTED ngày 2026-11-15:** `internal.web.IntrospectionController` và `internal.service.IntrospectionService` đã triển khai. Tổng hiện tại **10 IMPLEMENTED/10 DESIGN_ONLY**. Chỉ endpoint User Service đã có; Gateway và xác thực Service JWT chưa triển khai. Các mốc triển khai trước ngày này trong tài liệu là lịch sử.
+**IMPLEMENTED ngày 2026-11-15:** `internal.web.IntrospectionController` và `internal.service.IntrospectionService` đã triển khai. Tại mốc introspection có **10 IMPLEMENTED/10 DESIGN_ONLY**; sau đó cùng ngày thêm [GET user nội bộ](internal-integration.md#tra-cứu-user), tổng hiện tại 11 IMPLEMENTED/9 DESIGN_ONLY. Chỉ endpoint User Service đã có; Gateway và xác thực Service JWT chưa triển khai. Các mốc triển khai trước ngày này trong tài liệu là lịch sử.
 
 **Implementation và transaction đọc**
 

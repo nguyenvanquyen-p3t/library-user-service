@@ -146,7 +146,7 @@ class IntrospectionHttpTests extends UserSecurityTestKeys {
     }
 
     @Test void neighboringInternalAndUserPathsStillRequireBearer() throws Exception {
-        for (String path : List.of("/api/v1/internal/users/3", "/api/v1/users/me", PATH + "/extra")) {
+        for (String path : List.of("/api/v1/internal/users/3/status", "/api/v1/users/me", PATH + "/extra")) {
             var response = send("GET", path, "", null, "");
             assertThat(response.statusCode()).isEqualTo(401);
             assertThat(mapper.readTree(response.body()).path("messageCode").asText()).isEqualTo("AUTHENTICATION_REQUIRED");

@@ -1,10 +1,10 @@
 # Nền tảng backend dùng chung
 
-Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; login là `IMPLEMENTED` từ ngày 2026-11-10; ngày 2026-11-11 thêm refresh/logout, ngày 2026-11-12 thêm [GET/PATCH hồ sơ UC06](user-profile.md), ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), tổng 10 IMPLEMENTED/10 DESIGN_ONLY. Google, SMTP, Gateway chưa triển khai.
+Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; login là `IMPLEMENTED` từ ngày 2026-11-10; ngày 2026-11-11 thêm refresh/logout, ngày 2026-11-12 thêm [GET/PATCH hồ sơ UC06](user-profile.md), ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Google, SMTP, Gateway chưa triển khai. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Package và trách nhiệm
 
-Ngày 2026-11-15 thêm internal.service.IntrospectionService và internal.web.IntrospectionController, dùng DTO/formatter hiện có. API lỗi 400/405/415/500/503 dùng JSON riêng; ba lỗi 401 service chỉ dành cho bước Service JWT sau. [Chi tiết](api/sessions.md#introspect).
+Ngày 2026-11-15 thêm internal.service.InternalUserService và internal.web.InternalUserController cho GET user nội bộ, tái sử dụng InternalUserSummary/UserRepository/RoleRepository. READ_COMMITTED/readOnly và chain riêng mặc định tin tưởng service; [chi tiết](api/internal-integration.md#tra-cứu-user). Cùng ngày thêm internal.service.IntrospectionService và internal.web.IntrospectionController, dùng DTO/formatter hiện có. API lỗi 400/405/415/500/503 dùng JSON riêng; ba lỗi 401 service chỉ dành cho bước Service JWT sau. [Chi tiết](api/sessions.md#introspect).
 
 Tất cả package nằm dưới `com.library.userservice`:
 

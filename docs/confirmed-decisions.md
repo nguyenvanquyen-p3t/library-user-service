@@ -4,7 +4,9 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
-**Bổ sung triển khai ngày 2026-11-15:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [introspection cho Gateway](#gateway-introspection-implementation). Tổng hiện tại **10 IMPLEMENTED/10 DESIGN_ONLY**. Các số liệu theo ngày bên dưới là lịch sử.
+**Bổ sung triển khai tiếp ngày 2026-11-15:** chủ dự án yêu cầu thực hiện kế hoạch [GET user nội bộ](#internal-user-get-implementation). Tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**; các số liệu theo mốc bên dưới là lịch sử.
+
+**Bổ sung triển khai ngày 2026-11-15:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [introspection cho Gateway](#gateway-introspection-implementation). Tại mốc introspection có **10 IMPLEMENTED/10 DESIGN_ONLY**. Các số liệu theo ngày bên dưới là lịch sử.
 
 **Bổ sung triển khai ngày 2026-11-14:** chủ dự án chốt hai mã lý do riêng, giữ LastSeenAt hiện tại, duyệt kế hoạch và yêu cầu triển khai [quản lý phiên UC10–UC12](#user-sessions-uc10-uc12). Tổng hiện tại 9 IMPLEMENTED/11 DESIGN_ONLY; các mốc bên dưới là lịch sử.
 
@@ -454,3 +456,14 @@ Chủ dự án duyệt kế hoạch triển khai endpoint theo hợp đồng hi�
 - Tái sử dụng transaction readOnly của authenticator hiện hữu, không mở transaction bao ngoài hoặc khóa user; bắt lỗi inactive sau khi transaction xác thực kết thúc. Không ghi LastSeenAt hoặc cache kết quả.
 - Giữ request form/JSON riêng, schema, lỗi/header đã xác nhận; query/cookie/Authorization không thay token trong form. Không chuyển lỗi hạ tầng thành active false.
 - Đây là endpoint User Service, không phải triển khai Gateway hoặc hoàn tất bảo mật service. Chi tiết implementation tại [API phiên/introspection](api/sessions.md#introspect); các quyết định còn mở giữ nguyên.
+
+<a id="internal-user-get-implementation"></a>
+
+## Triển khai GET user nội bộ — ngày 2026-11-15
+
+Chủ dự án yêu cầu thực hiện kế hoạch GET /api/v1/internal/users/{id} theo hợp đồng hiện hành, tái sử dụng nền tảng, kiểm thử trên database riêng và cập nhật docs/OpenAPI.
+
+- Áp dụng quyết định hoãn Service JWT ngày 2026-11-10. Chain riêng cho đúng mẫu path tra cứu mặc định tin tưởng service gọi, bỏ qua Authorization; đặt Cache-Control no-store cho cả thành công/lỗi. Service JWT/users:read và lỗi 401/403 giữ trong hợp đồng đích cho bước sau.
+- Service dùng READ_COMMITTED/readOnly, đọc user và roles hiện tại bằng repository hiện hữu, dựng InternalUserSummary trong transaction. Roles sắp xếp theo tên từ truy vấn; mảng rỗng trả []. Trả cả ACTIVE/BANNED, không yêu cầu phiên người dùng để tra cứu.
+- ID integer dương/int32, validation theo bộ mã hiện hữu; user không tồn tại trả 404 USER_NOT_FOUND. Lỗi hạ tầng giữ 503/500 theo nền tảng.
+- Phạm vi đợt này là operation đọc trên 7 bảng/V1–V6. Chi tiết implementation duy trì tại [tích hợp nội bộ](api/internal-integration.md#tra-cứu-user), kết quả test tại [development](development.md#kiểm-thử-hiện-có).

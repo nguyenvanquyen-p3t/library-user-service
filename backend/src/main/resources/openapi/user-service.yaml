@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection đã triển khai, 10 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ đã triển khai, 9 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection đã triển khai, 10 operation khác còn DESIGN_ONLY.
+  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ đã triển khai, 9 operation khác còn DESIGN_ONLY.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -820,19 +820,30 @@ paths:
       operationId: getInternalUser
       summary: Tra cứu user cho Borrow/Admin Service
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        IMPLEMENTED ngày 2026-11-15. Giai đoạn chức năng mặc định tin tưởng service gọi,
+        bỏ qua Authorization theo quyết định hoãn Service JWT ngày 2026-11-10.
+        READ_COMMITTED/readOnly, trả roles hiện tại từ database theo tên tăng dần.
+        Mọi response runtime có Cache-Control no-store. ID phải dương/int32;
+        user không tồn tại trả 404 USER_NOT_FOUND.
 
         Trả thông tin cơ bản, kể cả user BANNED để service gọi kiểm tra nghiệp vụ. HTTP 200 không bảo đảm đủ điều kiện mượn. id là User ID kiểu Integer theo nguồn; xem tích hợp Borrow.
 
         PENDING DECISION Q03: cấu hình Service JWT (thuật toán, issuer/audience/subject, TTL, claim quyền và khóa). Không dùng cấu hình user token thay thế.
-      x-implementation-status: DESIGN_ONLY
+        ServiceJwt, quyền users:read và lỗi 401/403 bên dưới là hợp đồng đích sau khi hoàn tất chức năng.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#internal-user-get
       security:
       - ServiceJwt: []
       x-required-service-permission: users:read
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: USER_GET_SUCCESS. Message và dữ liệu ví dụ minh họa.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
           content:
             application/json:
               schema:
@@ -859,11 +870,66 @@ paths:
         '404':
           $ref: '#/components/responses/GetInternalUserError404'
         '405':
-          $ref: '#/components/responses/MethodNotAllowed'
+          description: METHOD_NOT_ALLOWED. Xem docs/api/http-errors.md.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            Allow:
+              schema:
+                type: string
+              description: Các method MVC hỗ trợ cho path, gồm GET và HEAD.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error405'
+              examples:
+                METHOD_NOT_ALLOWED:
+                  value:
+                    success: false
+                    messageCode: METHOD_NOT_ALLOWED
+                    message: Nội dung lỗi minh họa
+                    data: null
         '500':
-          $ref: '#/components/responses/InternalError'
+          description: INTERNAL_ERROR. Xem docs/api/http-errors.md.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error500'
+              examples:
+                INTERNAL_ERROR:
+                  value:
+                    success: false
+                    messageCode: INTERNAL_ERROR
+                    message: Nội dung lỗi minh họa
+                    data: null
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
+          description: SERVICE_UNAVAILABLE. Xem docs/api/http-errors.md.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error503'
+              examples:
+                SERVICE_UNAVAILABLE:
+                  value:
+                    success: false
+                    messageCode: SERVICE_UNAVAILABLE
+                    message: Nội dung lỗi minh họa
+                    data: null
       parameters:
       - name: id
         in: path
@@ -3323,6 +3389,12 @@ components:
                 data: null
     GetInternalUserError400:
       description: VALIDATION_ERROR. Xem docs/api/http-errors.md.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
       content:
         application/json:
           schema:
@@ -3340,6 +3412,12 @@ components:
                     message: Dữ liệu không đúng kiểu
     GetInternalUserError401:
       description: AUTHENTICATION_REQUIRED; SERVICE_TOKEN_INVALID. Xem docs/api/http-errors.md.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
       content:
         application/json:
           schema:
@@ -3369,6 +3447,12 @@ components:
                 data: null
     GetInternalUserError403:
       description: ACCESS_DENIED. Xem docs/api/http-errors.md.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
       content:
         application/json:
           schema:
@@ -3391,6 +3475,12 @@ components:
                 data: null
     GetInternalUserError404:
       description: USER_NOT_FOUND. Xem docs/api/http-errors.md.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
       content:
         application/json:
           schema:

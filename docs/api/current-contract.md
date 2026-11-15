@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Trong 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; ngày 2026-11-14 thêm UC10–UC12 nên tại mốc đó tổng 20 operation có 9 IMPLEMENTED/11 DESIGN_ONLY; ngày 2026-11-15 thêm introspection nên hiện có 10 IMPLEMENTED/10 DESIGN_ONLY.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Tại mốc UC07, 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; ngày 2026-11-14 thêm UC10–UC12 nên tại mốc đó tổng 20 operation có 9 IMPLEMENTED/11 DESIGN_ONLY; ngày 2026-11-15 thêm introspection, tại mốc đó có 10 IMPLEMENTED/10 DESIGN_ONLY.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md). [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**; riêng 16 API gốc có 7 IMPLEMENTED/9 DESIGN_ONLY.
 
 ## Cách đọc trạng thái
 
@@ -709,6 +709,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="internal-user-get"></a>
 
 ## GET /api/v1/internal/users/{id}
+
+**IMPLEMENTED ngày 2026-11-15:** [implementation](internal-integration.md#tra-cứu-user) dùng READ_COMMITTED/readOnly, roles hiện tại theo tên tăng dần, trả cả BANNED. Chain riêng bỏ qua Authorization trong giai đoạn tin tưởng service; mọi response có Cache-Control no-store. Service JWT/users:read và lỗi 401/403 bên dưới áp dụng ở bước bảo mật service sau.
 
 **Luồng:** Borrow Service. **Nguồn:** [Sheet1, hàng 18](source-catalog.md#get-apiv1internalusersid).
 

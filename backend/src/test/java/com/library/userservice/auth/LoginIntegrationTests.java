@@ -202,6 +202,7 @@ class LoginIntegrationTests extends UserSecurityTestKeys {
         assertThat(paths.path("/api/v1/users/me/sessions/{sessionId}").path("delete").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
         assertThat(paths.path("/api/v1/users/me/sessions/revoke-others").path("post").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
         assertThat(paths.path("/api/v1/internal/oauth2/introspect").path("post").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
+        assertThat(paths.path("/api/v1/internal/users/{id}").path("get").path("x-implementation-status").asText()).isEqualTo("IMPLEMENTED");
     }
 
     private Fixture user(String passwordHash, String status) {
