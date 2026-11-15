@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung triển khai ngày 2026-11-15:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [introspection cho Gateway](#gateway-introspection-implementation). Tổng hiện tại **10 IMPLEMENTED/10 DESIGN_ONLY**. Các số liệu theo ngày bên dưới là lịch sử.
+
 **Bổ sung triển khai ngày 2026-11-14:** chủ dự án chốt hai mã lý do riêng, giữ LastSeenAt hiện tại, duyệt kế hoạch và yêu cầu triển khai [quản lý phiên UC10–UC12](#user-sessions-uc10-uc12). Tổng hiện tại 9 IMPLEMENTED/11 DESIGN_ONLY; các mốc bên dưới là lịch sử.
 
 **Bổ sung triển khai ngày 2026-11-13:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [đổi mật khẩu UC07](#user-password-uc07). Tổng hiện tại 6 IMPLEMENTED/14 DESIGN_ONLY; các số liệu theo ngày bên dưới là lịch sử.
@@ -441,3 +443,14 @@ Chủ dự án chọn hai mã RevocationReason riêng: UC11 SESSION_REVOKED, UC1
 - Chỉ trả thành công sau commit; lỗi ghi/dựng kết quả/commit rollback toàn bộ. Giữ lịch sử đã hết hạn/thu hồi, liên kết rotation, metadata, LastSeenAt và các dữ liệu ngoài phiên/token. Không thêm cleanup, Service JWT hoặc introspection.
 
 Implementation tại [quản lý phiên](user-sessions.md), HTTP tại [API phiên](api/sessions.md), kiểm thử tại [development](development.md#kiểm-thử-hiện-có). Chính sách cập nhật LastSeenAt chung và mã lý do khóa tài khoản vẫn chưa chốt.
+
+<a id="gateway-introspection-implementation"></a>
+
+## Triển khai introspection cho Gateway — ngày 2026-11-15
+
+Chủ dự án duyệt kế hoạch triển khai endpoint theo hợp đồng hiện hành, tái sử dụng nền tảng bảo mật, kiểm thử và đồng bộ docs/OpenAPI. Giữ 7 bảng, 20 operation và V1–V6; không mở rộng endpoint khác.
+
+- Giữ [quyết định hoãn Service JWT](#deferred-service-auth): mặc định tin tưởng service gọi, xác minh user access token từ form cùng user/phiên/roles; Service JWT/quyền Gateway và các lỗi 401 riêng bổ sung sau khi hoàn tất chức năng.
+- Tái sử dụng transaction readOnly của authenticator hiện hữu, không mở transaction bao ngoài hoặc khóa user; bắt lỗi inactive sau khi transaction xác thực kết thúc. Không ghi LastSeenAt hoặc cache kết quả.
+- Giữ request form/JSON riêng, schema, lỗi/header đã xác nhận; query/cookie/Authorization không thay token trong form. Không chuyển lỗi hạ tầng thành active false.
+- Đây là endpoint User Service, không phải triển khai Gateway hoặc hoàn tất bảo mật service. Chi tiết implementation tại [API phiên/introspection](api/sessions.md#introspect); các quyết định còn mở giữ nguyên.

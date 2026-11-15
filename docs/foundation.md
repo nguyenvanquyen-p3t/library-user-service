@@ -1,8 +1,10 @@
 # Nền tảng backend dùng chung
 
-Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; login là `IMPLEMENTED` từ ngày 2026-11-10; ngày 2026-11-11 thêm refresh/logout, ngày 2026-11-12 thêm [GET/PATCH hồ sơ UC06](user-profile.md), ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), tổng 9 IMPLEMENTED/11 DESIGN_ONLY. Google, SMTP, Gateway chưa triển khai.
+Theo yêu cầu chủ dự án ngày 2026-11-03, đã triển khai cấu trúc package, entity/repository cho 7 bảng, DTO cho hợp đồng 20 API, envelope, validation và xử lý exception. Ngày 2026-11-10 bổ sung [bảo mật người dùng và login UC02](user-security.md), gồm JWT và controller/service login. Không sửa V1–V6; login là `IMPLEMENTED` từ ngày 2026-11-10; ngày 2026-11-11 thêm refresh/logout, ngày 2026-11-12 thêm [GET/PATCH hồ sơ UC06](user-profile.md), ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), tổng 10 IMPLEMENTED/10 DESIGN_ONLY. Google, SMTP, Gateway chưa triển khai.
 
 ## Package và trách nhiệm
+
+Ngày 2026-11-15 thêm internal.service.IntrospectionService và internal.web.IntrospectionController, dùng DTO/formatter hiện có. API lỗi 400/405/415/500/503 dùng JSON riêng; ba lỗi 401 service chỉ dành cho bước Service JWT sau. [Chi tiết](api/sessions.md#introspect).
 
 Tất cả package nằm dưới `com.library.userservice`:
 
@@ -50,7 +52,7 @@ Response giữ đủ required/null theo hợp đồng, mảng không null. Ba nh
 
 Validation trả HTTP 400/`VALIDATION_ERROR`; JSON hỏng hoặc thiếu body bắt buộc dùng `INVALID_REQUEST`. Chỉ constraint UNIQUE đã biết được ánh xạ thành conflict nghiệp vụ; các vi phạm khác dùng `INTERNAL_ERROR`. Lỗi truy cập dữ liệu tạm thời dùng 503; lỗi ngoài dự kiến dùng 500. Log xử lý lỗi 5xx chỉ ghi loại exception, không ghi exception message, SQL hoặc rejected value. Không bật log chi tiết HTTP/SQL chứa thông tin xác thực.
 
-`ApplicationException` nhận mã lỗi đã chốt; `OTP_RATE_LIMITED` yêu cầu thêm số giây `Retry-After` do nghiệp vụ tính. `IntrospectionRequest.fromForm` kiểm tra danh sách trường, tham số lặp và token thiếu/rỗng; caller phải hoàn tất xác thực/quyền Gateway trước khi gọi. `IntrospectionErrorFormatter` chuẩn bị đủ tám biến thể lỗi/header riêng; chưa gắn formatter vào endpoint hoặc authentication entry point. Cấu hình Service JWT vẫn PENDING DECISION.
+`ApplicationException` nhận mã lỗi đã chốt; `OTP_RATE_LIMITED` yêu cầu thêm số giây `Retry-After` do nghiệp vụ tính. `IntrospectionRequest.fromForm` kiểm tra danh sách trường, tham số lặp và token thiếu/rỗng; giai đoạn chức năng mặc định tin tưởng service gọi; xác thực/quyền Gateway bổ sung sau. `IntrospectionErrorFormatter` chuẩn bị đủ tám biến thể lỗi/header riêng; đã gắn formatter vào endpoint introspection ngày 2026-11-15; authentication entry point Service JWT chưa triển khai. Cấu hình Service JWT vẫn PENDING DECISION.
 
 ## Kiểm thử
 

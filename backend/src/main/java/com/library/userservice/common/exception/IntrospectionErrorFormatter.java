@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-/** Formatter dùng sau này bởi controller/security adapter; chưa cài xác thực JWT. */
+/** Lỗi riêng của introspection; ba lỗi Service JWT dành cho bước xác thực service sau. */
 public final class IntrospectionErrorFormatter {
     private IntrospectionErrorFormatter() {}
 

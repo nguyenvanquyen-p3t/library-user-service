@@ -99,6 +99,7 @@ class UserSecurityTests extends UserSecurityTestKeys {
         var other = new JWSObject(HEADER, new Payload(claims)); other.sign(new RSASSASigner(generator.generateKeyPair().getPrivate()));
         reject(other.serialize());
         reject("not-a-jwt"); reject(new RefreshTokenGenerator().generate());
+        reject(" " + sign(claims, HEADER) + " ");
     }
 
     @Test void rejectsMissingWrongTypeAndWrongValueClaimsBeforeCoercion() throws Exception {

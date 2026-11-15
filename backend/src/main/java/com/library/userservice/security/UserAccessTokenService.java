@@ -90,6 +90,8 @@ public class UserAccessTokenService {
     public Jwt verify(String token) {
         try {
             var parsed = SignedJWT.parse(token);
+            // Nimbus có thể trim khi parse; không chấp nhận token khác nguyên bản compact JWS.
+            if (!parsed.serialize().equals(token)) throw new IllegalArgumentException();
             var header = parsed.getHeader();
             if (!JWSAlgorithm.RS256.equals(header.getAlgorithm())
                     || !new JOSEObjectType("at+jwt").equals(header.getType())

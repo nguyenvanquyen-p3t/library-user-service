@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Trong 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; ngày 2026-11-14 thêm UC10–UC12 nên tổng 20 operation có 9 IMPLEMENTED/11 DESIGN_ONLY.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
+Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Trong 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; ngày 2026-11-14 thêm UC10–UC12 nên tại mốc đó tổng 20 operation có 9 IMPLEMENTED/11 DESIGN_ONLY; ngày 2026-11-15 thêm introspection nên hiện có 10 IMPLEMENTED/10 DESIGN_ONLY.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md).
 
 ## Cách đọc trạng thái
 
