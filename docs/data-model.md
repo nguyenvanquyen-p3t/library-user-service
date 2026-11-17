@@ -1,5 +1,7 @@
 # Mô hình dữ liệu theo migration
 
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
 Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Đã có [entity/repository cho 7 bảng](foundation.md) từ ngày 2026-11-03; login UC02 đã triển khai ngày 2026-11-10. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
 
 | Bảng | Cột chính | Ràng buộc và ý nghĩa |
@@ -39,7 +41,7 @@ VerificationCodes liên hệ theo email và purpose ở tầng ứng dụng, kh�
 
 UserSessions.Id do backend tạo UUID khi triển khai đăng nhập, không tự sinh UUID hoặc TTL trong migration. ExpiresAt phải sau CreatedAt; LastSeenAt và RevokedAt không được trước CreatedAt. Phiên chưa thu hồi phải có RevocationReason NULL; phiên đã thu hồi cần lý do không trống. Lý do là mã nội bộ được backend chọn, không nhận tùy ý từ client; danh sách mã chi tiết chưa bị cố định bằng enum SQL.
 
-Các mã lý do đã có trong bản Word đối chiếu 2026-10-22: UC04 `LOGOUT`, UC05 `PASSWORD_RESET`, UC07 `PASSWORD_CHANGED`, UC09 `PASSWORD_SET`. Giữ các mã này khi triển khai luồng tương ứng. Ngày 2026-11-14 chốt UC11 SESSION_REVOKED, UC12 OTHER_SESSIONS_REVOKED; mã cho khóa tài khoản vẫn cần thống nhất; không suy ra danh sách enum SQL từ các ví dụ. Thu hồi lặp không ghi đè thời điểm/lý do cũ theo quy tắc UC04/UC11.
+Các mã lý do đã có trong bản Word đối chiếu 2026-10-22: UC04 `LOGOUT`, UC05 `PASSWORD_RESET`, UC07 `PASSWORD_CHANGED`, UC09 `PASSWORD_SET`. Giữ các mã này khi triển khai luồng tương ứng. Ngày 2026-11-14 chốt UC11 SESSION_REVOKED, UC12 OTHER_SESSIONS_REVOKED; ngày 2026-11-17 chốt ACCOUNT_BANNED cho khóa tài khoản; không suy ra danh sách enum SQL từ các ví dụ. Thu hồi lặp không ghi đè thời điểm/lý do cũ theo quy tắc UC04/UC11.
 
 RefreshTokens thêm **SessionId UUID NOT NULL**. FK `(SessionId, UserId)` trỏ tới UserSessions bảo đảm chủ sở hữu khớp. FK thay thế `(ReplacedByTokenId, UserId, SessionId)` yêu cầu token mới cùng user và cùng phiên; giữ các ràng buộc tuyến tính từ V4. Trigger không cho thay SessionId của token đã tạo. Xóa token thay thế chỉ bỏ ReplacedByTokenId, giữ nguyên UserId và SessionId của token cũ.
 

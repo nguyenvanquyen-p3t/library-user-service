@@ -51,6 +51,7 @@ class ApiDocumentationTests {
     @Import({OpenApiConfiguration.class, DocumentationSecurityConfiguration.class, ApiSecurityConfiguration.class,
             SecurityErrorWriter.class, JsonConfiguration.class, ApiExceptionHandler.class})
     static class DocumentationApplication {
+        @Bean com.library.userservice.security.AdminActorAuthenticator adminActors() { return org.mockito.Mockito.mock(com.library.userservice.security.AdminActorAuthenticator.class); }
         @Bean UserAccessTokenService tokens() { return org.mockito.Mockito.mock(UserAccessTokenService.class); }
         @Bean UserSessionAuthenticator sessions() { return org.mockito.Mockito.mock(UserSessionAuthenticator.class); }
     }
@@ -77,7 +78,7 @@ class ApiDocumentationTests {
             for (var operation : path) {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
-                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser").contains(operation.path("operationId").asText())
+                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser", "updateUserStatus").contains(operation.path("operationId").asText())
                                 ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }

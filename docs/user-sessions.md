@@ -1,6 +1,8 @@
 # Quản lý phiên UC10–UC12
 
-Triển khai ngày 2026-11-14 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), giữ nguyên 7 bảng và Flyway V1–V6. Chính sách tại [quyết định UC10–UC12](confirmed-decisions.md#user-sessions-uc10-uc12); request/response tại [API phiên](api/sessions.md). Gateway và Service JWT vẫn chưa triển khai. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
+Triển khai ngày 2026-11-14 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), giữ nguyên 7 bảng và Flyway V1–V6. Chính sách tại [quyết định UC10–UC12](confirmed-decisions.md#user-sessions-uc10-uc12); request/response tại [API phiên](api/sessions.md). Gateway và Service JWT vẫn chưa triển khai. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## HTTP và xác thực
 

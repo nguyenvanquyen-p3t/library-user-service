@@ -1,5 +1,7 @@
 # Bắt đầu một phiên làm việc mới
 
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
 Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 theo xác nhận của chủ dự án ngày 2026-10-25. Nguồn nghiệp vụ được bàn giao ngày 2026-10-22; đợt này không đối chiếu lại Word hoặc database. Đây là điểm vào để tiếp tục công việc mà không cần lịch sử chat, không phải tài liệu lặp lại toàn bộ chính sách.
 
 ## Thứ tự đọc
@@ -12,6 +14,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 6. [Chạy cục bộ](local-development.md), [quy trình phát triển](development.md), [AGENTS.md](../AGENTS.md).
 
 ## Hiện trạng cần biết
+
+**Triển khai ngày 2026-11-17:** PATCH trạng thái user nội bộ đã có, xác minh actor qua JWT nguyên giá trị trong X-Admin-Access-Token, khóa actor/đích theo ID tăng dần và kiểm tra lại sau khóa; ACCOUNT_BANNED, audit sau commit. Tổng 12 IMPLEMENTED/8 DESIGN_ONLY, giữ V1–V6 và hoãn Service JWT.
 
 **Triển khai tiếp ngày 2026-11-15:** [GET user nội bộ](api/internal-integration.md#tra-cứu-user) đã có cho Borrow/Admin, tổng **11 IMPLEMENTED/9 DESIGN_ONLY**. Chain riêng mặc định tin tưởng service, READ_COMMITTED/readOnly, trả cả BANNED và roles hiện tại. PATCH trạng thái còn thiết kế. Các số liệu ở những mốc bên dưới là lịch sử.
 

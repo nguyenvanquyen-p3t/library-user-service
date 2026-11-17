@@ -1,5 +1,7 @@
 # Luồng nghiệp vụ UC01–UC12
 
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
 Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
 Các mục kết quả mô tả nhánh thành công, không áp dụng cho nhánh bị từ chối. Client là Web/Android; các bước gọi API tự động không yêu cầu người dùng thao tác trực tiếp. Chính sách xem [sổ quyết định](confirmed-decisions.md), transaction xem [requirements](requirements.md), request/response xem [16 API hiện hành](api/current-contract.md) và [API phiên](api/sessions.md). Các điểm chưa đủ để code được ghi tại [open-decisions](open-decisions.md), không ngầm coi đề xuất là quyết định. Liên kết được cập nhật ngày 2026-10-24; không đối chiếu lại Word trong đợt này.

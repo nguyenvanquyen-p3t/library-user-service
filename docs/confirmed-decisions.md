@@ -4,7 +4,9 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
-**Bổ sung triển khai tiếp ngày 2026-11-15:** chủ dự án yêu cầu thực hiện kế hoạch [GET user nội bộ](#internal-user-get-implementation). Tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**; các số liệu theo mốc bên dưới là lịch sử.
+**Bổ sung ngày 2026-11-17:** chủ dự án duyệt và yêu cầu triển khai [PATCH trạng thái user nội bộ](#internal-user-status-implementation). Tổng hiện tại **12 IMPLEMENTED/8 DESIGN_ONLY**; các mốc trước giữ nguyên là lịch sử.
+
+**Bổ sung triển khai tiếp ngày 2026-11-15:** chủ dự án yêu cầu thực hiện kế hoạch [GET user nội bộ](#internal-user-get-implementation). Tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**; các số liệu theo mốc bên dưới là lịch sử.
 
 **Bổ sung triển khai ngày 2026-11-15:** chủ dự án duyệt kế hoạch và yêu cầu triển khai [introspection cho Gateway](#gateway-introspection-implementation). Tại mốc introspection có **10 IMPLEMENTED/10 DESIGN_ONLY**. Các số liệu theo ngày bên dưới là lịch sử.
 
@@ -467,3 +469,15 @@ Chủ dự án yêu cầu thực hiện kế hoạch GET /api/v1/internal/users/
 - Service dùng READ_COMMITTED/readOnly, đọc user và roles hiện tại bằng repository hiện hữu, dựng InternalUserSummary trong transaction. Roles sắp xếp theo tên từ truy vấn; mảng rỗng trả []. Trả cả ACTIVE/BANNED, không yêu cầu phiên người dùng để tra cứu.
 - ID integer dương/int32, validation theo bộ mã hiện hữu; user không tồn tại trả 404 USER_NOT_FOUND. Lỗi hạ tầng giữ 503/500 theo nền tảng.
 - Phạm vi đợt này là operation đọc trên 7 bảng/V1–V6. Chi tiết implementation duy trì tại [tích hợp nội bộ](api/internal-integration.md#tra-cứu-user), kết quả test tại [development](development.md#kiểm-thử-hiện-có).
+
+<a id="internal-user-status-implementation"></a>
+
+## Triển khai PATCH trạng thái user nội bộ — ngày 2026-11-17
+
+Chủ dự án chọn ACCOUNT_BANNED làm RevocationReason khi khóa; X-Admin-Access-Token chứa JWT nguyên giá trị, không có tiền tố Bearer; yêu cầu khóa cả actor và user đích theo ID tăng dần, kiểm tra lại JWT/actor/phiên/ADMIN sau khóa. Sau đó duyệt kế hoạch và yêu cầu triển khai, kiểm thử, đồng bộ docs/OpenAPI; giữ 7 bảng/20 operation và V1–V6.
+
+- READ_COMMITTED, khóa mỗi ID duy nhất một lần, lấy now sau đủ khóa; kiểm tra lại thời hạn JWT theo dung sai hiện có, actor/phiên/ADMIN hiện tại trước nghiệp vụ user đích. Thiếu actor token dùng AUTHENTICATION_REQUIRED; JWT hoặc phiên không hợp lệ dùng ADMIN_ACTOR_INVALID; actor có token/phiên hợp lệ nhưng không ACTIVE hoặc thiếu ADMIN dùng ACCESS_DENIED.
+- Chuyển ACTIVE sang BANNED cập nhật status và thu hồi mọi phiên/token chưa thu hồi, chưa hết hạn cùng transaction/now. Token còn hiệu lực vẫn được thu hồi khi phiên chứa nó đã kết thúc. Giữ lịch sử đã kết thúc, LastSeenAt, metadata và liên kết rotation; phiên do thao tác thu hồi ghi ACCOUNT_BANNED.
+- Cấm yêu cầu BANNED cho đối tượng ADMIN, kể cả tự khóa hoặc đối tượng đã BANNED. Trạng thái trùng trả 200 nhưng không ghi lại user/phiên/token; mở khóa không phục hồi phiên/token. Chỉ trả thành công sau commit; lỗi ghi/thu hồi/commit rollback.
+- Audit log sau commit, kể cả cùng trạng thái: actor, user đích, trạng thái trước/sau, thời gian UTC và request ID UUID server tạo. Service là UNVERIFIED_INTERNAL_CALLER, serviceAuthenticated=false; không thêm header bắt buộc/bảng audit. Lỗi log sau commit không đảo kết quả thành công; log không nguyên tử/bền vững cùng database, có thể mất khi tiến trình dừng.
+- Giữ hoãn Service JWT: Authorization bị bỏ qua trên đúng path trạng thái, không xác minh danh tính/quyền service. Actor vẫn bắt buộc; không mở rộng API khác. Implementation tại [tích hợp nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation).

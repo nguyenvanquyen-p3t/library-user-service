@@ -43,6 +43,7 @@ class InternalUserHttpTests {
     @Import({ApiSecurityConfiguration.class, JsonConfiguration.class, SecurityErrorWriter.class,
             ApiExceptionHandler.class, InternalUserController.class})
     static class Application {
+        @Bean com.library.userservice.security.AdminActorAuthenticator adminActors() { return org.mockito.Mockito.mock(com.library.userservice.security.AdminActorAuthenticator.class); }
         @Bean InternalUserService users() { return mock(InternalUserService.class); }
         @Bean UserAccessTokenService tokens() { return mock(UserAccessTokenService.class); }
         @Bean UserSessionAuthenticator sessions() { return mock(UserSessionAuthenticator.class); }

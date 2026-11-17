@@ -1,6 +1,8 @@
 # Nền tảng bảo mật người dùng và login UC02
 
-Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
+Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Thành phần và trách nhiệm
 
@@ -33,6 +35,8 @@ Nạp private key PKCS#8 PEM và public key X.509 SubjectPublicKeyInfo PEM; xác
 Danh sách `public-keys` hỗ trợ giữ public key cũ trong lúc thay khóa có kiểm soát. Cấp public key mới cho bên xác minh trước, đổi private key và `active-key-id`, giữ key cũ đến khi token cũ hết hạn cộng dung sai. Không tải khóa từ header JWT, không có JWKS hoặc rotation tự động. Private key bị lộ phải ngừng tin key đó ngay theo Q14.
 
 ## HTTP và transaction
+
+**Runtime ngày 2026-11-17:** có sáu filter chain. Chain trạng thái riêng yêu cầu X-Admin-Access-Token chứa JWT nguyên giá trị, bỏ qua Authorization khi hoãn Service JWT. AdminActor che token trong toString(); authenticator riêng ánh xạ ADMIN_ACTOR_INVALID/ACCESS_DENIED và service ghi kiểm tra lại actor sau khóa. [Chi tiết](api/internal-integration.md#cap-nhat-trang-thai-implementation); các mô tả năm chain bên dưới là mốc GET nội bộ trước đó.
 
 Login nhận đúng `identifier` và `password`, trả envelope với `LOGIN_SUCCESS` và `TokenPair` hiện hành, `Cache-Control: no-store`. Không seed user hoặc cấp mật khẩu mặc định; cần có tài khoản ACTIVE mang hash Argon2id đúng định dạng trước khi đăng nhập. Các fixture trong test không phải tài khoản ứng dụng.
 
@@ -78,7 +82,7 @@ Không log DTO/exception chứa thông tin xác thực. Đã tắt chi tiết re
 Các test dùng khóa RSA tạm tự sinh; không đọc private key dự án. Chạy nhóm không dùng database từ `backend/`:
 
 ```powershell
-.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests,InternalUserServiceTests,InternalUserHttpTests" test
+.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests,InternalUserServiceTests,InternalUserHttpTests,InternalUserStatusServiceTests,InternalUserStatusHttpTests" test
 ```
 
 Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **chỉ chọn `UserDB_test`; không dùng database dự án hoặc xóa token để vượt V6**:
@@ -91,4 +95,4 @@ Toàn bộ test cần PostgreSQL riêng và credentials đã cấu hình, **ch�
 
 `RefreshLogoutServiceTests` dùng Clock kiểm soát để kiểm tra biên thời gian và thứ tự lỗi. `RefreshLogoutIntegrationTests` chỉ bật trên UserDB_test, kiểm tra HTTP/commit thật, lịch sử rotation, logout bằng token cũ, rollback lỗi lưu/ký/COMMIT, hai refresh và refresh/logout ở cả hai thứ tự có chờ khóa thực. Fixture được dọn theo ID user; khóa test tạm như UC02.
 
-[API quản lý phiên UC10–UC12](user-sessions.md) đã triển khai ngày 2026-11-14. Introspection đã có ngày 2026-11-15. Chưa có đăng ký, reset/thiết lập mật khẩu hoặc quản trị trạng thái. Đổi mật khẩu UC07 đã triển khai ngày 2026-11-13. GET/PATCH hồ sơ UC06 đã triển khai; xem [transaction UC06](user-profile.md#transaction-và-patch). Chưa có Gateway, xác thực actor Admin, CORS, rate limit login, Google/SMTP hoặc cleanup. Không coi 10 API đã chạy là hoàn tất bảo mật/tích hợp toàn hệ thống. Kết quả lần chạy được ghi ở [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có).
+[API quản lý phiên UC10–UC12](user-sessions.md) đã triển khai ngày 2026-11-14. Introspection đã có ngày 2026-11-15. Chưa có đăng ký hoặc reset/thiết lập mật khẩu; quản trị trạng thái đã triển khai ngày 2026-11-17. Đổi mật khẩu UC07 đã triển khai ngày 2026-11-13. GET/PATCH hồ sơ UC06 đã triển khai; xem [transaction UC06](user-profile.md#transaction-và-patch). Actor Admin đã có ngày 2026-11-17 cho PATCH trạng thái; chưa có Gateway, CORS, rate limit login, Google/SMTP hoặc cleanup. Không coi 12 API đã chạy là hoàn tất bảo mật/tích hợp toàn hệ thống. Kết quả lần chạy được ghi ở [hướng dẫn phát triển](development.md#kiểm-thử-hiện-có).

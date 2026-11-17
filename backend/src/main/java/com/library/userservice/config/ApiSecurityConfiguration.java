@@ -5,6 +5,9 @@ import com.library.userservice.security.SecurityErrorWriter;
 import com.library.userservice.security.IntrospectionProtocolFilter;
 import com.library.userservice.internal.web.IntrospectionController;
 import com.library.userservice.internal.web.InternalUserController;
+import com.library.userservice.internal.web.InternalUserStatusController;
+import com.library.userservice.security.AdminActorAuthenticationFilter;
+import com.library.userservice.security.AdminActorAuthenticator;
 import com.library.userservice.security.UserAccessTokenService;
 import com.library.userservice.security.UserBearerAuthenticationFilter;
 import com.library.userservice.security.UserSessionAuthenticator;
@@ -53,6 +56,19 @@ public class ApiSecurityConfiguration {
 
     @Bean
     @Order(5)
+    SecurityFilterChain internalUserStatusSecurityFilterChain(HttpSecurity http, AdminActorAuthenticator actors,
+            SecurityErrorWriter errors) throws Exception {
+        return stateless(http).securityMatcher(InternalUserStatusController.PATH)
+                .headers(headers -> headers.addHeaderWriter((request, response) -> response.setHeader("Cache-Control", "no-store")))
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) -> errors.write(response, ErrorCode.AUTHENTICATION_REQUIRED))
+                        .accessDeniedHandler((request, response, exception) -> errors.write(response, ErrorCode.ACCESS_DENIED)))
+                .addFilterBefore(new AdminActorAuthenticationFilter(actors, errors), AnonymousAuthenticationFilter.class).build();
+    }
+
+    @Bean
+    @Order(6)
     SecurityFilterChain userApiSecurityFilterChain(HttpSecurity http, UserAccessTokenService tokens,
             UserSessionAuthenticator sessions, SecurityErrorWriter errors) throws Exception {
         return stateless(http)

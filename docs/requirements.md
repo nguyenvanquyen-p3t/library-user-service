@@ -1,6 +1,8 @@
 # Yêu cầu nghiệp vụ
 
-Trạng thái: **UC02–UC04, UC06, UC07, UC10–UC12, introspection và GET user nội bộ đã triển khai; 9 operation còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
+Trạng thái: **UC02–UC04, UC06, UC07, UC10–UC12, introspection và GET user nội bộ đã triển khai; 8 operation còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -30,6 +32,8 @@ Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/c
 Áp dụng [chính sách Q05](confirmed-decisions.md#otp-password-policy) cho UC01/UC05/UC07/UC09 theo chức năng tương ứng; [OTP REGISTER](confirmed-decisions.md#register-otp-binding) chỉ gắn email/purpose. Các giá trị TTL, số lần thử/gửi lại và giới hạn mật khẩu được duy trì tại sổ quyết định. [Q06 chốt ngày 2026-10-31](confirmed-decisions.md#otp-email-delivery): commit hash OTP mới/vô hiệu mã cũ trước khi gửi SMTP đồng bộ; lần cấp mã vẫn tính giới hạn dù SMTP lỗi, không tự cấp mã retry. REGISTER/SET_PASSWORD gửi lỗi trả 503; PASSWORD_RESET giữ 200/thông báo chung. Chỉ còn lựa chọn/cấu hình môi trường SMTP chưa chốt.
 
 ## Ranh giới transaction
+
+**PATCH trạng thái ngày 2026-11-17:** READ_COMMITTED, khóa actor/đích theo ID tăng dần rồi kiểm tra lại thời hạn JWT, user/phiên/ADMIN hiện tại; actor trùng đích chỉ khóa một lần. Khóa đổi status và thu hồi mọi phiên/token còn hiệu lực cùng now/transaction, giữ lịch sử đã kết thúc; cùng trạng thái không ghi lại, mở khóa không phục hồi. Audit log sau commit không nguyên tử với database. [Chi tiết](api/internal-integration.md#cap-nhat-trang-thai-implementation).
 
 **GET user nội bộ ngày 2026-11-15:** InternalUserService dùng READ_COMMITTED/readOnly, đọc user rồi roles hiện tại và dựng DTO trong transaction; trả cả ACTIVE/BANNED. Hai truy vấn theo READ_COMMITTED; thao tác đọc không khóa user hoặc ghi LastSeenAt. Lỗi mở/đọc/hoàn tất transaction đi qua handler nền tảng. [Implementation](api/internal-integration.md#tra-cứu-user).
 

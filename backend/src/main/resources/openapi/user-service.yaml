@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ đã triển khai, 9 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ và PATCH trạng thái đã triển khai, 8 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ đã triển khai, 9 operation khác còn DESIGN_ONLY.
+  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ và PATCH trạng thái đã triển khai, 8 operation khác còn DESIGN_ONLY.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -945,17 +945,29 @@ paths:
       - Nội bộ
       operationId: updateUserStatus
       summary: Khóa hoặc mở khóa user qua Admin Service
-      description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+      description: 'IMPLEMENTED ngày 2026-11-17. Giai đoạn chức năng mặc định tin tưởng service gọi; chưa yêu cầu Service JWT/users:status:write.
+        Bỏ qua Authorization, vẫn bắt buộc actor ADMIN.
 
-        Chỉ ACTIVE/BANNED. Khóa ghi status và thu hồi mọi phiên/refresh token còn hiệu lực liên quan cùng transaction; mở khóa không phục hồi phiên/token. Introspection từ chối phiên thu hồi ở lần kiểm tra sau commit. Không thêm API kích hoạt/role. id là User ID kiểu Integer theo nguồn; xem vòng đời tài khoản.
 
-        cùng trạng thái vẫn 200 USER_STATUS_UPDATE_SUCCESS, không ghi đè thời điểm/lý do thu hồi cũ. Lệnh cùng user khóa cùng bản ghi và xử lý tuần tự theo database. Cấm khóa đối tượng có ADMIN, kể cả tự khóa, trả 403 ACCESS_DENIED. Timeout cần Admin đọc lại để đối soát, không tự gửi lại lệnh cũ; audit theo Q10.
+        X-Admin-Access-Token chứa JWT nguyên giá trị, không có tiền tố Bearer, không trim; header rỗng/lặp bị từ chối. Actor
+        phải có JWT/phiên hợp lệ, ACTIVE và ADMIN hiện tại. Thiếu header dùng AUTHENTICATION_REQUIRED; JWT/phiên sai dùng ADMIN_ACTOR_INVALID;
+        token/phiên hợp lệ nhưng actor không ACTIVE hoặc thiếu ADMIN dùng ACCESS_DENIED.
 
-        PENDING DECISION Q03: cấu hình Service JWT (thuật toán, issuer/audience/subject, TTL, claim quyền và khóa). Không dùng cấu hình user token thay thế.
 
-        X-Admin-Access-Token chứa user access token của actor Admin. Kiểm tra: service → quyền service → actor Admin ACTIVE/phiên hợp lệ/role ADMIN hiện tại từ database → nghiệp vụ. Cấm khóa đối tượng ADMIN, kể cả tự khóa.
-      x-implementation-status: DESIGN_ONLY
+        READ_COMMITTED, khóa actor và user đích theo ID tăng dần, kiểm tra lại JWT/actor/phiên/ADMIN sau khóa rồi xử lý nghiệp
+        vụ. Cấm BANNED cho đối tượng ADMIN, kể cả tự khóa. ACTIVE → BANNED cập nhật status và thu hồi mọi phiên/token chưa thu
+        hồi/chưa hết hạn cùng transaction/now; token còn hiệu lực của phiên đã kết thúc vẫn thu hồi. Phiên ghi ACCOUNT_BANNED.
+        Giữ LastSeenAt/lịch sử/rotation. Cùng trạng thái không ghi lại; mở khóa không phục hồi phiên/token. Thành công sau commit,
+        lỗi ghi/commit rollback.
+
+
+        Audit sau commit với request ID UUID server tạo, actor, target, trạng thái trước/sau, UTC; service chưa xác thực. Log
+        không nguyên tử/bền vững cùng database. Timeout cần Admin đọc lại để đối soát, không tự retry lệnh cũ.
+
+
+        Thiết kế đích sau khi hoàn tất chức năng: Service JWT riêng, kiểm tra service → quyền users:status:write → actor → nghiệp
+        vụ. Cấu hình Service JWT Q03 vẫn PENDING DECISION; không áp user RS256/Q14 sang Service JWT.'
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#internal-user-status
       security:
       - ServiceJwt: []
@@ -971,6 +983,12 @@ paths:
               status: BANNED
       responses:
         '200':
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
           description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
           content:
             application/json:
@@ -986,21 +1004,264 @@ paths:
                       id: 3
                       status: BANNED
         '400':
-          $ref: '#/components/responses/RequestRegistrationCodeError400'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          description: INVALID_REQUEST; VALIDATION_ERROR. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - allOf:
+                  - $ref: '#/components/schemas/Error400'
+                  - type: object
+                    required:
+                    - messageCode
+                    properties:
+                      messageCode:
+                        type: string
+                        enum:
+                        - INVALID_REQUEST
+                - $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                INVALID_REQUEST:
+                  value:
+                    success: false
+                    messageCode: INVALID_REQUEST
+                    message: Nội dung lỗi minh họa
+                    data: null
+                VALIDATION_ERROR:
+                  value:
+                    success: false
+                    messageCode: VALIDATION_ERROR
+                    message: Nội dung lỗi minh họa
+                    data:
+                      errors:
+                      - field: $
+                        code: TYPE_MISMATCH
+                        message: Dữ liệu không đúng kiểu
         '401':
-          $ref: '#/components/responses/UpdateUserStatusError401'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            WWW-Authenticate:
+              schema:
+                type: string
+                enum:
+                - Bearer
+          description: AUTHENTICATION_REQUIRED; SERVICE_TOKEN_INVALID; ADMIN_ACTOR_INVALID. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error401'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - AUTHENTICATION_REQUIRED
+                      - SERVICE_TOKEN_INVALID
+                      - ADMIN_ACTOR_INVALID
+              examples:
+                AUTHENTICATION_REQUIRED:
+                  value:
+                    success: false
+                    messageCode: AUTHENTICATION_REQUIRED
+                    message: Nội dung lỗi minh họa
+                    data: null
+                SERVICE_TOKEN_INVALID:
+                  value:
+                    success: false
+                    messageCode: SERVICE_TOKEN_INVALID
+                    message: Nội dung lỗi minh họa
+                    data: null
+                ADMIN_ACTOR_INVALID:
+                  value:
+                    success: false
+                    messageCode: ADMIN_ACTOR_INVALID
+                    message: Nội dung lỗi minh họa
+                    data: null
         '403':
-          $ref: '#/components/responses/GetInternalUserError403'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          description: ACCESS_DENIED. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error403'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - ACCESS_DENIED
+              examples:
+                ACCESS_DENIED:
+                  value:
+                    success: false
+                    messageCode: ACCESS_DENIED
+                    message: Nội dung lỗi minh họa
+                    data: null
         '404':
-          $ref: '#/components/responses/GetInternalUserError404'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          description: USER_NOT_FOUND. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error404'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - USER_NOT_FOUND
+              examples:
+                USER_NOT_FOUND:
+                  value:
+                    success: false
+                    messageCode: USER_NOT_FOUND
+                    message: Nội dung lỗi minh họa
+                    data: null
         '405':
-          $ref: '#/components/responses/MethodNotAllowed'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            Allow:
+              schema:
+                type: string
+              description: Các method MVC hỗ trợ cho path; có PATCH.
+          description: METHOD_NOT_ALLOWED. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error405'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - METHOD_NOT_ALLOWED
+              examples:
+                METHOD_NOT_ALLOWED:
+                  value:
+                    success: false
+                    messageCode: METHOD_NOT_ALLOWED
+                    message: Nội dung lỗi minh họa
+                    data: null
         '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          description: UNSUPPORTED_MEDIA_TYPE. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error415'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - UNSUPPORTED_MEDIA_TYPE
+              examples:
+                UNSUPPORTED_MEDIA_TYPE:
+                  value:
+                    success: false
+                    messageCode: UNSUPPORTED_MEDIA_TYPE
+                    message: Nội dung lỗi minh họa
+                    data: null
         '500':
-          $ref: '#/components/responses/InternalError'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          description: INTERNAL_ERROR. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error500'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - INTERNAL_ERROR
+              examples:
+                INTERNAL_ERROR:
+                  value:
+                    success: false
+                    messageCode: INTERNAL_ERROR
+                    message: Nội dung lỗi minh họa
+                    data: null
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          description: SERVICE_UNAVAILABLE. Xem docs/api/http-errors.md.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Error503'
+                - type: object
+                  required:
+                  - messageCode
+                  properties:
+                    messageCode:
+                      type: string
+                      enum:
+                      - SERVICE_UNAVAILABLE
+              examples:
+                SERVICE_UNAVAILABLE:
+                  value:
+                    success: false
+                    messageCode: SERVICE_UNAVAILABLE
+                    message: Nội dung lỗi minh họa
+                    data: null
       parameters:
       - name: id
         in: path
@@ -1010,6 +1271,7 @@ paths:
           format: int32
           minimum: 1
         description: User ID, integer dương/int32.
+
   /api/v1/users/me/sessions:
     get:
       tags:
@@ -1414,7 +1676,8 @@ components:
       type: apiKey
       in: header
       name: X-Admin-Access-Token
-      description: User access token của actor Admin, dùng đồng thời ServiceJwt (AND). Xác minh token/phiên, user
+      description: JWT nguyên giá trị của actor Admin, không có tiền tố Bearer, không trim. Runtime vẫn bắt buộc header này
+        khi hoãn Service JWT; dùng đồng thời ServiceJwt (AND) ở bước bảo mật service sau. Xác minh token/phiên, user
         ACTIVE và role ADMIN hiện tại từ database; không nhận actorId/role do client tự khai.
   schemas:
     UserProfile:
