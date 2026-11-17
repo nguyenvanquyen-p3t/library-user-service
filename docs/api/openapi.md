@@ -1,10 +1,12 @@
 # OpenAPI và Swagger UI
 
-Ngày 2026-11-01, chủ dự án yêu cầu xây dựng OpenAPI và Swagger UI. Ngày 2026-11-10 đã triển khai [bảo mật người dùng/login UC02](../user-security.md); **login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection IMPLEMENTED, 9 operation khác DESIGN_ONLY (cập nhật ngày 2026-11-15)**. Không thay migration hoặc tự chốt các quyết định còn mở. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
+Ngày 2026-11-01, chủ dự án yêu cầu xây dựng OpenAPI và Swagger UI. Ngày 2026-11-10 đã triển khai [bảo mật người dùng/login UC02](../user-security.md); **login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection IMPLEMENTED, 9 operation khác DESIGN_ONLY (cập nhật ngày 2026-11-15)**. Không thay migration hoặc tự chốt các quyết định còn mở. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Đặc tả và trạng thái
 
-[user-service.yaml](../../backend/src/main/resources/openapi/user-service.yaml) là bản OpenAPI **3.0.3**, phiên bản hợp đồng `0.1.0-design`. File mô tả đủ 20 operation theo [bản đồ API](README.md), giữ operationId/schema/validation/ví dụ và lỗi. Login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ có `x-implementation-status: IMPLEMENTED`, 9 operation khác `DESIGN_ONLY`; x-design-source giữ liên kết Markdown. Response login/refresh/logout có Cache-Control no-store; hai API UC03–UC04 áp dụng cả response lỗi. Controller login/refresh/logout, hồ sơ, đổi mật khẩu, quản lý phiên, introspection và GET user nội bộ mang `@Hidden` để YAML không bị springdoc ghi đè; test trong context thật kiểm tra đủ 20 operation và trạng thái.
+[user-service.yaml](../../backend/src/main/resources/openapi/user-service.yaml) là bản OpenAPI **3.0.3**, phiên bản hợp đồng `0.1.0-design`. File mô tả đủ 20 operation theo [bản đồ API](README.md), giữ operationId/schema/validation/ví dụ và lỗi. Login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ và PATCH trạng thái có `x-implementation-status: IMPLEMENTED`, 8 operation khác `DESIGN_ONLY`; x-design-source giữ liên kết Markdown. Response login/refresh/logout có Cache-Control no-store; hai API UC03–UC04 áp dụng cả response lỗi. Controller login/refresh/logout, hồ sơ, đổi mật khẩu, quản lý phiên, introspection, GET user nội bộ và PATCH trạng thái mang `@Hidden` để YAML không bị springdoc ghi đè; test trong context thật kiểm tra đủ 20 operation và trạng thái.
 
 [OpenApiConfiguration](../../backend/src/main/java/com/library/userservice/config/OpenApiConfiguration.java) đọc YAML từ classpath thành bean `OpenAPI`. springdoc phục vụ cùng hợp đồng ở JSON/YAML và Swagger UI. Không tạo controller giả cho các operation thiết kế. Khi triển khai controller sau này, phải đối chiếu hợp đồng này; tránh để annotation và YAML mô tả khác nhau hoặc làm mất nhãn trạng thái thực tế.
 
@@ -27,7 +29,7 @@ Chạy ứng dụng từ `backend/` theo [hướng dẫn cục bộ](../local-de
 
 Swagger UI tắt `Try it out` bằng `supported-submit-methods: []`, không lưu thông tin Authorize và không gửi đặc tả tới validator bên ngoài. Token trong ví dụ là dữ liệu giả. User JWT đã hoạt động trong nền tảng bảo mật; Authorize không làm operation DESIGN_ONLY trở thành endpoint đã triển khai.
 
-[DocumentationSecurityConfiguration](../../backend/src/main/java/com/library/userservice/config/DocumentationSecurityConfiguration.java) cho phép GET tài liệu và tài nguyên `/swagger-ui/**`. ApiSecurityConfiguration mở chính xác path login/refresh/logout (mọi method, bỏ qua Bearer cũ) và bảo vệ các request còn lại bằng user Bearer. Runtime stateless, đã tắt Basic/form login/logout mặc định/CSRF và default user; không mở công khai `/api/v1/**`. Introspection đã có chain riêng mặc định tin tưởng service ngày 2026-11-15; GET user nội bộ đã có chain riêng mặc định tin tưởng service, PATCH trạng thái vẫn còn thiết kế; xem [security hiện hành](../user-security.md).
+[DocumentationSecurityConfiguration](../../backend/src/main/java/com/library/userservice/config/DocumentationSecurityConfiguration.java) cho phép GET tài liệu và tài nguyên `/swagger-ui/**`. ApiSecurityConfiguration mở chính xác path login/refresh/logout (mọi method, bỏ qua Bearer cũ) và bảo vệ các request còn lại bằng user Bearer. Runtime stateless, đã tắt Basic/form login/logout mặc định/CSRF và default user; không mở công khai `/api/v1/**`. Introspection đã có chain riêng mặc định tin tưởng service ngày 2026-11-15; GET user nội bộ đã có chain riêng mặc định tin tưởng service, PATCH trạng thái đã triển khai ngày 2026-11-17; xem [security hiện hành](../user-security.md).
 
 ## Xác thực trong hợp đồng
 
@@ -37,7 +39,7 @@ Swagger UI tắt `Try it out` bằng `supported-submit-methods: []`, không lưu
 | --- | --- |
 | `UserAccessToken` | User JWT RS256 trong Authorization Bearer, theo Q14; user ACTIVE và phiên hợp lệ |
 | `ServiceJwt` | Service JWT riêng cho Admin/Borrow/Gateway; quyền của từng operation ghi tại `x-required-service-permission` |
-| `AdminAccessToken` | Header `X-Admin-Access-Token`, dùng **đồng thời** ServiceJwt khi cập nhật trạng thái; actor ACTIVE, phiên hợp lệ và có ADMIN hiện tại từ database |
+| `AdminAccessToken` | Header `X-Admin-Access-Token` chứa JWT nguyên giá trị, không tiền tố Bearer; runtime vẫn bắt buộc actor ACTIVE, phiên hợp lệ và ADMIN hiện tại. Dùng **đồng thời** ServiceJwt ở bước bảo mật service sau |
 
 Refresh/logout dùng refresh token trong JSON, không yêu cầu user access token. Hợp đồng đích introspection dùng Service JWT ở Authorization và user access token ở trường form `token`; runtime ngày 2026-11-15 chỉ xác minh user token trong form, chưa xác thực service; không dùng chung hai danh tính. Các quyền service đã chốt không được mô hình hóa thành OAuth2 scopes vì dự án chưa chọn OAuth2 flow hoặc claim quyền.
 

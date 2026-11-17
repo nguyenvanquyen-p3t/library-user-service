@@ -8,7 +8,7 @@ Theo [README dự án](../README.md) để bắt đầu nhanh hoặc [hướng d
 
 ## Quy trình thay đổi
 
-1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi 7 bảng/20 API; không có API role, blacklist hoặc Redis. Đã có migration, docs, OpenAPI/Swagger, [nền tảng backend](foundation.md) và [bảo mật/login UC02](user-security.md); Ngày 2026-11-11 thêm refresh/logout UC03–UC04; GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12; [Đổi mật khẩu UC07](user-password.md) bổ sung ngày 2026-11-13; ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md); ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect); sau đó cùng ngày thêm GET user nội bộ; còn 9 operation chờ yêu cầu triển khai. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
+1. Đọc [kiến trúc](architecture.md), [quyết định đã xác nhận](confirmed-decisions.md) và use case liên quan. Phạm vi 7 bảng/20 API; không có API role, blacklist hoặc Redis. Đã có migration, docs, OpenAPI/Swagger, [nền tảng backend](foundation.md) và [bảo mật/login UC02](user-security.md); Ngày 2026-11-11 thêm refresh/logout UC03–UC04; GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12; [Đổi mật khẩu UC07](user-password.md) bổ sung ngày 2026-11-13; ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md); ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect); sau đó cùng ngày thêm GET user nội bộ; ngày 2026-11-17 thêm PATCH trạng thái; còn 8 operation chờ yêu cầu triển khai. Hỏi chủ dự án trước khi giải quyết yêu cầu chưa rõ.
 2. Tra cứu operation tại [bản đồ API](api/README.md) và bản hiện hành được liên kết; danh mục nguồn chỉ để truy vết Excel. Chốt phần request/response/auth/lỗi liên quan còn PENDING DECISION trước khi tích hợp; riêng cấu hình Service JWT Q03/Q11a chốt ở bước sau khi hoàn tất chức năng theo quyết định ngày 2026-11-10.
 3. Khi được yêu cầu triển khai, viết code và kiểm thử hành vi; thêm migration mới nếu cần thay schema đã được chia sẻ. Với yêu cầu docs-only, chỉ sửa và kiểm tra tài liệu.
 4. Cập nhật trạng thái docs theo phần thực sự hoàn thành. Ghi rõ kiểm thử đã chạy và giới hạn môi trường trong PR.
@@ -16,6 +16,22 @@ Theo [README dự án](../README.md) để bắt đầu nhanh hoặc [hướng d
 Đã có package theo chức năng, entity/repository, DTO và [nền tảng bảo mật/login UC02](user-security.md) ngày 2026-11-10. Controller/service login, refresh và logout đã triển khai; UC03–UC04 bổ sung ngày 2026-11-11. [GET/PATCH hồ sơ UC06](user-profile.md) đã triển khai ngày 2026-11-12. Các phần tiếp theo giữ transaction tách khỏi xử lý HTTP, không trả entity chứa hash và khóa cùng bản ghi user để tuần tự với login. Quy tắc nền tảng được duy trì tại [foundation.md](foundation.md).
 
 ## Kiểm thử hiện có
+
+**Kết quả ngày 2026-11-17 — PATCH trạng thái user nội bộ:** nhóm tập trung **17 test** (5 service, 5 HTTP, 7 tích hợp) và toàn bộ suite **175 test** đều thành công, không lỗi hoặc bỏ qua. Dùng Java 25.0.4.1/Maven Wrapper, PostgreSQL 18.4 tạm biệt lập tại `backend/target/status-postgres`, chỉ loopback cổng 55839, database UserDB_test, tài khoản status_fixture; bỏ import .env và dùng RSA tạm. Flyway V1–V6 và Hibernate validate chạy thành công; giữ nguyên migration, database và khóa dự án.
+
+Đã kiểm tra JWT nguyên giá trị/header actor riêng, bỏ qua Authorization trong giai đoạn hoãn Service JWT, lỗi actor/validation/HTTP/hạ tầng, ACTIVE/BANNED và cấm khóa ADMIN. Test tích hợp kiểm tra thu hồi chỉ bản ghi còn hiệu lực, giữ lịch sử/rotation/identity/roles, không phục hồi sau mở khóa, introspection inactive sau khóa, rollback cả lỗi COMMIT; login/refresh cạnh tranh khóa ở cả hai thứ tự, lệnh trạng thái tuần tự và hai ADMIN thao tác chéo. Actor mất hiệu lực trong lúc chờ khóa thật bị từ chối, gồm thu hồi phiên, hết hạn phiên tại biên, JWT hết dung sai, mất ADMIN và BANNED. Audit được quan sát sau commit bằng transaction đọc độc lập; lỗi log không đổi kết quả thành công.
+
+OpenAPI hợp lệ với 20 operation, **12 IMPLEMENTED/8 DESIGN_ONLY**; 210 ví dụ và 22 ca schema đạt kết quả mong đợi. Đã kiểm tra Markdown, liên kết/anchor và 84 block JSON. Log tại `backend/target/status-focused.log`, `backend/target/status-integration.log`, `backend/target/status-full.log`; script kiểm tra tại `backend/target/check_status_docs.py`. Lượt đầu Maven trong sandbox không đọc được cache; lần chạy thành công dùng cache hiện hữu ngoài sandbox. Một lượt toàn bộ suite phát hiện lỗi suy luận kiểu trong test audit mới bổ sung; đã sửa khai báo kiểu, lượt 175 test thành công đã kiểm tra lại. Validator cũng dùng thư viện hiện hữu ngoài sandbox, không cài dependency mới.
+
+Lệnh toàn bộ suite từ backend/ (PostgreSQL tạm dùng trust trên loopback, tài khoản fixture không có mật khẩu):
+
+```powershell
+.\mvnw.cmd -o "-Dspring.config.import=" "-Dspring.datasource.url=jdbc:postgresql://127.0.0.1:55839/UserDB_test" "-Dspring.datasource.username=status_fixture" "-Dspring.datasource.password=" test
+```
+
+Các kết quả theo ngày bên dưới là lịch sử, không phải lần chạy lại sau PATCH trạng thái.
+
+Sau suite ngày 2026-11-17 đã đối soát Users/UserRoles/UserIdentities/UserSessions/RefreshTokens/VerificationCodes đều rỗng, đủ sáu migration thành công ở V6; PostgreSQL tạm đã dừng.
 
 Ngày 2026-11-15 bổ sung InternalUserServiceTests, InternalUserHttpTests và InternalUserIntegrationTests cho [GET user nội bộ](api/internal-integration.md#tra-cứu-user). Nhóm tích hợp chỉ bật khi system property chọn rõ UserDB_test; dùng khóa tạm và dọn fixture theo ID.
 
@@ -27,7 +43,7 @@ Ngày 2026-11-12 bổ sung UserProfileServiceTests, UserProfileHttpTests và Use
 
 Ngày 2026-11-11 bổ sung `RefreshLogoutServiceTests` (Clock/biên thời gian/thứ tự lỗi), mở rộng `UserSecurityHttpTests` và thêm `RefreshLogoutIntegrationTests` (rotation/logout, rollback tại COMMIT và cạnh tranh có kiểm soát). Test tích hợp chỉ bật khi system property chọn rõ UserDB_test, dùng khóa tạm và dọn đúng ID fixture.
 
-Đã bổ sung `UserSecurityTests` (Argon2id/JWT/khóa và biên thời gian), `UserSecurityHttpTests` (filter chain thật với repository giả lập, không database) và `LoginIntegrationTests` (HTTP/login trên PostgreSQL, rollback lỗi lưu/ký/COMMIT, cạnh tranh khóa user, OpenAPI trong context thật). Nhóm không database dùng lệnh `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests,InternalUserServiceTests,InternalUserHttpTests" test` từ `backend/`.
+Đã bổ sung `UserSecurityTests` (Argon2id/JWT/khóa và biên thời gian), `UserSecurityHttpTests` (filter chain thật với repository giả lập, không database) và `LoginIntegrationTests` (HTTP/login trên PostgreSQL, rollback lỗi lưu/ký/COMMIT, cạnh tranh khóa user, OpenAPI trong context thật). Nhóm không database dùng lệnh `.\mvnw.cmd "-Dtest=FoundationTests,ApiDocumentationTests,UserSecurityTests,UserSecurityHttpTests,RefreshLogoutServiceTests,UserProfileServiceTests,UserProfileHttpTests,ChangePasswordServiceTests,ChangePasswordHttpTests,UserSessionServiceTests,UserSessionHttpTests,IntrospectionServiceTests,IntrospectionHttpTests,InternalUserServiceTests,InternalUserHttpTests,InternalUserStatusServiceTests,InternalUserStatusHttpTests" test` từ `backend/`.
 
 Test context/persistence/login dùng khóa RSA ngẫu nhiên trong thư mục tạm, không dùng khóa dự án. `LoginIntegrationTests` chỉ bật khi system property chọn rõ `UserDB_test`; test có commit thật và dọn đúng user fixture bằng ID sau mỗi ca, khác với rollback fixture của test persistence. Không thêm database test tự động hoặc thay V1–V6. Kết quả chạy mới được ghi bên dưới; kết quả 2026-11-03 tiếp tục là lịch sử nền tảng trước UC02.
 

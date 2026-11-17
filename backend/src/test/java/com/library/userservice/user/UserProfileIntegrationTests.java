@@ -211,7 +211,7 @@ class UserProfileIntegrationTests extends UserSecurityTestKeys {
             if (operation.path("x-implementation-status").asText().equals("IMPLEMENTED")) implemented.add(id);
         }
         assertThat(count).isEqualTo(20);
-        assertThat(implemented).containsExactlyInAnyOrder("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser");
+        assertThat(implemented).containsExactlyInAnyOrder("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser", "updateUserStatus");
     }
 
     private Fixture fixture() {

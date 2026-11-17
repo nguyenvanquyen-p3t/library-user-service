@@ -52,6 +52,7 @@ class IntrospectionHttpTests extends UserSecurityTestKeys {
     @Import({ApiSecurityConfiguration.class, UserSecurityConfiguration.class, JsonConfiguration.class, SecurityErrorWriter.class,
             UserSessionAuthenticator.class, ApiExceptionHandler.class, IntrospectionController.class, IntrospectionService.class})
     static class Application {
+        @Bean com.library.userservice.security.AdminActorAuthenticator adminActors() { return org.mockito.Mockito.mock(com.library.userservice.security.AdminActorAuthenticator.class); }
         @Bean UserRepository users() { return mock(UserRepository.class); }
         @Bean UserSessionRepository sessions() { return mock(UserSessionRepository.class); }
         @Bean RoleRepository roles() { return mock(RoleRepository.class); }

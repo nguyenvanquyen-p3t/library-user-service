@@ -1,6 +1,8 @@
 # Hồ sơ cá nhân UC06
 
-GET/PATCH hồ sơ triển khai ngày 2026-11-12 theo kế hoạch chủ dự án duyệt. Tại mốc UC06 có 5 IMPLEMENTED/15 DESIGN_ONLY; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Giữ nguyên 7 bảng và Flyway V1–V6. Hợp đồng HTTP tại [GET](api/current-contract.md#profile-get), [PATCH](api/current-contract.md#profile-update), [schema JSON](api/json-schema.md#profile-patch); quyết định tại [UC06](confirmed-decisions.md#user-profile-uc06). [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
+GET/PATCH hồ sơ triển khai ngày 2026-11-12 theo kế hoạch chủ dự án duyệt. Tại mốc UC06 có 5 IMPLEMENTED/15 DESIGN_ONLY; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Giữ nguyên 7 bảng và Flyway V1–V6. Hợp đồng HTTP tại [GET](api/current-contract.md#profile-get), [PATCH](api/current-contract.md#profile-update), [schema JSON](api/json-schema.md#profile-patch); quyết định tại [UC06](confirmed-decisions.md#user-profile-uc06). [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Thành phần và xác thực
 

@@ -1,10 +1,12 @@
 # Kiến trúc và phạm vi
 
-Trạng thái: kiến trúc mục tiêu; [nền tảng bảo mật/login UC02](user-security.md) đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11, GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12, đổi mật khẩu UC07 ngày 2026-11-13; quản lý phiên UC10–UC12 ngày 2026-11-14; introspection ngày 2026-11-15; 9 operation khác còn thiết kế. Bản bàn giao 2026-10-24/25 ghi trạng thái V6 theo xác nhận chủ dự án; đợt UC02 không thay migration/database dự án. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tổng hiện tại **11 IMPLEMENTED/9 DESIGN_ONLY**.
+**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+
+Trạng thái: kiến trúc mục tiêu; [nền tảng bảo mật/login UC02](user-security.md) đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11, GET/PATCH hồ sơ UC06 bổ sung ngày 2026-11-12, đổi mật khẩu UC07 ngày 2026-11-13; quản lý phiên UC10–UC12 ngày 2026-11-14; introspection ngày 2026-11-15; 8 operation khác còn thiết kế. Bản bàn giao 2026-10-24/25 ghi trạng thái V6 theo xác nhận chủ dự án; đợt UC02 không thay migration/database dự án. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
 ## Ranh giới trách nhiệm
 
-**Thứ tự triển khai chốt ngày 2026-11-10:** [các service mặc định tin tưởng nhau khi code chức năng](confirmed-decisions.md#deferred-service-auth), tạm chưa xác thực danh tính/quyền service cho Admin/Borrow/Gateway. Bổ sung Service JWT sau khi hoàn tất tất cả chức năng; các yêu cầu xác thực service bên dưới là kiến trúc đích của bước sau. User JWT, phiên, ownership và actor ADMIN vẫn áp dụng. Đợt UC02 đã bổ sung nền tảng user security; Service JWT tiếp tục hoãn; GET user nội bộ và introspection đã triển khai ngày 2026-11-15, PATCH trạng thái còn thiết kế.
+**Thứ tự triển khai chốt ngày 2026-11-10:** [các service mặc định tin tưởng nhau khi code chức năng](confirmed-decisions.md#deferred-service-auth), tạm chưa xác thực danh tính/quyền service cho Admin/Borrow/Gateway. Bổ sung Service JWT sau khi hoàn tất tất cả chức năng; các yêu cầu xác thực service bên dưới là kiến trúc đích của bước sau. User JWT, phiên, ownership và actor ADMIN vẫn áp dụng. Đợt UC02 đã bổ sung nền tảng user security; Service JWT tiếp tục hoãn; GET user nội bộ và introspection đã triển khai ngày 2026-11-15, PATCH trạng thái đã triển khai ngày 2026-11-17.
 
 Phạm vi 2026-10-19 gồm 7 bảng, 20 API thiết kế. Chính sách tài khoản và giới hạn chức năng được duy trì tại [sổ quyết định](confirmed-decisions.md#phạm-vi); tra cứu HTTP tại [bản đồ API](api/README.md).
 
@@ -44,7 +46,7 @@ Ngày 2026-10-31 chốt [Service JWT/quyền riêng cho Admin/Borrow và access 
 
 `backend/pom.xml` khai báo Java 25 và Spring Boot 4.1.1, cùng Web MVC, Security, Validation, Data JPA, Flyway và PostgreSQL driver. Đây là phiên bản repo đang dùng, không phải tuyên bố về phiên bản mới nhất của các công nghệ.
 
-`application.yml` đặt cổng 5001, import `.env` tùy chọn. Hibernate validate schema; Flyway quản lý schema. Đã có JWT RS256, Argon2id, Bearer và login UC02. Google, email, Gateway, discovery, message broker, Docker và CI chưa có. [OpenAPI/Swagger UI](api/openapi.md) giữ đủ 20 operation, login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ `IMPLEMENTED`, 9 operation khác `DESIGN_ONLY`.
+`application.yml` đặt cổng 5001, import `.env` tùy chọn. Hibernate validate schema; Flyway quản lý schema. Đã có JWT RS256, Argon2id, Bearer và login UC02. Google, email, Gateway, discovery, message broker, Docker và CI chưa có. [OpenAPI/Swagger UI](api/openapi.md) giữ đủ 20 operation, login/refresh/logout, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ và PATCH trạng thái `IMPLEMENTED`, 8 operation khác `DESIGN_ONLY`.
 
 JWT và user/phiên được xác minh bởi [nền tảng bảo mật](user-security.md); role đọc hiện tại từ database, không chứa trong JWT. Chưa có health endpoint hoặc Actuator.
 
