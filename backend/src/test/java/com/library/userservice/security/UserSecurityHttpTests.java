@@ -186,7 +186,7 @@ class UserSecurityHttpTests extends UserSecurityTestKeys {
         assertPublicError("/api/v1/auth/refresh", "{\"refreshToken\":\"x\"}", "application/json", "REFRESH_TOKEN_INVALID", 401);
         doThrow(new DataAccessResourceFailureException("private-fixture-detail")).when(logout).logout(any());
         assertPublicError("/api/v1/auth/logout", "{\"refreshToken\":\"x\"}", "application/json", "SERVICE_UNAVAILABLE", 503);
-        assertCode(get("/api/v1/auth/register", null), 401, "AUTHENTICATION_REQUIRED");
+        assertCode(get("/api/v1/auth/register/other", null), 401, "AUTHENTICATION_REQUIRED");
     }
 
     private void assertPublicError(String path, String body, String type, String code, int status) throws Exception {

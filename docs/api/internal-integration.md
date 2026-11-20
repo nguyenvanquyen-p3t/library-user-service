@@ -1,8 +1,8 @@
 # Tích hợp nội bộ
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
-Trạng thái: **GET user nội bộ và introspection đã triển khai ngày 2026-11-15; PATCH trạng thái đã triển khai ngày 2026-11-17**, tổng 12 IMPLEMENTED/8 DESIGN_ONLY tại [hợp đồng](sessions.md#introspect). Gateway và Service JWT chưa triển khai. Cập nhật cách trình bày: 2026-10-24. Nguồn: Excel Sheet1 hàng 18–19 và [quyết định đã xác nhận](../confirmed-decisions.md). Tài liệu này duy trì trách nhiệm và điều kiện tích hợp; request/response nằm tại bản API hiện hành.
+Trạng thái: **GET user nội bộ và introspection đã triển khai ngày 2026-11-15; PATCH trạng thái đã triển khai ngày 2026-11-17**, tại mốc đó tổng 12 IMPLEMENTED/8 DESIGN_ONLY. Gateway và Service JWT chưa triển khai. Cập nhật cách trình bày: 2026-10-24. Nguồn: Excel Sheet1 hàng 18–19 và [quyết định đã xác nhận](../confirmed-decisions.md). Tài liệu này duy trì trách nhiệm và điều kiện tích hợp; request/response nằm tại bản API hiện hành.
 
 **Đã xác nhận bổ sung ngày 2026-10-31:** [Q03](../confirmed-decisions.md#internal-service-auth) dùng Service JWT riêng cho Admin/Borrow, quyền từng service và header chứng minh actor Admin; [Q10](../confirmed-decisions.md#admin-status-contract) chốt retry/cạnh tranh/audit trạng thái. Gateway dùng Service JWT gọi [introspection](sessions.md#introspection-endpoint-rfc-7662). Cấu hình Service JWT tiếp tục **PENDING DECISION** tại [Q03](../open-decisions.md#q03)/[Q11a](../open-decisions.md#q11a). [User access token Q14](../confirmed-decisions.md#access-token-key-pair) đã chốt riêng; không dùng user token thay danh tính service.
 

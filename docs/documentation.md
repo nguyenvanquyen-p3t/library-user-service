@@ -1,6 +1,6 @@
 # Quy ước và nguồn tham chiếu tài liệu
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Cập nhật quy ước và đối chiếu nguồn hướng dẫn: 2026-10-24. Docs dùng Markdown trong Git để review cùng mã nguồn. Cấu trúc hiện tại phục vụ nhu cầu dự án; không phải bộ tên file bắt buộc do OpenAI hoặc GitHub quy định.
 

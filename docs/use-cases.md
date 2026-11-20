@@ -1,8 +1,8 @@
 # Luồng nghiệp vụ UC01–UC12
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
-Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
+Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC01 đã triển khai ngày 2026-11-20. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
 Các mục kết quả mô tả nhánh thành công, không áp dụng cho nhánh bị từ chối. Client là Web/Android; các bước gọi API tự động không yêu cầu người dùng thao tác trực tiếp. Chính sách xem [sổ quyết định](confirmed-decisions.md), transaction xem [requirements](requirements.md), request/response xem [16 API hiện hành](api/current-contract.md) và [API phiên](api/sessions.md). Các điểm chưa đủ để code được ghi tại [open-decisions](open-decisions.md), không ngầm coi đề xuất là quyết định. Liên kết được cập nhật ngày 2026-10-24; không đối chiếu lại Word trong đợt này.
 
@@ -17,6 +17,8 @@ OTP phải đúng email/purpose, còn hạn, chưa dùng/chưa bị thay thế v
 Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-decisions.md#otp-email-delivery): lưu hash mã/vô hiệu mã cũ và commit trước khi gửi đồng bộ. SMTP lỗi/timeout ở UC01/UC09 báo lỗi 503; riêng xin mã UC05 giữ 200/thông báo chung, ghi lỗi vận hành nội bộ. Lỗi database vẫn trả lỗi; mã đã cấp vẫn tính giới hạn gửi, không tự cấp mã retry hoặc phục hồi mã cũ. Không đối chiếu lại Word trong đợt cập nhật này.
 
 ## UC01 Đăng ký bằng email
+
+**Đã triển khai ngày 2026-11-20.** Luồng dùng OTP REGISTER, gửi SMTP sau commit và tạo tài khoản để đăng nhập qua UC02. [Chi tiết triển khai](user-registration.md).
 
 **Actor:** người đăng ký làm độc giả. **Ưu tiên:** cao. Có email nhận mã; luồng thành công dành cho người chưa có tài khoản.
 

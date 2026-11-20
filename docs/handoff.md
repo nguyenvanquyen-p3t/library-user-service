@@ -1,6 +1,6 @@
 # Bắt đầu một phiên làm việc mới
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 theo xác nhận của chủ dự án ngày 2026-10-25. Nguồn nghiệp vụ được bàn giao ngày 2026-10-22; đợt này không đối chiếu lại Word hoặc database. Đây là điểm vào để tiếp tục công việc mà không cần lịch sử chat, không phải tài liệu lặp lại toàn bộ chính sách.
 
@@ -14,6 +14,8 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 6. [Chạy cục bộ](local-development.md), [quy trình phát triển](development.md), [AGENTS.md](../AGENTS.md).
 
 ## Hiện trạng cần biết
+
+**Triển khai ngày 2026-11-20:** [Đăng ký Local UC01](user-registration.md) đã có hai API công khai. OTP dùng HMAC và khóa theo email/purpose, SMTP gửi sau commit. Tổng 14 IMPLEMENTED/6 DESIGN_ONLY. Thông số SMTP thật còn Q06.
 
 **Triển khai ngày 2026-11-17:** PATCH trạng thái user nội bộ đã có, xác minh actor qua JWT nguyên giá trị trong X-Admin-Access-Token, khóa actor/đích theo ID tăng dần và kiểm tra lại sau khóa; ACCOUNT_BANNED, audit sau commit. Tổng 12 IMPLEMENTED/8 DESIGN_ONLY, giữ V1–V6 và hoãn Service JWT.
 

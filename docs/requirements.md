@@ -1,8 +1,8 @@
 # Yêu cầu nghiệp vụ
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
-Trạng thái: **UC02–UC04, UC06, UC07, UC10–UC12, introspection và GET user nội bộ đã triển khai; 8 operation còn thiết kế**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Trạng thái: **14 operation đã triển khai, gồm UC01, UC02–UC04, UC06, UC07, UC10–UC12 và 3 operation nội bộ**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -45,8 +45,8 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 
 | Use case/thao tác | Các thay đổi phải cùng transaction |
 | --- | --- |
-| Xin OTP UC01/UC05/UC09 | Kiểm tra giới hạn gửi, lưu hash OTP mới và vô hiệu mã cũ cùng email/purpose; gửi SMTP sau commit |
-| UC01 | Tạo user ACTIVE với PasswordHash, gán READER và đánh dấu OTP đã dùng |
+| Xin OTP UC01/UC05/UC09 | Kiểm tra giới hạn gửi, lưu hash OTP mới và vô hiệu mã cũ cùng email/purpose. Gửi SMTP sau commit. UC01 dùng khóa advisory theo email/purpose. |
+| UC01 | Khóa cùng email/purpose, xác minh mã, tạo user ACTIVE với PasswordHash, gán READER và đánh dấu OTP đã dùng trong cùng transaction. Lần thử sai được commit trước khi trả lỗi. |
 | UC02 | Tạo session và refresh token liên kết đúng user/phiên; chỉ trả cặp token sau commit |
 | UC03 | Thu hồi token cũ, tạo refresh token mới và liên kết rotation cùng phiên |
 | UC04 | Thu hồi phiên được xác định từ refresh token và các refresh token còn hiệu lực của phiên |

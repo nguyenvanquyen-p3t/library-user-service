@@ -1,6 +1,6 @@
 # Library User Service
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](docs/api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](docs/api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Microservice tài khoản và danh tính của hệ thống quản lý thư viện, phục vụ Web và ứng dụng Android. Service được thiết kế để quản lý đăng ký, đăng nhập Local/Google, hồ sơ, mật khẩu, phiên đăng nhập và cung cấp API tích hợp cho các service khác.
 
@@ -23,7 +23,8 @@ Ngày 2026-11-10, chủ dự án chốt [triển khai chức năng trước, xá
 - **Đã triển khai ngày 2026-11-15:** [introspection cho Gateway](docs/api/sessions.md#introspect), kiểm tra user JWT/phiên/roles, chưa yêu cầu Service JWT; tổng **10 IMPLEMENTED/10 DESIGN_ONLY**.
 - **Đã triển khai tiếp ngày 2026-11-15:** [GET user nội bộ](docs/api/internal-integration.md#tra-cứu-user) cho Borrow/Admin, mặc định tin tưởng service, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 - **Đã triển khai ngày 2026-11-17:** PATCH trạng thái nội bộ, xác thực actor ADMIN và thu hồi phiên/token khi khóa; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**.
-- **Chưa triển khai:** 8 operation còn lại, gồm đăng ký, reset/thiết lập mật khẩu và Google/SMTP. Gateway chưa triển khai. Không có API quản lý role.
+- **Đã triển khai ngày 2026-11-20:** [Đăng ký Local UC01](docs/user-registration.md), gồm xin OTP qua SMTP và tạo tài khoản.
+- **Còn thiết kế:** 6 operation của UC05, UC08 và UC09. Gateway và Service JWT thuộc giai đoạn sau.
 
 V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Chi tiết trạng thái tại [mô hình dữ liệu](docs/data-model.md#migration-v6-quản-lý-phiên).
 
@@ -80,7 +81,7 @@ File dùng định dạng Java properties: `KEY=value`, không bao giá trị b�
 
 Ứng dụng cần cặp khóa PEM đã cấu hình trong `.secrets/`; thiếu/sai khóa sẽ dừng khởi động, không tự sinh lại. Xem [cấu hình khóa](docs/user-security.md#cấu-hình-khóa-và-khởi-động). Login cần tài khoản ACTIVE có hash Argon2id đúng định dạng; không có user/mật khẩu mặc định hoặc endpoint đăng ký trong đợt này.
 
-Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 12 operation đã triển khai, 8 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
+Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 14 operation đã triển khai, 6 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
 
 Xem [hướng dẫn môi trường cục bộ](docs/local-development.md) để cấu hình chi tiết, đóng gói JAR và xử lý lỗi.
 

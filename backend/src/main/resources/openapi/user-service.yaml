@@ -3,14 +3,14 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ và PATCH trạng thái đã triển khai, 8 operation khác còn DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation, gồm 14 IMPLEMENTED và 6 DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
     duy trì trong docs/confirmed-decisions.md và docs/requirements.md. Không có API quản lý role.
 servers:
 - url: /
-  description: Cùng origin với tài liệu; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07, quản lý phiên UC10–UC12 và introspection cùng GET user nội bộ và PATCH trạng thái đã triển khai, 8 operation khác còn DESIGN_ONLY.
+  description: Cùng origin với tài liệu.
 tags:
 - name: Đăng ký Local
 - name: Xác thực
@@ -27,12 +27,12 @@ paths:
       operationId: requestRegistrationCode
       summary: Xin OTP đăng ký
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        ĐÃ TRIỂN KHAI ngày 2026-11-20.
 
         Kiểm tra username/email chưa được sử dụng, cấp OTP REGISTER trước khi có user. Chưa lưu password/dữ liệu đăng ký tạm. OTP gắn email/purpose, không gắn username; xem OTP REGISTER.
 
-        commit hash OTP mới và vô hiệu mã cũ trước khi gửi SMTP đồng bộ. SMTP lỗi/timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã vẫn tính giới hạn, không phục hồi mã cũ hoặc tự cấp mã retry. Chi tiết tại Q06.
-      x-implementation-status: DESIGN_ONLY
+        Commit hash OTP mới và vô hiệu mã cũ trước khi gửi SMTP đồng bộ. SMTP lỗi hoặc timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã vẫn tính giới hạn. Mọi response có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#register-request-code
       security: []
       requestBody:
@@ -46,7 +46,12 @@ paths:
               email: reader@example.com
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: SMTP đã chấp nhận thư. Message và dữ liệu ví dụ dùng để minh họa.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
           content:
             application/json:
               schema:
@@ -80,10 +85,10 @@ paths:
       operationId: registerLocalUser
       summary: Hoàn tất đăng ký Local
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        ĐÃ TRIỂN KHAI ngày 2026-11-20.
 
-        Xác minh OTP trước khi tạo user ACTIVE, hash password, gán READER và dùng mã một lần cùng transaction. Không cấp token hoặc tạo phiên; đăng nhập riêng. Xem vòng đời tài khoản và OTP/mật khẩu.
-      x-implementation-status: DESIGN_ONLY
+        Xác minh OTP trước khi tạo user ACTIVE, hash mật khẩu và gán READER. Việc tạo user, gán role và dùng OTP nằm trong cùng transaction. Người dùng đăng nhập qua UC02 để nhận token. Mọi response có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#register
       security: []
       requestBody:
@@ -97,11 +102,16 @@ paths:
               email: reader@example.com
               password: Abc@123456
               fullName: Nguyen Van A
-              phoneNumber: 0901234567
+              phoneNumber: '0901234567'
               verificationCode: '583921'
       responses:
         '201':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Đã tạo tài khoản và dùng OTP. Message và dữ liệu ví dụ dùng để minh họa.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
           content:
             application/json:
               schema:
@@ -117,7 +127,7 @@ paths:
                       userName: reader01
                       email: reader@example.com
                       fullName: Nguyen Van A
-                      phoneNumber: 0901234567
+                      phoneNumber: '0901234567'
                       status: ACTIVE
                       roles:
                       - READER
