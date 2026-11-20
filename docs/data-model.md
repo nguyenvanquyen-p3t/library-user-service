@@ -1,6 +1,6 @@
 # Mô hình dữ liệu theo migration
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Nguồn: [Flyway migrations](../backend/src/main/resources/db/migration/), V1–V6. V6 có trong repo và đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; chi tiết tại [trạng thái migration](#migration-v6-quản-lý-phiên). Đã có [entity/repository cho 7 bảng](foundation.md) từ ngày 2026-11-03; login UC02 đã triển khai ngày 2026-11-10. Tên bảng/cột PostgreSQL dùng dấu nháy kép.
 

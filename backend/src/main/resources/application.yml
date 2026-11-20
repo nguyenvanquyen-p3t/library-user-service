@@ -26,6 +26,12 @@ spring:
   mvc:
     log-request-details: false
 
+  mail:
+    properties:
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
+
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -41,6 +47,9 @@ springdoc:
     persist-authorization: false
 
 app:
+  otp:
+    hmac-key: ${OTP_HMAC_KEY:}
+    mail-from: ${OTP_MAIL_FROM:}
   security:
     user-access:
       issuer: urn:library:user-service

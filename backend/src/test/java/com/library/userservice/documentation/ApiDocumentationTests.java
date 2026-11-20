@@ -78,14 +78,18 @@ class ApiDocumentationTests {
             for (var operation : path) {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
-                        Set.of("login", "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions", "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser", "updateUserStatus").contains(operation.path("operationId").asText())
+                        Set.of("requestRegistrationCode", "registerLocalUser", "login", "refreshTokens", "logout",
+                                "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
+                                "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken",
+                                "getInternalUser", "updateUserStatus").contains(operation.path("operationId").asText())
                                 ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }
         }
         assertThat(count).isEqualTo(20);
         var paths = document.path("paths");
-        for (String publicPath : new String[]{"/auth/login", "/auth/refresh", "/auth/logout"}) {
+        for (String publicPath : new String[]{"/auth/register/request-code", "/auth/register", "/auth/login",
+                "/auth/refresh", "/auth/logout"}) {
             assertThat(paths.path("/api/v1" + publicPath).path("post").path("security").isEmpty()).isTrue();
         }
         assertThat(paths.path("/api/v1/users/me").path("get").path("security").get(0).has("UserAccessToken")).isTrue();

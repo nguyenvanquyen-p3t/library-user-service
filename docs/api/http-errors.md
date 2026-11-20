@@ -1,6 +1,6 @@
 # HTTP status và phản hồi lỗi đã xác nhận
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Chủ dự án chốt HTTP/lỗi ngày 2026-10-25, bổ sung API phiên, mã phản hồi và introspection ngày 2026-10-26; chốt lỗi tích hợp, SMTP và trạng thái ngày 2026-10-31. **Hợp đồng đã xác nhận; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection đã triển khai (introspection ngày 2026-11-15), 8 operation khác còn thiết kế. Đã có [OpenAPI/Swagger UI](openapi.md) từ ngày 2026-11-01.** Quyết định duy trì tại [sổ quyết định](../confirmed-decisions.md#http-error-contract), [API phiên](../confirmed-decisions.md#session-response-contract), [danh mục mã phản hồi](../confirmed-decisions.md#response-code-contract), [introspection](../confirmed-decisions.md#introspection-contract) và [lỗi tích hợp bổ sung](../confirmed-decisions.md#integration-error-contract); schema chung tại [schema JSON](json-schema.md). Cấu hình JWT Q03/Q11a vẫn mở; Q06 chỉ còn lựa chọn/cấu hình môi trường SMTP. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
@@ -229,6 +229,7 @@ Ngày 2026-10-31 chốt thứ tự kiểm tra API nội bộ: danh tính service
 - UC11: phiên đích của mình đã thu hồi hoặc hết hạn trả 200 nếu phiên gọi hợp lệ; không ghi đè thời gian/lý do thu hồi cũ, không cập nhật lại phiên hết hạn.
 - PATCH hồ sơ: gửi lại giá trị đang có trả 200, không phải xung đột; giữ trigger UpdatedAt hiện hành.
 - 429 kèm `Retry-After` tính bằng giây, theo thời điểm thực sự được xin mã tiếp trong chính sách đã chốt. Giới hạn nhập sai OTP trả 400 `OTP_ATTEMPTS_EXCEEDED`, không dùng 429 thay cho yêu cầu xin mã mới.
+- UC01 ghi nhận lần nhập sai thứ 5 trước khi trả `400 OTP_ATTEMPTS_EXCEEDED`. Trong thời gian hiệu lực, mọi lần thử tiếp theo với mã đã đạt giới hạn nhận cùng mã lỗi.
 - 503 không tự khiến client xóa token hoặc kết luận phiên bị thu hồi; không tự retry vô hạn.
 
 <a id="introspection-errors"></a>

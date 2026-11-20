@@ -1,6 +1,6 @@
 # Thiết lập môi trường và chạy cục bộ
 
-**Hiện trạng ngày 2026-11-17:** [PATCH trạng thái user nội bộ](api/internal-integration.md#cap-nhat-trang-thai-implementation) đã triển khai; tổng **12 IMPLEMENTED/8 DESIGN_ONLY**. Các số liệu theo mốc trước bên dưới là lịch sử. Giữ nguyên V1–V6 và cơ chế hoãn Service JWT; actor ADMIN vẫn được xác minh.
+**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Hướng dẫn chi tiết cho thành viên phát triển User Service. Xem [README dự án](../README.md) để bắt đầu nhanh; các lệnh bên dưới dùng PowerShell trên Windows.
 
@@ -60,6 +60,14 @@ Cũng có thể cung cấp các biến trên bằng biến môi trường của 
 
 `.gitignore` bỏ qua `.env` và các file `.env.*`, đồng thời cho phép chia sẻ `.env.example`. Chỉ điền giá trị mẫu vào `.env.example`. Quy tắc ignore không loại bỏ file đã được Git theo dõi; trong trường hợp đó cần bỏ theo dõi bằng `git rm --cached backend/.env` từ thư mục gốc dự án.
 
+### Cấu hình OTP và SMTP cho UC01
+
+`OTP_HMAC_KEY` nhận khóa ngẫu nhiên 32 byte mã hóa Base64. Dùng chung khóa giữa các instance cùng môi trường. `OTP_MAIL_FROM` là địa chỉ gửi đã cấu hình với nhà cung cấp. Trong `backend/.env`, cấu hình SMTP bằng `spring.mail.host`, `spring.mail.port`, `spring.mail.username`, `spring.mail.password` và các thuộc tính TLS/xác thực theo môi trường. Mẫu tên thuộc tính có trong [backend/.env.example](../backend/.env.example).
+
+Spring Mail mặc định đặt timeout kết nối, đọc và ghi là 5.000 ms mỗi loại. Có thể đặt lại bằng `spring.mail.properties[mail.smtp.connectiontimeout]`, `spring.mail.properties[mail.smtp.timeout]` và `spring.mail.properties[mail.smtp.writetimeout]`. Chốt nhà cung cấp, địa chỉ gửi, TLS và timeout môi trường đích theo [Q06](open-decisions.md#q06) trước khi gửi thư thật.
+
+Ứng dụng có thể khởi động khi chưa cấu hình OTP/SMTP. API xin mã trả `503 SERVICE_UNAVAILABLE` nếu chưa có khóa HMAC hợp lệ, địa chỉ gửi hoặc cấu hình máy chủ thư. Cấp khóa và thông tin xác thực qua môi trường hoặc `backend/.env` cục bộ.
+
 ## Chạy ứng dụng
 
 Từ `backend/`:
@@ -68,11 +76,11 @@ Từ `backend/`:
 .\mvnw.cmd spring-boot:run
 ```
 
-Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Đã có `POST /api/v1/auth/login`, `/api/v1/auth/refresh` và `/api/v1/auth/logout`, [GET/PATCH hồ sơ UC06](user-profile.md), [đổi mật khẩu UC07](user-password.md) và [quản lý phiên UC10–UC12](user-sessions.md); [introspection](api/sessions.md#introspect) đã có từ ngày 2026-11-15; [GET user nội bộ](api/internal-integration.md#tra-cứu-user) đã có cùng ngày; PATCH trạng thái đã có ngày 2026-11-17, tổng 12 IMPLEMENTED/8 DESIGN_ONLY. Xem [bản đồ API](api/README.md).
+Ứng dụng dùng tên `user-service`, cổng mặc định `5001`, địa chỉ `http://localhost:5001`. Đã có `POST /api/v1/auth/login`, `/api/v1/auth/refresh` và `/api/v1/auth/logout`, [GET/PATCH hồ sơ UC06](user-profile.md), [đổi mật khẩu UC07](user-password.md) và [quản lý phiên UC10–UC12](user-sessions.md); [introspection](api/sessions.md#introspect) đã có từ ngày 2026-11-15; [GET user nội bộ](api/internal-integration.md#tra-cứu-user) đã có cùng ngày; PATCH trạng thái đã có ngày 2026-11-17. [Đăng ký Local UC01](user-registration.md) đã có ngày 2026-11-20. Xem [bản đồ API](api/README.md).
 
 Ứng dụng cần private key PKCS#8 PEM và public key X.509 PEM hợp lệ; mặc định đọc `.secrets/user-access-private.pem` và `.secrets/user-access-public.pem`. Có thể đặt `USER_ACCESS_PRIVATE_KEY_LOCATION`/`USER_ACCESS_PUBLIC_KEY_LOCATION` bằng vị trí Spring Resource bắt đầu `file:`. Thiếu/hỏng/không khớp khóa thì khởi động thất bại, không tự sinh lại; không đưa PEM vào Git/log. Xem [cấu hình bảo mật](user-security.md#cấu-hình-khóa-và-khởi-động).
 
-Login cần user ACTIVE đã có hash Argon2id đúng định dạng; không seed user hoặc mật khẩu mặc định. Endpoint đăng ký chưa triển khai. Runtime không dùng HTTP Basic/form login; Bearer kiểm tra user/phiên/role từ database.
+Sau khi cấu hình OTP/SMTP, có thể tạo tài khoản ACTIVE qua [đăng ký Local UC01](user-registration.md) rồi đăng nhập. Login cần hash Argon2id đúng định dạng. Bearer kiểm tra user, phiên và role từ database.
 
 Đọc hợp đồng thiết kế tại `http://localhost:5001/swagger-ui.html`; tải OpenAPI từ `/v3/api-docs` hoặc `/v3/api-docs.yaml`. UI tắt `Try it out`. Hướng dẫn và lệnh kiểm thử tài liệu không dùng database tại [OpenAPI/Swagger UI](api/openapi.md).
 
