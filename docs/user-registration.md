@@ -13,4 +13,4 @@ Triển khai ngày 2026-11-20. API [xin mã đăng ký](api/current-contract.md#
 
 Sau khi xác minh mã, service hash mật khẩu bằng Argon2id, tạo user `ACTIVE`, gán `READER` và cập nhật `UsedAt` cùng transaction. Trùng username/email dùng mã `409` theo constraint hiện có. Lỗi ghi hoặc commit rollback toàn bộ thao tác và mã có thể thử lại nếu còn hiệu lực.
 
-Xem [cấu hình OTP và SMTP](local-development.md#cấu-hình-otp-và-smtp-cho-uc01) và [kiểm thử](development.md#kiểm-thử-hiện-có).
+Xem [cấu hình OTP và SMTP](local-development.md#cau-hinh-otp-smtp) và [kiểm thử](development.md#kiểm-thử-hiện-có).

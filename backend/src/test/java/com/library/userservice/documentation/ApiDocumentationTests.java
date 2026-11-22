@@ -79,6 +79,7 @@ class ApiDocumentationTests {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
                         Set.of("requestRegistrationCode", "registerLocalUser", "login", "refreshTokens", "logout",
+                                "requestPasswordResetCode", "resetPassword",
                                 "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
                                 "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken",
                                 "getInternalUser", "updateUserStatus").contains(operation.path("operationId").asText())
@@ -89,7 +90,7 @@ class ApiDocumentationTests {
         assertThat(count).isEqualTo(20);
         var paths = document.path("paths");
         for (String publicPath : new String[]{"/auth/register/request-code", "/auth/register", "/auth/login",
-                "/auth/refresh", "/auth/logout"}) {
+                "/auth/refresh", "/auth/logout", "/auth/forgot-password/request-code", "/auth/reset-password"}) {
             assertThat(paths.path("/api/v1" + publicPath).path("post").path("security").isEmpty()).isTrue();
         }
         assertThat(paths.path("/api/v1/users/me").path("get").path("security").get(0).has("UserAccessToken")).isTrue();

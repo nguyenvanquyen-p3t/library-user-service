@@ -1,10 +1,10 @@
 # Bản đồ 20 API thiết kế
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](../user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11. GET/PATCH hồ sơ UC06 đã triển khai ngày 2026-11-12. Đổi mật khẩu UC07 triển khai ngày 2026-11-13. Ngày 2026-11-14 triển khai [quản lý phiên UC10–UC12](../user-sessions.md); ngày 2026-11-15 thêm [introspection](sessions.md#introspect).** Xem [bảo mật người dùng](../user-security.md). 12 use case không tương ứng một-một với 20 endpoint; hai endpoint nội bộ phục vụ service khác và introspection phục vụ Gateway. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
-Ngày 2026-11-01 đã thêm [OpenAPI và Swagger UI](openapi.md) để đọc đủ 20 operation này. [Đặc tả YAML](../../backend/src/main/resources/openapi/user-service.yaml) ghi trạng thái từng operation: 14 operation `IMPLEMENTED`, gồm hai API UC01, và 6 operation `DESIGN_ONLY`; UI tắt `Try it out`.
+Ngày 2026-11-01 đã thêm [OpenAPI và Swagger UI](openapi.md) để đọc đủ 20 operation này. [Đặc tả YAML](../../backend/src/main/resources/openapi/user-service.yaml) ghi trạng thái từng operation. 16 operation `IMPLEMENTED`, gồm hai API UC01 và hai API UC05. Bốn operation `DESIGN_ONLY`. UI tắt `Try it out`.
 
 | # | Method và đường dẫn | Luồng | Danh tính/điều kiện đầu vào |
 | --- | --- | --- | --- |

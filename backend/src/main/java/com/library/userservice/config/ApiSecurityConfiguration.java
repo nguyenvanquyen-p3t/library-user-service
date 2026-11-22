@@ -6,6 +6,7 @@ import com.library.userservice.security.IntrospectionProtocolFilter;
 import com.library.userservice.internal.web.IntrospectionController;
 import com.library.userservice.internal.web.InternalUserController;
 import com.library.userservice.internal.web.InternalUserStatusController;
+import com.library.userservice.auth.web.PasswordResetController;
 import com.library.userservice.auth.web.RegistrationController;
 import com.library.userservice.security.AdminActorAuthenticationFilter;
 import com.library.userservice.security.AdminActorAuthenticator;
@@ -30,9 +31,10 @@ public class ApiSecurityConfiguration {
     @Bean
     @Order(2)
     SecurityFilterChain publicTokenSecurityFilterChain(HttpSecurity http) throws Exception {
-        // Match mọi method để MVC trả đúng 405/415; Bearer cũ không chặn API dùng refresh token.
+        // Khớp mọi method để MVC trả đúng 405/415, kể cả khi client gửi Bearer cũ.
         return stateless(http).securityMatcher("/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout",
-                        RegistrationController.REQUEST_CODE_PATH, RegistrationController.REGISTER_PATH)
+                        RegistrationController.REQUEST_CODE_PATH, RegistrationController.REGISTER_PATH,
+                        PasswordResetController.REQUEST_CODE_PATH, PasswordResetController.RESET_PATH)
                 .headers(headers -> headers.addHeaderWriter((request, response) -> response.setHeader("Cache-Control", "no-store")))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).build();
     }

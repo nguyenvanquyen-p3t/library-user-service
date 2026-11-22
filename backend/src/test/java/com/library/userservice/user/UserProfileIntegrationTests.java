@@ -212,7 +212,8 @@ class UserProfileIntegrationTests extends UserSecurityTestKeys {
         }
         assertThat(count).isEqualTo(20);
         assertThat(implemented).containsExactlyInAnyOrder("requestRegistrationCode", "registerLocalUser", "login",
-                "refreshTokens", "logout", "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
+                "refreshTokens", "logout", "requestPasswordResetCode", "resetPassword",
+                "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
                 "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser", "updateUserStatus");
     }
 

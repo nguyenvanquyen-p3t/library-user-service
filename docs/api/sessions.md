@@ -1,6 +1,6 @@
 # Thiết kế API quản lý phiên và introspection
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](../user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Nguồn bàn giao: 2026-10-22; biên tập ngày 2026-10-24, cập nhật hợp đồng ba API phiên và introspection theo xác nhận ngày 2026-10-26; không đối chiếu lại Word/database. **Ba endpoint quản lý phiên UC10–UC12 đã triển khai ngày 2026-11-14; introspection đã triển khai ngày 2026-11-15; nền tảng user JWT/login UC02 đã có từ ngày 2026-11-10. [OpenAPI/Swagger UI](openapi.md) có từ ngày 2026-11-01.** Chủ dự án đã yêu cầu 3 API quản lý phiên và introspection RFC 7662 cho Gateway. Tổng thiết kế: 7 bảng, 20 API. Web và Android tiếp tục nhận/gửi refresh token qua JSON; không chuyển sang cookie. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 

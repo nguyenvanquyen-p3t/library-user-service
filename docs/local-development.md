@@ -1,6 +1,6 @@
 # Thiết lập môi trường và chạy cục bộ
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Hướng dẫn chi tiết cho thành viên phát triển User Service. Xem [README dự án](../README.md) để bắt đầu nhanh; các lệnh bên dưới dùng PowerShell trên Windows.
 
@@ -60,13 +60,15 @@ Cũng có thể cung cấp các biến trên bằng biến môi trường của 
 
 `.gitignore` bỏ qua `.env` và các file `.env.*`, đồng thời cho phép chia sẻ `.env.example`. Chỉ điền giá trị mẫu vào `.env.example`. Quy tắc ignore không loại bỏ file đã được Git theo dõi; trong trường hợp đó cần bỏ theo dõi bằng `git rm --cached backend/.env` từ thư mục gốc dự án.
 
-### Cấu hình OTP và SMTP cho UC01
+<a id="cau-hinh-otp-smtp"></a>
+
+### Cấu hình OTP và SMTP cho UC01 và UC05
 
 `OTP_HMAC_KEY` nhận khóa ngẫu nhiên 32 byte mã hóa Base64. Dùng chung khóa giữa các instance cùng môi trường. `OTP_MAIL_FROM` là địa chỉ gửi đã cấu hình với nhà cung cấp. Trong `backend/.env`, cấu hình SMTP bằng `spring.mail.host`, `spring.mail.port`, `spring.mail.username`, `spring.mail.password` và các thuộc tính TLS/xác thực theo môi trường. Mẫu tên thuộc tính có trong [backend/.env.example](../backend/.env.example).
 
 Spring Mail mặc định đặt timeout kết nối, đọc và ghi là 5.000 ms mỗi loại. Có thể đặt lại bằng `spring.mail.properties[mail.smtp.connectiontimeout]`, `spring.mail.properties[mail.smtp.timeout]` và `spring.mail.properties[mail.smtp.writetimeout]`. Chốt nhà cung cấp, địa chỉ gửi, TLS và timeout môi trường đích theo [Q06](open-decisions.md#q06) trước khi gửi thư thật.
 
-Ứng dụng có thể khởi động khi chưa cấu hình OTP/SMTP. API xin mã trả `503 SERVICE_UNAVAILABLE` nếu chưa có khóa HMAC hợp lệ, địa chỉ gửi hoặc cấu hình máy chủ thư. Cấp khóa và thông tin xác thực qua môi trường hoặc `backend/.env` cục bộ.
+Ứng dụng có thể khởi động khi chưa cấu hình OTP/SMTP. Khi cấp mã UC01 hoặc UC05, thiếu khóa HMAC hợp lệ, địa chỉ gửi hoặc cấu hình máy chủ thư trả `503 SERVICE_UNAVAILABLE` trước khi lưu OTP. UC05 trả phản hồi chung khi email không tồn tại. Với UC05, lỗi SMTP hoặc timeout sau commit vẫn trả 200. Cấp khóa và thông tin xác thực qua môi trường hoặc `backend/.env` cục bộ. [Triển khai UC05](user-password-reset.md)
 
 ## Chạy ứng dụng
 
