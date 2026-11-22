@@ -79,7 +79,7 @@ class ApiDocumentationTests {
                 count++;
                 assertThat(operation.path("x-implementation-status").asText()).isEqualTo(
                         Set.of("requestRegistrationCode", "registerLocalUser", "login", "refreshTokens", "logout",
-                                "requestPasswordResetCode", "resetPassword",
+                                "requestPasswordResetCode", "resetPassword", "authenticateWithGoogle", "completeGoogleRegistration",
                                 "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
                                 "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken",
                                 "getInternalUser", "updateUserStatus").contains(operation.path("operationId").asText())
@@ -90,10 +90,15 @@ class ApiDocumentationTests {
         assertThat(count).isEqualTo(20);
         var paths = document.path("paths");
         for (String publicPath : new String[]{"/auth/register/request-code", "/auth/register", "/auth/login",
-                "/auth/refresh", "/auth/logout", "/auth/forgot-password/request-code", "/auth/reset-password"}) {
+                "/auth/refresh", "/auth/logout", "/auth/forgot-password/request-code", "/auth/reset-password",
+                "/auth/google", "/auth/google/register"}) {
             assertThat(paths.path("/api/v1" + publicPath).path("post").path("security").isEmpty()).isTrue();
         }
         assertThat(paths.path("/api/v1/users/me").path("get").path("security").get(0).has("UserAccessToken")).isTrue();
+        assertThat(paths.path("/api/v1/auth/google").path("post").path("responses").path("200")
+                .path("content").path("application/json").path("schema").path("oneOf").size()).isEqualTo(3);
+        assertThat(paths.path("/api/v1/auth/google/register").path("post").path("responses").path("201")
+                .path("headers").path("Cache-Control").path("schema").path("enum").get(0).asText()).isEqualTo("no-store");
         var adminSecurity = paths.path("/api/v1/internal/users/{id}/status").path("patch").path("security");
         assertThat(adminSecurity.size()).isEqualTo(1);
         assertThat(adminSecurity.get(0).has("ServiceJwt")).isTrue();

@@ -1,6 +1,6 @@
 # Quản lý phiên UC10–UC12
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Triển khai ngày 2026-11-14 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), giữ nguyên 7 bảng và Flyway V1–V6. Chính sách tại [quyết định UC10–UC12](confirmed-decisions.md#user-sessions-uc10-uc12); request/response tại [API phiên](api/sessions.md). Gateway và Service JWT vẫn chưa triển khai. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 

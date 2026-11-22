@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung UC08 ngày 2026-11-22.** Chủ dự án duyệt hai API Google, giữ Flyway V1–V6. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. [Triển khai UC08](user-google-auth.md)
+
 **Bổ sung ngày 2026-11-22.** Chủ dự án duyệt triển khai [UC05](user-password-reset.md) với hai endpoint hiện có. Thiếu cấu hình SMTP cho tài khoản đủ điều kiện trả 503 trước khi cấp mã. SMTP lỗi hoặc timeout sau commit vẫn trả 200 với phản hồi chung theo Q06. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**.
 
 **Bổ sung ngày 2026-11-20:** chủ dự án duyệt triển khai [đăng ký Local UC01](user-registration.md) dùng HMAC với khóa riêng cho OTP và SMTP cấu hình theo môi trường. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Thông số SMTP thực tế thuộc Q06.
@@ -133,7 +135,7 @@ UC08 A1 tự liên kết Google identity chưa tồn tại với tài khoản Lo
 
 Server phải xác minh Google ID Token hợp lệ trước khi sử dụng `sub`, email và trạng thái email đã xác minh; không coi email hoặc cờ xác minh do client tự khai là bằng chứng danh tính. Khi đủ điều kiện liên kết, thêm UserIdentities với `Provider = GOOGLE`, `ProviderUserId = Google sub`, `UserId` của tài khoản hiện có; không tạo Users mới, không thay mật khẩu hoặc role. User phải ACTIVE để đăng nhập, tạo session và nhận token; user BANNED không được cấp token.
 
-Đây là quyết định nghiệp vụ đã chốt, chưa triển khai API. Danh sách Google client ID được server chấp nhận vẫn **PENDING DECISION tại Q07**, không tự chấp nhận mọi audience.
+**Bổ sung UC08 ngày 2026-11-22.** Tự liên kết yêu cầu email Gmail hoặc Google Workspace đã xác minh. Với Workspace, dùng claim `hd` do Google ký. Tài khoản Local phải có mật khẩu và chưa gắn identity Google khác. Email đã thuộc tài khoản hiện có nhưng không đủ điều kiện liên kết trả `401 GOOGLE_TOKEN_INVALID`. Email bên thứ ba đã xác minh vẫn dùng được để đăng ký mới nếu chưa trùng. Q07 chốt đọc danh sách client ID từ cấu hình từng môi trường. [Triển khai UC08](user-google-auth.md)
 
 <a id="google-registration-ttl"></a>
 
@@ -141,7 +143,7 @@ Server phải xác minh Google ID Token hợp lệ trước khi sử dụng `sub
 
 `registrationToken` dùng để hoàn tất đăng ký Google có thời hạn **10 phút (600 giây) kể từ lúc cấp**, không gia hạn. Khi người dùng sửa username trùng hoặc dữ liệu không hợp lệ, có thể gửi lại trong thời hạn còn lại; thao tác này không kéo dài TTL. Khi token hết hạn, người dùng thực hiện lại bước xác minh Google để nhận token mới.
 
-Token gắn với danh tính Google đã được server xác minh, chỉ dùng cho bước hoàn tất đăng ký, không thay thế access token hoặc refresh token. TTL 10 phút không tự bảo đảm dùng một lần; đã chốt chống đăng ký lặp dựa trên Google identity như bên dưới. Chính sách OTP và mật khẩu được chốt riêng bên dưới. Chưa có implementation.
+Token gắn với danh tính Google đã được server xác minh, chỉ dùng cho bước hoàn tất đăng ký, không thay thế access token hoặc refresh token. TTL 10 phút không tự bảo đảm dùng một lần; đã chốt chống đăng ký lặp dựa trên Google identity như bên dưới. Chính sách OTP và mật khẩu được chốt riêng bên dưới. [UC08 đã triển khai](user-google-auth.md).
 
 <a id="google-replay"></a>
 

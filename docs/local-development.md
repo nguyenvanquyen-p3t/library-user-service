@@ -1,6 +1,6 @@
 # Thiết lập môi trường và chạy cục bộ
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Hướng dẫn chi tiết cho thành viên phát triển User Service. Xem [README dự án](../README.md) để bắt đầu nhanh; các lệnh bên dưới dùng PowerShell trên Windows.
 
@@ -71,6 +71,8 @@ Spring Mail mặc định đặt timeout kết nối, đọc và ghi là 5.000 m
 Ứng dụng có thể khởi động khi chưa cấu hình OTP/SMTP. Khi cấp mã UC01 hoặc UC05, thiếu khóa HMAC hợp lệ, địa chỉ gửi hoặc cấu hình máy chủ thư trả `503 SERVICE_UNAVAILABLE` trước khi lưu OTP. UC05 trả phản hồi chung khi email không tồn tại. Với UC05, lỗi SMTP hoặc timeout sau commit vẫn trả 200. Cấp khóa và thông tin xác thực qua môi trường hoặc `backend/.env` cục bộ. [Triển khai UC05](user-password-reset.md)
 
 ## Chạy ứng dụng
+
+Muốn bật hai API Google UC08, đặt `GOOGLE_ALLOWED_CLIENT_IDS` và `GOOGLE_REGISTRATION_HMAC_KEY` trong môi trường hoặc `backend/.env`. Với client có `azp` khác `aud`, thêm client ID tương ứng vào `GOOGLE_ALLOWED_PRESENTER_CLIENT_IDS`. [Định dạng cấu hình UC08](user-google-auth.md#xác-minh-và-cấu-hình)
 
 Từ `backend/`:
 

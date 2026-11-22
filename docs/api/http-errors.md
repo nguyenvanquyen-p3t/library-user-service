@@ -1,6 +1,6 @@
 # HTTP status và phản hồi lỗi đã xác nhận
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](../user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](../user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Chủ dự án chốt HTTP/lỗi ngày 2026-10-25, bổ sung API phiên, mã phản hồi và introspection ngày 2026-10-26; chốt lỗi tích hợp, SMTP và trạng thái ngày 2026-10-31. **Hợp đồng đã xác nhận; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection đã triển khai (introspection ngày 2026-11-15), 8 operation khác còn thiết kế. Đã có [OpenAPI/Swagger UI](openapi.md) từ ngày 2026-11-01.** Quyết định duy trì tại [sổ quyết định](../confirmed-decisions.md#http-error-contract), [API phiên](../confirmed-decisions.md#session-response-contract), [danh mục mã phản hồi](../confirmed-decisions.md#response-code-contract), [introspection](../confirmed-decisions.md#introspection-contract) và [lỗi tích hợp bổ sung](../confirmed-decisions.md#integration-error-contract); schema chung tại [schema JSON](json-schema.md). Cấu hình JWT Q03/Q11a vẫn mở; Q06 chỉ còn lựa chọn/cấu hình môi trường SMTP. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
@@ -204,7 +204,7 @@ Bảng liệt kê lỗi nghiệp vụ/token đặc thù đã ánh xạ; mã thà
 | 8 | `GET /api/v1/users/me` | 200 | Kiểm tra access token/phiên hợp lệ theo quy tắc chung |
 | 9 | `PATCH /api/v1/users/me` | 200 | 400 `VALIDATION_ERROR`; gửi lại giá trị hiện có vẫn thành công |
 | 10 | `PUT /api/v1/users/me/password` | 200 | 400 `CURRENT_PASSWORD_INCORRECT`; 409 `PASSWORD_NOT_CONFIGURED` |
-| 11 | `POST /api/v1/auth/google` | 200 | 401 `GOOGLE_TOKEN_INVALID`; 403 `ACCOUNT_BANNED`; cần hoàn tất đăng ký là nhánh thành công |
+| 11 | `POST /api/v1/auth/google` | 200 | 401 `GOOGLE_TOKEN_INVALID` gồm email trùng nhưng không đủ điều kiện liên kết; 403 `ACCOUNT_BANNED`; 503 `SERVICE_UNAVAILABLE` khi thiếu cấu hình hoặc JWKS không khả dụng |
 | 12 | `POST /api/v1/auth/google/register` | 201 | 401 `REGISTRATION_TOKEN_INVALID`; 409 `USERNAME_ALREADY_EXISTS`/`GOOGLE_IDENTITY_ALREADY_REGISTERED`/`EMAIL_ALREADY_EXISTS` |
 | 13 | `POST /api/v1/users/me/password/request-code` | 200 | 409 `PASSWORD_ALREADY_CONFIGURED`; 429 `OTP_RATE_LIMITED`; SMTP lỗi/timeout sau commit dùng 503 `SERVICE_UNAVAILABLE` |
 | 14 | `POST /api/v1/users/me/password/set` | 200 | 400 `OTP_INVALID`/`OTP_ATTEMPTS_EXCEEDED`; 409 `PASSWORD_ALREADY_CONFIGURED` |

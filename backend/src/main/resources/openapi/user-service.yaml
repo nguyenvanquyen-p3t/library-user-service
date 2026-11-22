@@ -595,10 +595,8 @@ paths:
       operationId: authenticateWithGoogle
       summary: Đăng nhập hoặc bắt đầu đăng ký Google
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
-
-        Ba nhánh: identity đã có thì đăng nhập; chưa có identity nhưng email Google đã xác minh trùng Local thì tự liên kết không hỏi mật khẩu Local; người mới nhận registrationToken 10 phút, chưa có phiên. Chỉ user ACTIVE được cấp session/token. Tự liên kết không tạo user hoặc đổi role/password. Xem Google và registrationToken.
-      x-implementation-status: DESIGN_ONLY
+        Đã triển khai UC08. Tra cứu identity theo Google sub trước. Tự liên kết khi email Gmail hoặc Workspace đã xác minh trùng tài khoản Local đủ điều kiện. Email trùng nhưng không đủ điều kiện liên kết trả 401 GOOGLE_TOKEN_INVALID. Email đã xác minh chưa được dùng nhận registrationToken 600 giây để hoàn tất đăng ký. Chỉ user ACTIVE được cấp phiên. Mọi response có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#google
       security: []
       requestBody:
@@ -611,7 +609,13 @@ paths:
               idToken: eyJhbGciOiJSUzI1NiIs...
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Đăng nhập, tự liên kết hoặc trả dữ liệu hoàn tất đăng ký.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
           content:
             application/json:
               schema:
@@ -677,10 +681,8 @@ paths:
       operationId: completeGoogleRegistration
       summary: Hoàn tất đăng ký Google
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
-
-        Tạo user ACTIVE với PasswordHash NULL, identity GOOGLE, READER, session/refresh token cùng transaction. Identity đã có thì từ chối, không cấp session/token; UNIQUE xung đột rollback toàn bộ. Đã commit mất response thì đăng nhập Google. Không gia hạn token khi sửa dữ liệu; không bảo đảm dùng một lần tuyệt đối. Xem chống lặp.
-      x-implementation-status: DESIGN_ONLY
+        Đã triển khai UC08. Tạo user ACTIVE chưa có mật khẩu, identity GOOGLE, role READER và phiên/refresh token trong cùng transaction. Identity đã tồn tại trả 409 và không cấp thêm phiên. Sau khi commit, người dùng có thể đăng nhập qua API Google. Gửi lại dữ liệu hợp lệ trong thời hạn gốc của registrationToken. Mọi response có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#google-register
       security: []
       requestBody:
@@ -696,7 +698,13 @@ paths:
               phoneNumber: 0901234567
       responses:
         '201':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Hoàn tất đăng ký và cấp token sau commit.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
           content:
             application/json:
               schema:
