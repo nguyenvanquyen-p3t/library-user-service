@@ -213,6 +213,7 @@ class UserProfileIntegrationTests extends UserSecurityTestKeys {
         assertThat(count).isEqualTo(20);
         assertThat(implemented).containsExactlyInAnyOrder("requestRegistrationCode", "registerLocalUser", "login",
                 "refreshTokens", "logout", "requestPasswordResetCode", "resetPassword",
+                "authenticateWithGoogle", "completeGoogleRegistration",
                 "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
                 "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser", "updateUserStatus");
     }

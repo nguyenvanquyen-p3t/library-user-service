@@ -47,6 +47,10 @@ springdoc:
     persist-authorization: false
 
 app:
+  google:
+    allowed-client-ids: "${GOOGLE_ALLOWED_CLIENT_IDS:}"
+    allowed-presenter-client-ids: "${GOOGLE_ALLOWED_PRESENTER_CLIENT_IDS:}"
+    registration-hmac-key: "${GOOGLE_REGISTRATION_HMAC_KEY:}"
   otp:
     hmac-key: ${OTP_HMAC_KEY:}
     mail-from: ${OTP_MAIL_FROM:}

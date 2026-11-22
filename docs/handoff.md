@@ -1,6 +1,6 @@
 # Bắt đầu một phiên làm việc mới
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 theo xác nhận của chủ dự án ngày 2026-10-25. Nguồn nghiệp vụ được bàn giao ngày 2026-10-22; đợt này không đối chiếu lại Word hoặc database. Đây là điểm vào để tiếp tục công việc mà không cần lịch sử chat, không phải tài liệu lặp lại toàn bộ chính sách.
 
@@ -15,7 +15,9 @@ Cập nhật hướng dẫn đọc: 2026-10-24; cập nhật trạng thái V6 th
 
 ## Hiện trạng cần biết
 
-**Triển khai ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) dùng OTP PASSWORD_RESET và thu hồi phiên/token cùng transaction reset. Tổng 16 IMPLEMENTED/4 DESIGN_ONLY.
+**Triển khai UC08 ngày 2026-11-22.** [Đăng nhập và đăng ký Google](user-google-auth.md) đã có cả hai API. Tổng 18 IMPLEMENTED/2 DESIGN_ONLY. Hai operation còn thiết kế thuộc UC09.
+
+**Mốc UC05 ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) dùng OTP PASSWORD_RESET và thu hồi phiên/token cùng transaction reset. Tại mốc này có 16 IMPLEMENTED/4 DESIGN_ONLY.
 
 **Triển khai ngày 2026-11-20:** [Đăng ký Local UC01](user-registration.md) đã có hai API công khai. OTP dùng HMAC và khóa theo email/purpose, SMTP gửi sau commit. Tổng 14 IMPLEMENTED/6 DESIGN_ONLY. Thông số SMTP thật còn Q06.
 

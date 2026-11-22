@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](../user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](../user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Tại mốc UC07, 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; ngày 2026-11-14 thêm UC10–UC12 nên tại mốc đó tổng 20 operation có 9 IMPLEMENTED/11 DESIGN_ONLY; ngày 2026-11-15 thêm introspection, tại mốc đó có 10 IMPLEMENTED/10 DESIGN_ONLY.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md). [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**; tại mốc đó riêng 16 API gốc có 7 IMPLEMENTED/9 DESIGN_ONLY; ngày 2026-11-17 thêm PATCH trạng thái thành 8 IMPLEMENTED/8 DESIGN_ONLY. Ngày 2026-11-20 thêm hai API UC01, nâng nhóm 16 API gốc lên 10 IMPLEMENTED/6 DESIGN_ONLY. Ngày 2026-11-22 thêm hai API UC05, nâng nhóm này lên 12 IMPLEMENTED/4 DESIGN_ONLY.
 
@@ -488,13 +488,15 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ## POST /api/v1/auth/google
 
+**IMPLEMENTED ngày 2026-11-22.** `Cache-Control: no-store` áp dụng cả thành công và lỗi. [Cấu hình và xác minh Google](../user-google-auth.md)
+
 **Luồng:** UC08. **Nguồn:** [Sheet1, hàng 12](source-catalog.md#post-apiv1authgoogle).
 
 **Xác thực/đầu vào:** Công khai; Google ID Token được server xác minh trước khi dùng sub/email/trạng thái email đã xác minh.
 
 **Đã xác nhận — hành vi:** Ba nhánh: identity đã có thì đăng nhập; chưa có identity nhưng email Google đã xác minh trùng Local thì tự liên kết không hỏi mật khẩu Local; người mới nhận registrationToken 10 phút, chưa có phiên. Chỉ user ACTIVE được cấp session/token. Tự liên kết không tạo user hoặc đổi role/password. Xem [Google](../confirmed-decisions.md#google-linking) và [registrationToken](../confirmed-decisions.md#google-registration-ttl).
 
-**PENDING DECISION:** [Q07](../open-decisions.md#q07), [Q09](../open-decisions.md#q09). Áp dụng [schema JSON](json-schema.md) và [HTTP/lỗi đã chốt](http-errors.md); Q09 còn mở cho tình huống/mã/chi tiết lỗi ngoài danh mục; schema data và mã thành công đã chốt.
+**Tự liên kết đã chốt.** Yêu cầu email Gmail hoặc Workspace đã xác minh trùng tài khoản Local có mật khẩu và chưa có identity Google. Email đã thuộc tài khoản nhưng không đủ điều kiện liên kết trả `401 GOOGLE_TOKEN_INVALID`. Email bên thứ ba đã xác minh và chưa trùng vẫn có thể nhận token đăng ký. Danh sách client ID nằm trong cấu hình từng môi trường. [Quyết định UC08](../confirmed-decisions.md#google-linking)
 
 **Đã xác nhận — HTTP đã ánh xạ:** `200 / 400, 401, 403, 500, 503`.
 
@@ -571,6 +573,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="google-register"></a>
 
 ## POST /api/v1/auth/google/register
+
+**IMPLEMENTED ngày 2026-11-22.** `Cache-Control: no-store` áp dụng cả thành công và lỗi. [Transaction và cấu hình](../user-google-auth.md)
 
 **Luồng:** UC08. **Nguồn:** [Sheet1, hàng 15](source-catalog.md#post-apiv1authgoogleregister).
 

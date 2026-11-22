@@ -1,6 +1,6 @@
 # Luồng nghiệp vụ UC01–UC12
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC01 đã triển khai ngày 2026-11-20. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
@@ -110,13 +110,15 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 
 ## UC08 Đăng nhập và đăng ký Google
 
+**Đã triển khai ngày 2026-11-22.** Tự liên kết giới hạn cho Gmail và Workspace đã xác minh. Email đã thuộc tài khoản hiện có nhưng không đủ điều kiện liên kết trả `401 GOOGLE_TOKEN_INVALID`. [Triển khai và cấu hình UC08](user-google-auth.md)
+
 **Actor:** người dùng và Google Identity Provider. **Ưu tiên:** cao. Có tài khoản Google, chức năng Google Sign-In và cấu hình OIDC hoạt động.
 
 1. Người dùng chọn Continue with Google, chọn tài khoản và đồng ý cung cấp thông tin cần thiết.
 2. Client gửi Google credential/ID Token; server xác minh rồi lấy sub, email, trạng thái email đã xác minh và tên.
 3. Hệ thống tìm identity theo GOOGLE + sub. Nếu đã tồn tại, lấy user, kiểm tra ACTIVE, tạo phiên mới và cấp token đăng nhập.
 
-**A1 — Identity chưa có, email Local đã có:** dùng email Google đã xác minh để tự liên kết identity vào user hiện có; không hỏi lại mật khẩu Local, không tạo user mới hoặc thay role/mật khẩu. Chỉ user ACTIVE được cấp phiên/token. Tài khoản trở thành Hybrid. Google client ID được phép còn Q07; không tin email do client tự khai.
+**A1 — Identity chưa có, email Local đã có:** dùng email Google đã xác minh để tự liên kết identity vào user hiện có; không hỏi lại mật khẩu Local, không tạo user mới hoặc thay role/mật khẩu. Chỉ user ACTIVE được cấp phiên/token. Tài khoản trở thành Hybrid. Danh sách Google client ID được phép lấy từ cấu hình triển khai.
 
 **A2 — Người mới:** trả registrationToken và màn hình hoàn tất tài khoản, chưa có phiên đăng nhập. Email từ Google, không nhập mật khẩu, gợi ý username có thể sửa, họ tên gợi ý từ Google. Theo [schema response chốt ngày 2026-10-25](api/json-schema.md#google-responses), fullName/suggestedUserName luôn xuất hiện, có thể null khi thiếu gợi ý phù hợp; người dùng điền tên nếu thiếu. Gợi ý username không giữ chỗ hoặc bảo đảm còn trống. Request hoàn tất mang username/fullName/phoneNumber, fullName vẫn bắt buộc hợp lệ và không null. Server xác minh registrationToken, kiểm tra identity chưa tồn tại và username chưa được dùng, tạo user ACTIVE với PasswordHash NULL, identity GOOGLE, READER và phiên/token. Identity đã tồn tại ở bước hoàn tất → không cấp thêm phiên/token, chuyển sang đăng nhập Google. Sai dữ liệu/username → sửa trong TTL còn lại; token hết hạn → xác minh Google lại. Sau commit mất response → đăng nhập Google, không cấp lại token bằng registrationToken.
 

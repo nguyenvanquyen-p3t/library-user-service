@@ -1,6 +1,6 @@
 # Yêu cầu nghiệp vụ
 
-**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 **Đã triển khai 16 operation**, gồm UC01–UC07, UC10–UC12 và 3 operation nội bộ. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
@@ -32,6 +32,8 @@ Ví dụ HTTP hiện hành đã được tổng hợp tại [16 API gốc](api/c
 Áp dụng [chính sách Q05](confirmed-decisions.md#otp-password-policy) cho UC01/UC05/UC07/UC09 theo chức năng tương ứng; [OTP REGISTER](confirmed-decisions.md#register-otp-binding) chỉ gắn email/purpose. Các giá trị TTL, số lần thử/gửi lại và giới hạn mật khẩu được duy trì tại sổ quyết định. [Q06 chốt ngày 2026-10-31](confirmed-decisions.md#otp-email-delivery): commit hash OTP mới/vô hiệu mã cũ trước khi gửi SMTP đồng bộ; lần cấp mã vẫn tính giới hạn dù SMTP lỗi, không tự cấp mã retry. REGISTER/SET_PASSWORD gửi lỗi trả 503; PASSWORD_RESET giữ 200/thông báo chung. Chỉ còn lựa chọn/cấu hình môi trường SMTP chưa chốt.
 
 ## Ranh giới transaction
+
+**Google UC08 ngày 2026-11-22.** Xác minh ID token ngoài transaction. Hai luồng dùng `READ_COMMITTED` và khóa advisory theo Google `sub`. Đăng nhập hoặc liên kết với user hiện có lấy thêm khóa bản ghi user và kiểm tra lại hiệu lực trước khi ghi. Hoàn tất đăng ký kiểm tra lại hạn `registrationToken` sau khi có khóa. Cấp phiên và token cùng transaction với các thay đổi liên quan. [Triển khai UC08](user-google-auth.md#transaction)
 
 **PATCH trạng thái ngày 2026-11-17:** READ_COMMITTED, khóa actor/đích theo ID tăng dần rồi kiểm tra lại thời hạn JWT, user/phiên/ADMIN hiện tại; actor trùng đích chỉ khóa một lần. Khóa đổi status và thu hồi mọi phiên/token còn hiệu lực cùng now/transaction, giữ lịch sử đã kết thúc; cùng trạng thái không ghi lại, mở khóa không phục hồi. Audit log sau commit không nguyên tử với database. [Chi tiết](api/internal-integration.md#cap-nhat-trang-thai-implementation).
 
