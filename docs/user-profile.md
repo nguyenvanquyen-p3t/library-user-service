@@ -1,6 +1,6 @@
 # Hồ sơ cá nhân UC06
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 GET/PATCH hồ sơ triển khai ngày 2026-11-12 theo kế hoạch chủ dự án duyệt. Tại mốc UC06 có 5 IMPLEMENTED/15 DESIGN_ONLY; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Giữ nguyên 7 bảng và Flyway V1–V6. Hợp đồng HTTP tại [GET](api/current-contract.md#profile-get), [PATCH](api/current-contract.md#profile-update), [schema JSON](api/json-schema.md#profile-patch); quyết định tại [UC06](confirmed-decisions.md#user-profile-uc06). [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 

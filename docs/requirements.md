@@ -1,8 +1,8 @@
 # Yêu cầu nghiệp vụ
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
-Trạng thái: **14 operation đã triển khai, gồm UC01, UC02–UC04, UC06, UC07, UC10–UC12 và 3 operation nội bộ**. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+**Đã triển khai 16 operation**, gồm UC01–UC07, UC10–UC12 và 3 operation nội bộ. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 | UC02 | Tạo session và refresh token liên kết đúng user/phiên; chỉ trả cặp token sau commit |
 | UC03 | Thu hồi token cũ, tạo refresh token mới và liên kết rotation cùng phiên |
 | UC04 | Thu hồi phiên được xác định từ refresh token và các refresh token còn hiệu lực của phiên |
-| UC05 | Cập nhật PasswordHash, dùng OTP một lần và thu hồi toàn bộ phiên/refresh token liên quan |
+| UC05 | Đã triển khai với READ_COMMITTED. Khóa email/purpose rồi khóa user, lấy thời điểm xử lý sau khóa. Cập nhật PasswordHash, dùng OTP một lần và thu hồi phiên/token còn hiệu lực với lý do phiên PASSWORD_RESET. Giữ trạng thái tài khoản và lịch sử đã kết thúc. |
 | UC06 cập nhật | Đã triển khai: READ_COMMITTED, khóa user rồi kiểm tra lại user/phiên, chỉ lưu fullName/phoneNumber; trigger Users.UpdatedAt trong transaction; thành công sau commit |
 | UC07 | Đã triển khai: READ_COMMITTED, khóa user và kiểm tra lại user/phiên; đổi PasswordHash, thu hồi mọi phiên/token còn hiệu lực kể cả phiên gọi với PASSWORD_CHANGED; giữ lịch sử đã kết thúc; thành công sau commit |
 | UC08 identity đã có | Tạo session và refresh token sau khi kiểm tra user ACTIVE |

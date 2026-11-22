@@ -1,6 +1,6 @@
 # HTTP status và phản hồi lỗi đã xác nhận
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](../user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Chủ dự án chốt HTTP/lỗi ngày 2026-10-25, bổ sung API phiên, mã phản hồi và introspection ngày 2026-10-26; chốt lỗi tích hợp, SMTP và trạng thái ngày 2026-10-31. **Hợp đồng đã xác nhận; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection đã triển khai (introspection ngày 2026-11-15), 8 operation khác còn thiết kế. Đã có [OpenAPI/Swagger UI](openapi.md) từ ngày 2026-11-01.** Quyết định duy trì tại [sổ quyết định](../confirmed-decisions.md#http-error-contract), [API phiên](../confirmed-decisions.md#session-response-contract), [danh mục mã phản hồi](../confirmed-decisions.md#response-code-contract), [introspection](../confirmed-decisions.md#introspection-contract) và [lỗi tích hợp bổ sung](../confirmed-decisions.md#integration-error-contract); schema chung tại [schema JSON](json-schema.md). Cấu hình JWT Q03/Q11a vẫn mở; Q06 chỉ còn lựa chọn/cấu hình môi trường SMTP. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 
@@ -199,7 +199,7 @@ Bảng liệt kê lỗi nghiệp vụ/token đặc thù đã ánh xạ; mã thà
 | 3 | `POST /api/v1/auth/login` | 200 | 401 `INVALID_CREDENTIALS`; 403 `ACCOUNT_BANNED`; 409 `PASSWORD_NOT_CONFIGURED` |
 | 4 | `POST /api/v1/auth/refresh` | 200 | 401 `REFRESH_TOKEN_INVALID`/`SESSION_INACTIVE`; 403 `ACCOUNT_BANNED` khi đã xác định đúng tài khoản theo token |
 | 5 | `POST /api/v1/auth/logout` | 200 | Không biến token không tìm thấy/phiên kết thúc thành 401; lỗi database/transaction vẫn trả lỗi |
-| 6 | `POST /api/v1/auth/forgot-password/request-code` | 200 | 409 `PASSWORD_NOT_CONFIGURED` theo UC05; 429 `OTP_RATE_LIMITED`; email không tồn tại hoặc bước gửi SMTP lỗi/timeout vẫn 200/thông báo chung |
+| 6 | `POST /api/v1/auth/forgot-password/request-code` | 200 | 409 `PASSWORD_NOT_CONFIGURED`, 429 `OTP_RATE_LIMITED`, 503 nếu thiếu cấu hình SMTP/HMAC trước khi cấp. Email không tồn tại hoặc SMTP lỗi/timeout sau commit vẫn trả 200/thông báo chung. |
 | 7 | `POST /api/v1/auth/reset-password` | 200 | 400 `OTP_INVALID`/`OTP_ATTEMPTS_EXCEEDED`; 409 `PASSWORD_NOT_CONFIGURED`; không mở khóa BANNED |
 | 8 | `GET /api/v1/users/me` | 200 | Kiểm tra access token/phiên hợp lệ theo quy tắc chung |
 | 9 | `PATCH /api/v1/users/me` | 200 | 400 `VALIDATION_ERROR`; gửi lại giá trị hiện có vẫn thành công |

@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung ngày 2026-11-22.** Chủ dự án duyệt triển khai [UC05](user-password-reset.md) với hai endpoint hiện có. Thiếu cấu hình SMTP cho tài khoản đủ điều kiện trả 503 trước khi cấp mã. SMTP lỗi hoặc timeout sau commit vẫn trả 200 với phản hồi chung theo Q06. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**.
+
 **Bổ sung ngày 2026-11-20:** chủ dự án duyệt triển khai [đăng ký Local UC01](user-registration.md) dùng HMAC với khóa riêng cho OTP và SMTP cấu hình theo môi trường. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Thông số SMTP thực tế thuộc Q06.
 
 **Bổ sung ngày 2026-11-17:** chủ dự án duyệt và yêu cầu triển khai [PATCH trạng thái user nội bộ](#internal-user-status-implementation). Tại mốc này có **12 IMPLEMENTED/8 DESIGN_ONLY**.

@@ -1,6 +1,6 @@
 # Luồng nghiệp vụ UC01–UC12
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC01 đã triển khai ngày 2026-11-20. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
@@ -71,6 +71,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 **Kết quả:** thu hồi server thành công thì cả phiên và token liên quan không sử dụng được; các phiên khác giữ nguyên. Chỉ xóa token client không phải bằng chứng vừa thu hồi được phiên server. Cơ chế này khác từ chối token cũ ở UC03.
 
 ## UC05 Quên và đặt lại mật khẩu
+
+**Đã triển khai ngày 2026-11-22.** Xin mã dùng chung logic OTP/SMTP với UC01. Reset khóa user và thu hồi phiên/token còn hiệu lực cùng transaction. [Triển khai UC05](user-password-reset.md)
 
 **Actor:** người có tài khoản đã từng đặt mật khẩu và truy cập được email đăng ký. **Ưu tiên:** cao; không yêu cầu đang đăng nhập.
 

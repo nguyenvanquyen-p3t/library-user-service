@@ -28,16 +28,30 @@ public class OtpMailSender {
     }
 
     void sendRegistrationCode(String email, String code) {
+        sendCode(email, code, "Mã xác minh đăng ký");
+    }
+
+    void sendPasswordResetCode(String email, String code) {
+        sendCode(email, code, "Mã xác minh đặt lại mật khẩu");
+    }
+
+    private void sendCode(String email, String code, String subject) {
         var message = new SimpleMailMessage();
         message.setFrom(from);
         message.setTo(email);
-        message.setSubject("Mã xác minh đăng ký");
+        message.setSubject(subject);
         message.setText("Mã xác minh của bạn là " + code + ". Mã có hiệu lực trong 10 phút.");
         try {
             senders.getObject().send(message);
         } catch (MailException exception) {
             // Không đính kèm lỗi SMTP có thể chứa địa chỉ hoặc nội dung thư.
-            throw new ApplicationException(ErrorCode.SERVICE_UNAVAILABLE);
+            throw new DeliveryFailure();
+        }
+    }
+
+    static final class DeliveryFailure extends ApplicationException {
+        DeliveryFailure() {
+            super(ErrorCode.SERVICE_UNAVAILABLE);
         }
     }
 }

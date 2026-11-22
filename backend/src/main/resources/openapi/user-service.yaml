@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   title: Library User Service
   version: 0.1.0-design
-  description: Hợp đồng 20 operation, gồm 14 IMPLEMENTED và 6 DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
+  description: Hợp đồng 20 operation, gồm 16 IMPLEMENTED và 4 DESIGN_ONLY. Swagger UI chỉ dùng đọc tài liệu,
     tắt Try it out. 19 operation dùng envelope success/messageCode/message/data; introspection dùng form và JSON
     riêng theo RFC 7662. Refresh token trong JSON cho Web/Android. Cấu hình Service JWT Q03/Q11a PENDING DECISION;
     không suy ra thuật toán/issuer/audience/khóa Service JWT từ user access token. Quyết định và ranh giới transaction
@@ -323,12 +323,13 @@ paths:
       operationId: requestPasswordResetCode
       summary: Xin OTP quên mật khẩu
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        Cấp OTP PASSWORD_RESET cho tài khoản đã có mật khẩu. Email không tồn tại nhận phản hồi chung và không cấp mã.
+        Tài khoản chưa có mật khẩu nhận PASSWORD_NOT_CONFIGURED.
 
-        Cấp OTP PASSWORD_RESET, email không tồn tại nhận thông báo chung. Chưa có password thì Google và UC09. Xem OTP/mật khẩu và UC05.
-
-        gửi SMTP đồng bộ sau commit OTP. Bước gửi SMTP lỗi/timeout vẫn trả 200 PASSWORD_RESET_CODE_SENT với kết quả chung, ghi lỗi vận hành nội bộ; không che lỗi database thành thành công. Lần cấp mã đã commit vẫn tính giới hạn gửi, không tự cấp lại. Chi tiết tại Q06.
-      x-implementation-status: DESIGN_ONLY
+        Thiếu cấu hình SMTP/HMAC trả 503 trước khi cấp. SMTP gửi sau commit OTP. Nếu bước gửi lỗi hoặc timeout,
+        vẫn trả 200 PASSWORD_RESET_CODE_SENT và tính lần cấp vào hạn mức. Lỗi database hoặc commit vẫn trả lỗi.
+        Mọi phản hồi có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#forgot-password-request-code
       security: []
       requestBody:
@@ -341,7 +342,12 @@ paths:
               email: reader@example.com
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Kết quả chung khi đã xử lý yêu cầu xin mã. Ví dụ dùng dữ liệu minh họa.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
           content:
             application/json:
               schema:
@@ -375,10 +381,10 @@ paths:
       operationId: resetPassword
       summary: Đặt lại mật khẩu bằng OTP
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
-
-        Theo Q13 chốt ngày 2026-10-25, gửi email, OTP, mật khẩu mới và xác nhận trong cùng request hoàn tất; server xác minh OTP và kiểm tra mật khẩu trước khi lưu, không có API xác minh riêng hoặc ticket. Cập nhật PasswordHash, dùng mã một lần và thu hồi mọi phiên/refresh token cùng transaction; không mở khóa BANNED. Chưa có password thì Google/UC09. Xem UC05.
-      x-implementation-status: DESIGN_ONLY
+        Xác minh OTP PASSWORD_RESET cùng email, mật khẩu mới và xác nhận. Cập nhật PasswordHash, đánh dấu OTP
+        đã dùng và thu hồi phiên/refresh token còn hiệu lực trong cùng transaction. Tài khoản BANNED giữ trạng thái BANNED.
+        Thành công sau commit. Mọi phản hồi có Cache-Control no-store.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#reset-password
       security: []
       requestBody:
@@ -394,7 +400,12 @@ paths:
               confirmPassword: New@123456
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Đã đặt lại mật khẩu. Ví dụ dùng dữ liệu minh họa.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
           content:
             application/json:
               schema:

@@ -1,6 +1,6 @@
 # Quy ước và nguồn tham chiếu tài liệu
 
-**Hiện trạng ngày 2026-11-20:** [Đăng ký Local UC01](api/current-contract.md#register) đã triển khai. Tổng **14 IMPLEMENTED/6 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-22.** [Quên và đặt lại mật khẩu UC05](user-password-reset.md) đã triển khai. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
 
 Cập nhật quy ước và đối chiếu nguồn hướng dẫn: 2026-10-24. Docs dùng Markdown trong Git để review cùng mã nguồn. Cấu trúc hiện tại phục vụ nhu cầu dự án; không phải bộ tên file bắt buộc do OpenAI hoặc GitHub quy định.
 
@@ -34,6 +34,7 @@ OpenAI và OpenAPI là hai nguồn khác nhau. Hướng dẫn coding agent khôn
 | Bảo mật người dùng, cấu hình khóa và login UC02 đã triển khai | [Bảo mật người dùng](user-security.md) | Quyết định tại sổ quyết định, HTTP tại operation; chỉ đánh dấu operation thực sự triển khai |
 | GET/PATCH hồ sơ UC06 đã triển khai | [Hồ sơ cá nhân](user-profile.md) | Quyết định tại sổ quyết định; HTTP/schema tại bản API hiện hành |
 | Đổi mật khẩu UC07 đã triển khai | [Mật khẩu](user-password.md) | Quyết định tại sổ quyết định; HTTP/schema tại bản API hiện hành |
+| Quên và đặt lại mật khẩu UC05 | [OTP, SMTP và transaction reset](user-password-reset.md) | Hợp đồng HTTP tại bản API hiện hành |
 | Quản lý phiên UC10–UC12 đã triển khai | [Quản lý phiên](user-sessions.md) | Quyết định tại sổ quyết định; HTTP/schema tại API phiên |
 | Trách nhiệm và kiến trúc mục tiêu | [Kiến trúc](architecture.md), [tích hợp nội bộ](api/internal-integration.md) | Link tới thành phần hoặc hợp đồng liên quan |
 | HTTP của 16 API gốc | [Bản API hiện hành](api/current-contract.md) | Link từng operation từ [bản đồ 20 API](api/README.md); tích hợp nội bộ không chép JSON |
