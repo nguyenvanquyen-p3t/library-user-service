@@ -754,18 +754,18 @@ paths:
       operationId: requestFirstPasswordCode
       summary: Xin OTP thiết lập mật khẩu lần đầu
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        IMPLEMENTED ngày 2026-11-23. Yêu cầu user ACTIVE, phiên hợp lệ và tài khoản chưa có mật khẩu.
+        Lấy email từ tài khoản đã xác thực. Kiểm tra lại user và phiên sau khi lấy khóa.
 
-        Gửi OTP SET_PASSWORD cho email của chính mình; không nhận email tài khoản khác. Đã có password thì UC07. Xem UC09.
-
-        gửi SMTP đồng bộ sau commit OTP. SMTP lỗi/timeout trả 503 SERVICE_UNAVAILABLE; lần cấp mã đã commit vẫn tính giới hạn gửi, không phục hồi mã cũ hoặc tự cấp mã retry. Chi tiết tại Q06.
-      x-implementation-status: DESIGN_ONLY
+        Gửi OTP SET_PASSWORD qua SMTP đồng bộ sau commit. SMTP lỗi hoặc timeout trả 503 SERVICE_UNAVAILABLE,
+        lần cấp đã commit vẫn tính giới hạn gửi. Tài khoản đã có mật khẩu dùng UC07.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#password-request-code
       security:
       - UserAccessToken: []
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Đã cấp OTP và SMTP đã chấp nhận thư.
           content:
             application/json:
               schema:
@@ -797,10 +797,13 @@ paths:
       operationId: setFirstPassword
       summary: Thiết lập mật khẩu lần đầu và thu hồi mọi phiên
       description: |-
-        THIẾT KẾ ĐÃ XÁC NHẬN — CHƯA TRIỂN KHAI.
+        IMPLEMENTED ngày 2026-11-23. Yêu cầu user ACTIVE, phiên hợp lệ và tài khoản chưa có mật khẩu.
+        Lấy email từ tài khoản đã xác thực. Gửi OTP SET_PASSWORD, mật khẩu mới và xác nhận trong cùng request.
 
-        Theo Q13 chốt ngày 2026-10-25, gửi OTP, mật khẩu mới và xác nhận trong cùng request hoàn tất có xác thực; email lấy từ tài khoản đang xác thực. Server xác minh OTP và kiểm tra mật khẩu trước khi lưu, không có API xác minh riêng hoặc ticket. Đặt password, dùng mã một lần và thu hồi mọi phiên/refresh token, kể cả phiên gọi, cùng transaction; giữ identity Google. Client xóa token, đăng nhập lại bằng Google hoặc Local. Xem UC09.
-      x-implementation-status: DESIGN_ONLY
+        Kiểm tra lại user và phiên sau khi lấy khóa. Cập nhật mật khẩu, dùng mã một lần và thu hồi
+        mọi phiên và refresh token còn hiệu lực, kể cả phiên gọi, trong cùng transaction.
+        Giữ identity Google. Client xóa token rồi đăng nhập lại bằng Google hoặc Local.
+      x-implementation-status: IMPLEMENTED
       x-design-source: docs/api/current-contract.md#password-set
       security:
       - UserAccessToken: []
@@ -816,7 +819,7 @@ paths:
               confirmPassword: New@123456
       responses:
         '200':
-          description: Thành công theo thiết kế; message và dữ liệu ví dụ chỉ minh họa.
+          description: Đã thiết lập mật khẩu và thu hồi phiên sau commit.
           content:
             application/json:
               schema:

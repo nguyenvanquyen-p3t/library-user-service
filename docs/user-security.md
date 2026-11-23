@@ -1,6 +1,6 @@
 # Nền tảng bảo mật người dùng và login UC02
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Nền tảng bảo mật/login UC02 triển khai ngày 2026-11-10; refresh/logout UC03–UC04 bổ sung ngày 2026-11-11 theo kế hoạch được chủ dự án duyệt. GET/PATCH hồ sơ [UC06](user-profile.md) bổ sung ngày 2026-11-12; ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md), ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect). Không sửa V1–V6 hoặc dữ liệu dự án. [Quyết định UC02](confirmed-decisions.md#user-security-uc02) và [UC03–UC04](confirmed-decisions.md#refresh-logout-uc03-uc04) duy trì lựa chọn nghiệp vụ; tài liệu này duy trì cách dùng implementation. [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 

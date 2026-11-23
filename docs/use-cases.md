@@ -1,6 +1,6 @@
 # Luồng nghiệp vụ UC01–UC12
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Đối chiếu toàn bộ DacTaUseCase.docx ngày 2026-10-22; đã chuyển luồng, ngoại lệ và kết quả sang Markdown để đọc độc lập với Word. SHA-256 của bản nguồn: `EEA8FFC0062CD7DC4C451A3E82F506A30DE218CA480969462145FD0FFB3A4100`. UC01 đã triển khai ngày 2026-11-20. UC02 đã triển khai ngày 2026-11-10, UC03–UC04 ngày 2026-11-11, UC06 ngày 2026-11-12, UC07 ngày 2026-11-13, UC10–UC12 ngày 2026-11-14; các UC khác là thiết kế, kết hợp nguồn với [quyết định đã chốt](confirmed-decisions.md). Không cần file Word hoặc lịch sử chat để sử dụng tài liệu này.
 
@@ -33,7 +33,7 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 
 ## UC02 Đăng nhập Local
 
-**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); UC03–UC04 được bổ sung ngày 2026-11-11, UC06 được bổ sung ngày 2026-11-12, UC07 được bổ sung ngày 2026-11-13, tại mốc UC07 còn 7 use case thiết kế; ngày 2026-11-14 đã thêm UC10–UC12. Metadata thiết bị null; các nhánh hướng dẫn Google/UC09 chưa có endpoint tương ứng.
+**Đã triển khai ngày 2026-11-10:** [UC02 và nền tảng bảo mật](user-security.md); UC03–UC04 được bổ sung ngày 2026-11-11, UC06 được bổ sung ngày 2026-11-12, UC07 được bổ sung ngày 2026-11-13, tại mốc UC07 còn 7 use case thiết kế; ngày 2026-11-14 đã thêm UC10–UC12. Metadata thiết bị null. Các tài khoản chưa có mật khẩu có thể đăng nhập Google rồi thiết lập mật khẩu qua UC09.
 
 **Actor:** READER/LIBRARIAN/ADMIN. **Ưu tiên:** cao. Nhánh thành công cần tài khoản ACTIVE đã có mật khẩu; đây là điều kiện được hệ thống kiểm tra, vẫn có nhánh từ chối tương ứng.
 
@@ -127,6 +127,8 @@ Bổ sung đã xác nhận ngày 2026-10-31 — [gửi OTP qua SMTP](confirmed-d
 **Ngoại lệ khác:** Google token không hợp lệ → không tạo/liên kết user; người dùng hủy xác thực Google → kết thúc không thay đổi database; user BANNED → không cấp token. **Kết quả:** ba nhánh hoàn tất thành công đều có phiên mới; dừng ở màn hình hoàn tất đăng ký chưa phải đăng nhập thành công. Giữ Google identity theo sub, không dùng email thay khóa định danh. Giới hạn chống đăng ký lặp dựa trên identity xem quyết định Q08.
 
 ## UC09 Thiết lập mật khẩu lần đầu
+
+**Đã triển khai ngày 2026-11-23.** [Triển khai UC09](user-password-setup.md) dùng OTP `SET_PASSWORD`, kiểm tra lại phiên sau khóa và thu hồi phiên/token trong transaction đặt mật khẩu.
 
 **Actor:** người đăng nhập bằng Google, ACTIVE, chưa có mật khẩu. **Ưu tiên:** cao.
 

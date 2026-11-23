@@ -1,8 +1,8 @@
 # Yêu cầu nghiệp vụ
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
-**Đã triển khai 16 operation**, gồm UC01–UC07, UC10–UC12 và 3 operation nội bộ. Biên tập lại ngày 2026-10-24 từ bản bàn giao UC01–UC12 ngày 2026-10-22, Excel và quyết định đã xác nhận. Tài liệu này duy trì ranh giới transaction và tính nhất quán; chuỗi tương tác đầy đủ nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
+Tài liệu này duy trì ranh giới transaction và tính nhất quán của UC01–UC12 và 3 operation nội bộ. Chuỗi tương tác nằm tại [use case](use-cases.md), chính sách tại [sổ quyết định](confirmed-decisions.md), HTTP tại [bản đồ API](api/README.md).
 
 | Use case | Nơi tra cứu hành vi và ngoại lệ | Điểm cần đọc trước triển khai |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ Theo xác nhận ngày 2026-10-22, chi tiết kỹ thuật được lưu ở doc
 | UC08 identity đã có | Tạo session và refresh token sau khi kiểm tra user ACTIVE |
 | UC08 tự liên kết | Thêm identity GOOGLE cho user hiện có, tạo session và refresh token; không tạo user hoặc thay role/password |
 | UC08 hoàn tất đăng ký | Tạo user, identity GOOGLE, READER, session và refresh token; xung đột UNIQUE identity rollback toàn bộ |
-| UC09 | Cập nhật PasswordHash, dùng OTP một lần và thu hồi toàn bộ phiên/refresh token; giữ identity Google |
+| UC09 | Đã triển khai với READ_COMMITTED. Khóa email/purpose rồi khóa user và kiểm tra lại phiên. Cập nhật PasswordHash, dùng OTP một lần và thu hồi phiên/token còn hiệu lực với lý do phiên PASSWORD_SET. Giữ identity Google. |
 | UC11 | Đã triển khai: READ_COMMITTED, khóa user/kiểm tra lại phiên gọi; phiên đích còn hiệu lực ghi SESSION_REVOKED và thu hồi token còn hiệu lực; giữ lịch sử đã kết thúc |
 | UC12 | Đã triển khai: READ_COMMITTED, khóa user/kiểm tra lại phiên gọi; thu hồi token còn hiệu lực thuộc các phiên khác còn hiệu lực trước khi ghi OTHER_SESSIONS_REVOKED lên phiên; giữ phiên gọi |
 | Khóa tài khoản qua API nội bộ | Đổi ACTIVE → BANNED, thu hồi mọi phiên và refresh token còn hiệu lực liên quan |

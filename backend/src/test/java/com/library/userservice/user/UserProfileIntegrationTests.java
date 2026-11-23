@@ -215,7 +215,8 @@ class UserProfileIntegrationTests extends UserSecurityTestKeys {
                 "refreshTokens", "logout", "requestPasswordResetCode", "resetPassword",
                 "authenticateWithGoogle", "completeGoogleRegistration",
                 "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
-                "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser", "updateUserStatus");
+                "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken", "getInternalUser",
+                "updateUserStatus", "requestFirstPasswordCode", "setFirstPassword");
     }
 
     private Fixture fixture() {

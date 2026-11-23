@@ -35,6 +35,10 @@ public class OtpMailSender {
         sendCode(email, code, "Mã xác minh đặt lại mật khẩu");
     }
 
+    void sendSetPasswordCode(String email, String code) {
+        sendCode(email, code, "Mã xác minh thiết lập mật khẩu");
+    }
+
     private void sendCode(String email, String code, String subject) {
         var message = new SimpleMailMessage();
         message.setFrom(from);
