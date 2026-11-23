@@ -1,6 +1,6 @@
 # Tài liệu Library User Service
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Bộ tài liệu dành cho thành viên phát triển User Service, nhóm tích hợp Admin/Borrow/Gateway, Web/Android và coding agent. Cập nhật tổ chức tài liệu: 2026-10-24; lần đối chiếu Word được bàn giao: 2026-10-22.
 
@@ -21,6 +21,7 @@ User Service quản lý dữ liệu tài khoản và cung cấp API. Ngày 2026-
 | Đổi mật khẩu UC07 đã triển khai | [HTTP, transaction và kiểm thử](user-password.md) | [Hợp đồng đổi mật khẩu](api/current-contract.md#password-change) |
 | Quên và đặt lại mật khẩu UC05 | [OTP, SMTP và thu hồi phiên](user-password-reset.md) | [Hợp đồng UC05](api/current-contract.md#forgot-password-request-code) |
 | Đăng nhập và đăng ký Google UC08 | [Xác minh, liên kết và cấu hình](user-google-auth.md) | [Hợp đồng UC08](api/current-contract.md#google) |
+| Thiết lập mật khẩu lần đầu UC09 | [OTP, SMTP và thu hồi phiên](user-password-setup.md) | [Hợp đồng UC09](api/current-contract.md#password-request-code) |
 | Quản lý phiên UC10–UC12 đã triển khai | [Danh sách và thu hồi phiên](user-sessions.md) | [Hợp đồng phiên](api/sessions.md) |
 | Làm rõ yêu cầu và bảo trì docs | [Quyết định còn mở](open-decisions.md) | [Quy ước và nguồn tham chiếu](documentation.md) |
 
@@ -30,7 +31,7 @@ User Service quản lý dữ liệu tài khoản và cung cấp API. Ngày 2026-
 
 Quyết định ngày 2026-10-31: [xác thực/quyền service và actor Admin](confirmed-decisions.md#internal-service-auth), [hành vi SMTP](confirmed-decisions.md#otp-email-delivery), [quản trị trạng thái](confirmed-decisions.md#admin-status-contract), [lỗi tích hợp](confirmed-decisions.md#integration-error-contract) và [user access token Q14](confirmed-decisions.md#access-token-key-pair) đã chốt. Cấu hình Service JWT Q03/Q11a tiếp tục PENDING DECISION. Ngày 2026-11-01 bổ sung [OpenAPI và Swagger UI](api/openapi.md); ngày 2026-11-10 triển khai [bảo mật người dùng/login UC02](user-security.md). Ngày 2026-11-11 triển khai thêm refresh/logout UC03–UC04; ngày 2026-11-12 thêm [hồ sơ UC06](user-profile.md); ngày 2026-11-13 thêm [đổi mật khẩu UC07](user-password.md); ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), sau đó cùng ngày triển khai [GET user nội bộ](api/internal-integration.md#tra-cứu-user), tại mốc GET user nội bộ có 11 IMPLEMENTED/9 DESIGN_ONLY.
 
-- **Đã có trong repo:** cấu hình khởi động, Flyway V1–V6, [nền tảng backend](foundation.md), [bảo mật/login UC02](user-security.md), test nền tảng/persistence/context/login và OpenAPI/Swagger UI. V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; xem [trạng thái migration](data-model.md#migration-v6-quản-lý-phiên). Đã có refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12 và đổi mật khẩu UC07 ngày 2026-11-13; ngày 2026-11-14 thêm UC10–UC12; đã có introspection ngày 2026-11-15; đã có GET user nội bộ ngày 2026-11-15; PATCH trạng thái đã có ngày 2026-11-17; ngày 2026-11-20 thêm [đăng ký Local UC01](user-registration.md). Ngày 2026-11-22 thêm [quên và đặt lại mật khẩu UC05](user-password-reset.md). Cùng ngày thêm [hai API Google UC08](user-google-auth.md). Hai operation UC09 còn ở mức thiết kế. Gateway thuộc giai đoạn tích hợp sau.
+- **Đã có trong repo:** cấu hình khởi động, Flyway V1–V6, [nền tảng backend](foundation.md), [bảo mật/login UC02](user-security.md), test nền tảng/persistence/context/login và OpenAPI/Swagger UI. V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25; xem [trạng thái migration](data-model.md#migration-v6-quản-lý-phiên). Đã có refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12 và đổi mật khẩu UC07 ngày 2026-11-13; ngày 2026-11-14 thêm UC10–UC12; đã có introspection ngày 2026-11-15; đã có GET user nội bộ ngày 2026-11-15; PATCH trạng thái đã có ngày 2026-11-17; ngày 2026-11-20 thêm [đăng ký Local UC01](user-registration.md). Ngày 2026-11-22 thêm [quên và đặt lại mật khẩu UC05](user-password-reset.md). Cùng ngày thêm [hai API Google UC08](user-google-auth.md). Ngày 2026-11-23 thêm [thiết lập mật khẩu lần đầu UC09](user-password-setup.md). Gateway thuộc giai đoạn tích hợp sau.
 - **Thiết kế nguồn:** yêu cầu ghi trong `DacTaUseCase.docx` và `ThietKeApi.xlsx`, chưa đồng nghĩa API đã chạy.
 - **Đã xác nhận:** quyết định do chủ dự án nêu trực tiếp, được ghi trong [sổ quyết định](confirmed-decisions.md); không đồng nghĩa đã triển khai.
 - **PENDING DECISION:** thiếu thông tin hoặc cần giải quyết khác biệt giữa nguồn; không dùng làm hợp đồng tích hợp cuối cùng.

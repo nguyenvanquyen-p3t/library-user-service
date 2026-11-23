@@ -1,6 +1,6 @@
 # Thiết kế hiện hành của 16 API gốc
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](../user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](../user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Cập nhật tổng hợp: 2026-10-24; đồng bộ Q13/schema JSON/HTTP/lỗi ngày 2026-10-25, danh mục mã phản hồi và email trùng khi hoàn tất đăng ký Google ngày 2026-10-26. **Login UC02 đã triển khai ngày 2026-11-10; refresh/logout UC03–UC04 ngày 2026-11-11, GET/PATCH hồ sơ UC06 ngày 2026-11-12; đổi mật khẩu UC07 ngày 2026-11-13. Tại mốc UC07, 16 API gốc có 6 IMPLEMENTED/10 DESIGN_ONLY; ngày 2026-11-14 thêm UC10–UC12 nên tại mốc đó tổng 20 operation có 9 IMPLEMENTED/11 DESIGN_ONLY; ngày 2026-11-15 thêm introspection, tại mốc đó có 10 IMPLEMENTED/10 DESIGN_ONLY.** “Hiện hành” nghĩa là ví dụ nguồn đã được đối chiếu với quyết định mới nhất; chỉ operation ghi rõ IMPLEMENTED đã có endpoint. [Bản đồ 20 API](README.md) liên kết thêm [4 API phiên/introspection](sessions.md). [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**; tại mốc đó riêng 16 API gốc có 7 IMPLEMENTED/9 DESIGN_ONLY; ngày 2026-11-17 thêm PATCH trạng thái thành 8 IMPLEMENTED/8 DESIGN_ONLY. Ngày 2026-11-20 thêm hai API UC01, nâng nhóm 16 API gốc lên 10 IMPLEMENTED/6 DESIGN_ONLY. Ngày 2026-11-22 thêm hai API UC05, nâng nhóm này lên 12 IMPLEMENTED/4 DESIGN_ONLY.
 
@@ -636,6 +636,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 
 ## POST /api/v1/users/me/password/request-code
 
+**IMPLEMENTED ngày 2026-11-23.** Khóa theo email/purpose rồi khóa user và kiểm tra lại phiên. Dùng chung OTP/SMTP với UC01 và UC05. [Triển khai UC09](../user-password-setup.md)
+
 **Luồng:** UC09. **Nguồn:** [Sheet1, hàng 16](source-catalog.md#post-apiv1usersmepasswordrequest-code).
 
 **Xác thực/đầu vào:** `Authorization: Bearer <access-token>`; user ACTIVE, phiên hợp lệ, chưa có password. Email lấy từ tài khoản đã xác minh.
@@ -677,6 +679,8 @@ Không chỉnh dữ liệu trong [danh mục nguồn](source-catalog.md) để g
 <a id="password-set"></a>
 
 ## POST /api/v1/users/me/password/set
+
+**IMPLEMENTED ngày 2026-11-23.** Lưu hash Argon2id, dùng OTP và thu hồi mọi phiên/token còn hiệu lực cùng transaction. Phiên ghi `PASSWORD_SET`. [Triển khai UC09](../user-password-setup.md)
 
 **Luồng:** UC09. **Nguồn:** [Sheet1, hàng 17](source-catalog.md#post-apiv1usersmepasswordset).
 

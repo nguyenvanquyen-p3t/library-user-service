@@ -1,6 +1,6 @@
 # Đổi mật khẩu UC07
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 `PUT /api/v1/users/me/password` triển khai ngày 2026-11-13 theo kế hoạch chủ dự án duyệt. Ngày 2026-11-14 thêm [quản lý phiên UC10–UC12](user-sessions.md), ngày 2026-11-15 thêm [introspection](api/sessions.md#introspect), giữ nguyên 7 bảng và V1–V6. Hợp đồng tại [UC07](api/current-contract.md#password-change), chính sách tại [quyết định UC07](confirmed-decisions.md#user-password-uc07), validation tại [schema JSON](api/json-schema.md#validation). [GET user nội bộ](api/internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 

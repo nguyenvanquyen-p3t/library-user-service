@@ -1,6 +1,6 @@
 # Tích hợp nội bộ
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](../user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](../user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Trạng thái: **GET user nội bộ và introspection đã triển khai ngày 2026-11-15; PATCH trạng thái đã triển khai ngày 2026-11-17**, tại mốc đó tổng 12 IMPLEMENTED/8 DESIGN_ONLY. Gateway và Service JWT chưa triển khai. Cập nhật cách trình bày: 2026-10-24. Nguồn: Excel Sheet1 hàng 18–19 và [quyết định đã xác nhận](../confirmed-decisions.md). Tài liệu này duy trì trách nhiệm và điều kiện tích hợp; request/response nằm tại bản API hiện hành.
 

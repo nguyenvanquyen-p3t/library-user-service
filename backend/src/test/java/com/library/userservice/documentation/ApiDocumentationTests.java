@@ -82,7 +82,8 @@ class ApiDocumentationTests {
                                 "requestPasswordResetCode", "resetPassword", "authenticateWithGoogle", "completeGoogleRegistration",
                                 "getMyProfile", "updateMyProfile", "changePassword", "listMySessions",
                                 "revokeMyOtherSession", "revokeMyOtherSessions", "introspectUserAccessToken",
-                                "getInternalUser", "updateUserStatus").contains(operation.path("operationId").asText())
+                                "getInternalUser", "updateUserStatus", "requestFirstPasswordCode", "setFirstPassword")
+                                .contains(operation.path("operationId").asText())
                                 ? "IMPLEMENTED" : "DESIGN_ONLY");
                 assertThat(operationIds.add(operation.path("operationId").asText())).isTrue();
             }
@@ -95,6 +96,12 @@ class ApiDocumentationTests {
             assertThat(paths.path("/api/v1" + publicPath).path("post").path("security").isEmpty()).isTrue();
         }
         assertThat(paths.path("/api/v1/users/me").path("get").path("security").get(0).has("UserAccessToken")).isTrue();
+        var issueFirstPasswordCode = paths.path("/api/v1/users/me/password/request-code").path("post");
+        var setFirstPassword = paths.path("/api/v1/users/me/password/set").path("post");
+        assertThat(issueFirstPasswordCode.path("security").get(0).has("UserAccessToken")).isTrue();
+        assertThat(issueFirstPasswordCode.has("requestBody")).isFalse();
+        assertThat(setFirstPassword.path("security").get(0).has("UserAccessToken")).isTrue();
+        assertThat(setFirstPassword.path("requestBody").path("required").asBoolean()).isTrue();
         assertThat(paths.path("/api/v1/auth/google").path("post").path("responses").path("200")
                 .path("content").path("application/json").path("schema").path("oneOf").size()).isEqualTo(3);
         assertThat(paths.path("/api/v1/auth/google/register").path("post").path("responses").path("201")

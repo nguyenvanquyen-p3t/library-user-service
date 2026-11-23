@@ -1,6 +1,6 @@
 # HTTP status và phản hồi lỗi đã xác nhận
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](../user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](../user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Chủ dự án chốt HTTP/lỗi ngày 2026-10-25, bổ sung API phiên, mã phản hồi và introspection ngày 2026-10-26; chốt lỗi tích hợp, SMTP và trạng thái ngày 2026-10-31. **Hợp đồng đã xác nhận; login/refresh/logout UC02–UC04, GET/PATCH hồ sơ UC06, đổi mật khẩu UC07 và quản lý phiên UC10–UC12 và introspection đã triển khai (introspection ngày 2026-11-15), 8 operation khác còn thiết kế. Đã có [OpenAPI/Swagger UI](openapi.md) từ ngày 2026-11-01.** Quyết định duy trì tại [sổ quyết định](../confirmed-decisions.md#http-error-contract), [API phiên](../confirmed-decisions.md#session-response-contract), [danh mục mã phản hồi](../confirmed-decisions.md#response-code-contract), [introspection](../confirmed-decisions.md#introspection-contract) và [lỗi tích hợp bổ sung](../confirmed-decisions.md#integration-error-contract); schema chung tại [schema JSON](json-schema.md). Cấu hình JWT Q03/Q11a vẫn mở; Q06 chỉ còn lựa chọn/cấu hình môi trường SMTP. [GET user nội bộ](internal-integration.md#tra-cứu-user) triển khai ngày 2026-11-15, tại mốc GET user nội bộ có **11 IMPLEMENTED/9 DESIGN_ONLY**.
 

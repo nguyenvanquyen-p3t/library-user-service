@@ -4,6 +4,8 @@ Nguồn: chủ dự án xác nhận ngày 2026-10-17, mở rộng phạm vi ngà
 
 ## Phạm vi
 
+**Bổ sung UC09 ngày 2026-11-23.** Triển khai hai API [thiết lập mật khẩu lần đầu](user-password-setup.md) theo Q05, Q06 và Q13, dùng Flyway V1–V6. Tổng **20 IMPLEMENTED**.
+
 **Bổ sung UC08 ngày 2026-11-22.** Chủ dự án duyệt hai API Google, giữ Flyway V1–V6. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. [Triển khai UC08](user-google-auth.md)
 
 **Bổ sung ngày 2026-11-22.** Chủ dự án duyệt triển khai [UC05](user-password-reset.md) với hai endpoint hiện có. Thiếu cấu hình SMTP cho tài khoản đủ điều kiện trả 503 trước khi cấp mã. SMTP lỗi hoặc timeout sau commit vẫn trả 200 với phản hồi chung theo Q06. Tổng **16 IMPLEMENTED/4 DESIGN_ONLY**.
@@ -192,7 +194,7 @@ Chủ dự án xác nhận UC05 và UC09 gửi OTP cùng mật khẩu mới và 
 - UC09 dùng `POST /api/v1/users/me/password/set` với `verificationCode`, `newPassword`, `confirmPassword`; yêu cầu phiên đăng nhập hợp lệ, email lấy từ tài khoản đang xác thực.
 - Đánh dấu OTP đã dùng, lưu mật khẩu và thu hồi mọi phiên/refresh token liên quan trong cùng transaction. Chính sách OTP/mật khẩu và yêu cầu đăng nhập lại giữ nguyên.
 
-Quyết định này thay cách chia bước trong Word được đối chiếu ngày 2026-10-22; file Word chưa được cập nhật hoặc đối chiếu lại trong đợt này. Q13 chốt cách xác minh và nhóm trường gửi chung; schema JSON và HTTP/lỗi đã được chốt riêng ở các mục Q09 bên dưới. Các chi tiết chưa được nêu vẫn thuộc Q09 còn mở. Đây là thiết kế đã xác nhận, chưa triển khai API.
+Quyết định này thay cách chia bước trong Word được đối chiếu ngày 2026-10-22; file Word chưa được cập nhật hoặc đối chiếu lại trong đợt này. Q13 chốt cách xác minh và nhóm trường gửi chung; schema JSON và HTTP/lỗi đã được chốt riêng ở các mục Q09 bên dưới. Các chi tiết chưa được nêu vẫn thuộc Q09 còn mở. UC05 và UC09 đã triển khai theo quyết định này.
 
 <a id="json-schema-contract"></a>
 

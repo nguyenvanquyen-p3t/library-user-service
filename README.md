@@ -1,6 +1,6 @@
 # Library User Service
 
-**Hiện trạng ngày 2026-11-22.** [Đăng nhập và đăng ký Google UC08](docs/user-google-auth.md) đã triển khai. Tổng **18 IMPLEMENTED/2 DESIGN_ONLY**. Các số liệu theo mốc trước là lịch sử.
+**Hiện trạng ngày 2026-11-23.** [Thiết lập mật khẩu lần đầu UC09](docs/user-password-setup.md) đã triển khai. Tổng **20 IMPLEMENTED**. Các số liệu theo mốc trước là lịch sử.
 
 Microservice tài khoản và danh tính của hệ thống quản lý thư viện, phục vụ Web và ứng dụng Android. Service được thiết kế để quản lý đăng ký, đăng nhập Local/Google, hồ sơ, mật khẩu, phiên đăng nhập và cung cấp API tích hợp cho các service khác.
 
@@ -26,7 +26,7 @@ Ngày 2026-11-10, chủ dự án chốt [triển khai chức năng trước, xá
 - **Đã triển khai ngày 2026-11-20:** [Đăng ký Local UC01](docs/user-registration.md), gồm xin OTP qua SMTP và tạo tài khoản.
 - **Đã triển khai ngày 2026-11-22** [Quên và đặt lại mật khẩu UC05](docs/user-password-reset.md) dùng OTP và thu hồi phiên/token sau khi reset.
 - **Đã triển khai ngày 2026-11-22** [Đăng nhập và đăng ký Google UC08](docs/user-google-auth.md), gồm ba nhánh đăng nhập, liên kết Local và hoàn tất đăng ký.
-- **Còn thiết kế** hai operation của UC09. Gateway và Service JWT thuộc giai đoạn sau.
+- **Đã triển khai ngày 2026-11-23** [Thiết lập mật khẩu lần đầu UC09](docs/user-password-setup.md), hoàn tất 20 operation. Gateway và Service JWT thuộc giai đoạn sau.
 
 V6 đã áp dụng vào database dự án theo xác nhận của chủ dự án ngày 2026-10-25. Chi tiết trạng thái tại [mô hình dữ liệu](docs/data-model.md#migration-v6-quản-lý-phiên).
 
@@ -83,7 +83,7 @@ File dùng định dạng Java properties: `KEY=value`, không bao giá trị b�
 
 Ứng dụng cần cặp khóa PEM hợp lệ trong `.secrets/` để khởi động. Login cần tài khoản ACTIVE có hash Argon2id đúng định dạng. Người dùng có thể tạo tài khoản qua UC01 sau khi cấu hình OTP/SMTP. [Cấu hình khóa](docs/user-security.md#cấu-hình-khóa-và-khởi-động)
 
-Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`; đặc tả JSON tại `/v3/api-docs`, YAML tại `/v3/api-docs.yaml`. UI vẫn tắt `Try it out`; 18 operation đã triển khai, 2 operation còn thiết kế. Xem [cách dùng và kiểm tra OpenAPI](docs/api/openapi.md).
+Mở Swagger UI tại `http://localhost:5001/swagger-ui.html`. Đặc tả JSON tại `/v3/api-docs` và YAML tại `/v3/api-docs.yaml`. UI tắt `Try it out` và hiển thị 20 operation đã triển khai. [Cách dùng và kiểm tra OpenAPI](docs/api/openapi.md)
 
 Xem [hướng dẫn môi trường cục bộ](docs/local-development.md) để cấu hình chi tiết, đóng gói JAR và xử lý lỗi.
 
